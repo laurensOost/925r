@@ -605,13 +605,6 @@ class ProjectContractBudgetOverviewTable(BaseTable):
         'label': 'Estimated hours',
         'accessor': A('estimated_hours')
     }])
-    profit = BarChartComparisonColumn(yLabel='Cost (€)', accessor='fixed_fee_pct', dataset=[{
-        'label': 'Performance cost',
-        'accessor': A('performance_cost')
-    }, {
-        'label': 'Fixed fee',
-        'accessor': A('contract.fixed_fee')
-    }])
     invoiced = BarChartComparisonColumn(yLabel='Cost (€)', accessor='invoiced_pct', dataset=[{
         'label': 'Invoiced amount',
         'accessor': A('invoiced_amount')
