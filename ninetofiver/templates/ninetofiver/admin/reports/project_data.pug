@@ -41,7 +41,7 @@ div(class='row')
                             td
                                 - include 'ninetofiver/admin/reports/progress_bar.html' with value=contract_role_data.performed_pct
                             td
-                                - include 'ninetofiver/admin/reports/progress_bar.html' with value=contract_role_data.estimated_pct
+                                - include 'ninetofiver/admin/reports/progress_bar_to_red.html' with value=contract_role_data.estimated_pct
 
                     tr
                         th Total
@@ -49,7 +49,7 @@ div(class='row')
                         td(class='text-nowrap') {{ record.performed_hours | format_duration }}
                         td
                         td
-                            - include 'ninetofiver/admin/reports/progress_bar.html' with value=record.estimated_pct
+                            - include 'ninetofiver/admin/reports/progress_bar_to_red.html' with value=record.estimated_pct
 
     div(class='w-100 mt-3')
 
@@ -65,7 +65,7 @@ div(class='row')
                     td {{ record.contract.fixed_fee }}
                     td {{ record.invoiced_amount }}
                     td
-                        - include 'ninetofiver/admin/reports/progress_bar.html' with value=record.invoiced_pct
+                        - include 'ninetofiver/admin/reports/progress_bar_to_green.html' with value=record.invoiced_pct
 
     div(class='col-8')
         table(class='table table-sm table-striped my-0')

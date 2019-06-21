@@ -1,0 +1,30 @@
+<div
+    class="progress
+        {% if value == 0 %}
+	    bg-danger
+        {% endif %}
+    "
+    style="min-width: 150px;"
+>
+    {% if value is not None %}
+        <div
+            class="progress-bar
+                {% if value > 99 %}
+                    bg-success
+                {% elif value > 50 %}
+                    bg-info
+		{% elif value > 0 %}
+		    bg-warning
+                {% else %}
+                    bg-danger
+                {% endif %}
+            "
+            role="progressbar"
+            style="width: {{ value }}%;"
+        >
+            {{ value }}%
+        </div>
+    {% else %}
+        None
+    {% endif %}
+</div>

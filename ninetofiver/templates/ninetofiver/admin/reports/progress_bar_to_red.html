@@ -4,7 +4,15 @@
 >
     {% if value is not None %}
         <div
-            class="progress-bar"
+            class="progress-bar
+                {% if value > 90 %}
+                    bg-danger
+                {% elif value > 50 %}
+                    bg-warning
+                {% else %}
+                    bg-info
+                {% endif %}
+            "
             role="progressbar"
             style="width: {{ value }}%;"
         >
