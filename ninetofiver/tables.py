@@ -500,20 +500,40 @@ class ProjectContractOverviewTable(BaseTable):
     class Meta(BaseTable.Meta):
         pass
 
-    contract = tables.LinkColumn(
-        viewname='admin:ninetofiver_contract_change',
-        args=[A('contract.id')],
-        accessor='contract',
-        order_by=['contract.name'],
-        attrs={
-            'th': {
-                'style': 'width: 15%; min-width: 150px;'
-            }
-        }
-    )
+    contract = tables.Column(accessor='contract', orderable=True,
+                             attrs={
+                                 'th': {
+                                     'style': 'width: 15%; min-width: 150px;'
+                                 }
+                             })
     data = tables.TemplateColumn(template_name='ninetofiver/admin/reports/project_data.pug', accessor='', orderable=False)
 
     # actions = tables.Column(accessor='user', orderable=False, exclude_from_export=True)
+
+    def render_contract(self, record):
+        buttons = []
+
+        buttons.append(('<a href="%(url)s' +
+                        '%(contract_id)s">%(contract)s</a>') % {
+                        'url': reverse('admin:ninetofiver_contract_changelist'),
+                        'contract_id': record['contract'].id,
+                        'contract': record['contract'],
+        })
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'performance__contract=%(contract)s">Performances</a>') % {
+                        'url': reverse('admin_report_timesheet_contract_overview'),
+                        'contract': record['contract'].id,
+        })
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'contract__id__exact=%(contract)s">Invoices</a>') % {
+                        'url': reverse('admin:ninetofiver_invoice_changelist'),
+                        'contract': record['contract'].id,
+        })
+
+
+        return format_html('%s' % ('</br></br>'.join(buttons)))
 
     def render_actions(self, record):
         buttons = []
