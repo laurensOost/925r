@@ -38,11 +38,13 @@ class AdminReportTimesheetContractOverviewFilter(FilterSet):
     performance__contract__contract_groups = (django_filters.ModelMultipleChoiceFilter(
                                               label='Contract group', queryset=models.ContractGroup.objects.all(),
                                               distinct=True))
-    user = django_filters.ModelMultipleChoiceFilter(queryset=auth_models.User.objects.filter(is_active=True))
+    month = django_filters.MultipleChoiceFilter(choices=lambda: [[x + 1, x + 1] for x in range(12)])
     year = django_filters.MultipleChoiceFilter(choices=lambda: [[x, x] for x in (models.Timesheet.objects
                                                                                  .values_list('year', flat=True)
                                                                                  .order_by('year').distinct())])
-    month = django_filters.MultipleChoiceFilter(choices=lambda: [[x + 1, x + 1] for x in range(12)])
+    user = django_filters.ModelMultipleChoiceFilter(queryset=auth_models.User.objects.filter(is_active=True))
+    user__employmentcontract__company = django_filters.ModelChoiceFilter(
+                                        label='User company', queryset=models.Company.objects.filter(internal=True), distinct=True)
 
     class Meta:
         model = models.Timesheet
@@ -52,10 +54,11 @@ class AdminReportTimesheetContractOverviewFilter(FilterSet):
             'performance__contract__customer': ['exact'],
             'performance__contract__company': ['exact'],
             'performance__contract__contract_groups': ['exact'],
-            'user': ['exact'],
-            'status': ['exact'],
-            'year': ['exact'],
             'month': ['exact'],
+            'year': ['exact'],
+            'user': ['exact'],
+            'user__employmentcontract__company': ['exact'],
+            'status': ['exact'],
         }
 
 
