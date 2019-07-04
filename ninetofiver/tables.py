@@ -470,7 +470,7 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     user = tables.LinkColumn(
         viewname='admin:auth_user_change',
         args=[A('user.id')],
-        accessor='contract_user',
+        accessor='contract_user.user',
         order_by=['user.first_name', 'user.last_name', 'user.username']
     )
     contract = tables.LinkColumn(
