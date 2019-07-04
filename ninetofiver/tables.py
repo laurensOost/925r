@@ -479,6 +479,7 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         accessor='contract',
         order_by=['contract.name']
     )
+    day_rate = tables.Column(accessor='contract.day_rate')
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
     ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
