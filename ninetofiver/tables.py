@@ -479,8 +479,8 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         accessor='contract',
         order_by=['contract.name']
     )
-    starts_at = tables.DateColumn('D d F', accessor='contract.starts_at')
-    ends_at = tables.DateColumn('D d F', accessor='contract.ends_at')
+    starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
+    ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     remaining_hours = SummedHoursColumn(accessor='remaining_hours')
