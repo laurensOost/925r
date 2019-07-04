@@ -485,10 +485,16 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     remaining_hours = SummedHoursColumn(accessor='remaining_hours')
-    # actions = tables.Column(accessor='user', orderable=False, exclude_from_export=True)
+    actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 
     def render_actions(self, record):
         buttons = []
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'performance__contract=%(contract)s">Performances</a>') % {
+                        'url': reverse('admin_report_timesheet_contract_overview'),
+                        'contract': record['contract'].id,
+                        })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
