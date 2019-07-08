@@ -15,6 +15,10 @@ Install build dependencies:
 ```bash
 apt-get install -y python-dev libldap2-dev libsasl2-dev libssl-dev
 ```
+or
+```bash
+sudo dnf install -y mysql-devel openldap-devel
+```
 
 You'll need [pipenv](https://docs.pipenv.org/). Installing it is super simple:
 
