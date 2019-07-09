@@ -479,13 +479,13 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         accessor='contract',
         order_by=['contract.name']
     )
+    status = tables.Column(accessor='contract_log')
     day_rate = tables.Column(accessor='contract.day_rate')
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
     ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     remaining_hours = SummedHoursColumn(accessor='remaining_hours')
-    status = tables.Column(accessor='contract_log')
     actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 
     def render_actions(self, record):
