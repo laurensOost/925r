@@ -28,6 +28,9 @@ block content
             a(href="{% url 'admin_report_resource_availability_overview' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ next_month|date:'Y-m-d' }}") Resource availability overview
         tr
           th
+            a(href="{% url 'admin_report_invoiced_consultancy_contract_overview' %}?active=true&year={{ today|date:'Y'}}&month={{ today|date:'n' }}") Invoiced consultancy contract overview
+        tr
+          th
             a(href="{% url 'admin_report_expiring_consultancy_contract_overview' %}?ends_at_lte={{ two_months_from_now|date:'Y-m-d' }}&remaining_hours_lte={{ '160' }}") Expiring consultancy contract overview
         tr
           th

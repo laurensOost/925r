@@ -801,6 +801,70 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
 
     return render(request, 'ninetofiver/admin/reports/expiring_consultancy_contract_overview.pug', context)
 
+@staff_member_required
+def admin_report_invoiced_consultancy_contract_overview_view(request):
+
+    fltr = filters.AdminReportInvoicedConsultancyContractOverviewFilter(request.GET,
+                                                                        models.ConsultancyContract.objects)
+    data = []
+
+    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
+    try:
+        years = list(map(int, request.GET.getlist('year', [])))
+    except Exception:
+        years = None
+    try:
+        months = list(map(int, request.GET.getlist('month', [])))
+    except Exception:
+        months = None
+
+    contracts = models.ConsultancyContract.objects.all()
+    if active is not None:
+        contracts = contracts.filter(active=active)
+
+    for contract in contracts:
+        performed_hours = models.ActivityPerformance.objects.filter(contract=contract)
+        if months is not None:
+            performed_hours = performed_hours.filter(timesheet__month__in=months)
+        if years is not None:
+            performed_hours = performed_hours.filter(timesheet__year__in=years)
+        performed_hours = performed_hours.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
+        performed_hours = performed_hours['performed_hours'] if performed_hours['performed_hours'] else Decimal('0.00')
+
+        invoiced_total_amount = 0
+        for invoice in models.Invoice.objects.filter(contract=contract):
+
+            match = False
+            for year in years:
+                for month in months:
+                    period_start, period_end = month_date_range(year, month)
+                    if (invoice.period_starts_at <= period_start) & (invoice.period_ends_at >= period_end):
+                        match = True
+            if not match:
+                break
+
+            invoiced_total_amount += invoice.get_total_amount()
+
+        data.append({
+            'contract': contract,
+            'performed_hours': performed_hours,
+            'day_rate': contract.day_rate,
+            'to_be_invoiced': round( performed_hours * contract.day_rate / 8, 2 ),
+            'invoiced': invoiced_total_amount
+        })
+
+    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    table = tables.InvoicedConsultancyContractOverviewTable(data)
+    config.configure(table)
+
+    context = {
+        'title':  _('Invoiced consultancy contract overview'),
+        'table':  table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/invoiced_consultancy_contract_overview.pug', context)
+
 
 @staff_member_required
 def admin_report_project_contract_overview_view(request):

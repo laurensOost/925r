@@ -1218,6 +1218,12 @@ class Invoice(BaseModel):
         """Return a string representation."""
         return '%s' % self.reference
 
+    def get_total_amount(self):
+        """Return the total amount of the invoice (sum of all Invoice Items)"""
+        total_amount = 0
+        for item in InvoiceItem.objects.filter(invoice=self):
+            total_amount += item.price * item.amount
+        return total_amount
 
 class InvoiceItem(BaseModel):
     """Invoice item."""

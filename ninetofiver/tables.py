@@ -1,5 +1,6 @@
 """Tables."""
 import uuid
+import humanize
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import format_html
 from django.urls import reverse
@@ -40,6 +41,20 @@ class HoursColumn(tables.Column):
 
     def value(self, value):
         """Return the value."""
+        return value
+
+class EuroColumn(tables.Column):
+    """Euro column."""
+
+    attrs = { 'td': {'align': 'right'} }
+
+    def render(self, value):
+        if value:
+            return '€ {}'.format(humanize.intcomma(value))
+        else:
+            return format_html('<span style="color:#999;">{}</span>','€ {}'.format(humanize.intcomma(value)))
+
+    def value(self, value):
         return value
 
 
@@ -493,6 +508,37 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
 
         buttons.append(('<a class="button" href="%(url)s?' +
                         'performance__contract=%(contract)s">Performances</a>') % {
+                        'url': reverse('admin_report_timesheet_contract_overview'),
+                        'contract': record['contract'].id,
+                        })
+
+        return format_html('%s' % ('&nbsp;'.join(buttons)))
+
+
+class InvoicedConsultancyContractOverviewTable(BaseTable):
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    contract = tables.LinkColumn(
+        viewname='admin:ninetofiver_contract_change',
+        args=[A('contract.id')],
+        accessor='contract',
+        order_by=['contract.name']
+    )
+    performed_hours = SummedHoursColumn(accessor='performed_hours')
+    day_rate = EuroColumn(accessor='day_rate')
+    to_be_invoiced = EuroColumn(accessor='to_be_invoiced')
+    invoiced = EuroColumn(accessor='invoiced')
+    actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
+
+
+    def render_actions(self, record):
+        buttons = []
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'performance__contract=%(contract)s' +
+                        '">Performances</a>') % {
                         'url': reverse('admin_report_timesheet_contract_overview'),
                         'contract': record['contract'].id,
                         })
