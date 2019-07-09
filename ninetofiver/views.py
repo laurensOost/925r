@@ -2,6 +2,7 @@ from django.contrib.auth import models as auth_models, mixins as auth_mixins
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.forms.models import modelform_factory
@@ -751,7 +752,10 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
                                .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
             performed_hours = performed_hours if performed_hours else Decimal('0.00')
             remaining_hours = (alotted_hours - performed_hours) if alotted_hours else None
-            contract_log = ContractLog.objects.filter(contract=contract).latest('date')
+            try:
+                contract_log = ContractLog.objects.filter(contract=contract).latest('date').contract_log_type
+            except ObjectDoesNotExist:
+                contract_log = None
 
             if (((not ends_at_lte) or (not contract.ends_at) or (contract.ends_at > ends_at_lte)) and
                 ((remaining_hours_lte is None) or (remaining_hours is None) or (remaining_hours > remaining_hours_lte))):
