@@ -33,6 +33,7 @@ from rest_framework_swagger.renderers import OpenAPIRenderer
 from rest_framework_swagger.renderers import SwaggerUIRenderer
 from rest_framework.authtoken import models as authtoken_models
 from ninetofiver import settings, tables, calculation, pagination
+from ninetofiver.models import ContractLog
 from ninetofiver.utils import month_date_range, dates_in_range
 from django.db.models import Q, F, Sum, Prefetch, DecimalField
 from django_tables2 import RequestConfig
@@ -750,6 +751,7 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
                                .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
             performed_hours = performed_hours if performed_hours else Decimal('0.00')
             remaining_hours = (alotted_hours - performed_hours) if alotted_hours else None
+            contract_log = ContractLog.objects.filter(contract=contract).latest('date')
 
             if (((not ends_at_lte) or (not contract.ends_at) or (contract.ends_at > ends_at_lte)) and
                 ((remaining_hours_lte is None) or (remaining_hours is None) or (remaining_hours > remaining_hours_lte))):
@@ -770,6 +772,7 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
 
                 data.append({
                     'contract': contract,
+                    'contract_log': contract_log,
                     'contract_user': contract_user,
                     'user': contract_user.user,
                     'alotted_hours': alotted_hours,

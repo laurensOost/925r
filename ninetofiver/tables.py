@@ -485,6 +485,7 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     remaining_hours = SummedHoursColumn(accessor='remaining_hours')
+    status = tables.Column(accessor='contract_log.contract_log_type')
     actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 
     def render_actions(self, record):

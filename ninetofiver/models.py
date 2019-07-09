@@ -682,6 +682,48 @@ class ContractGroup(BaseModel):
         return self.name
 
 
+class ContractLogType(BaseModel):
+
+    """Contract log type model."""
+
+    name = models.CharField(unique=True, max_length=255)
+
+    class Meta(BaseModel.Meta):
+        ordering = ['name']
+
+    def __str__(self):
+        """Return a string representation."""
+        return '%s' % self.name
+
+
+class ContractLog(BaseModel):
+
+    """Contract log model."""
+
+    date = models.DateField()
+    description = models.TextField(max_length=255, blank=True, null=True)
+    contract_log_type = models.ForeignKey(ContractLogType, on_delete=models.PROTECT)
+    contract = models.ForeignKey('Contract', on_delete=models.CASCADE)
+
+    class Meta(BaseModel.Meta):
+        ordering = ['-date']
+
+    def __str__(self):
+        """Return a string representation."""
+        return '{date} - {description} - {status}'.format(
+            date=self.date,
+            description=self.description,
+            status=self.contract_log_type,
+        )
+
+    def short_str(self):
+        """Return a string representation."""
+        return '{date} - {status}'.format(
+            date=self.date,
+            status=self.contract_log_type,
+        )
+
+
 class Contract(BaseModel):
 
     """Contract model."""

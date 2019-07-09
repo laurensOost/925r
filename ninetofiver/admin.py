@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.core.cache import cache
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, TextField
+from django.forms import TextInput
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django import forms
@@ -315,6 +316,13 @@ class ContractGroupAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', )
 
 
+@admin.register(models.ContractLogType)
+class ContractLogTypeAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'name')
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
 class ContractUserInline(admin.TabularInline):
     model = models.ContractUser
     ordering = ("user__first_name", "user__last_name",)
@@ -333,6 +341,14 @@ class ContractUserGroupInline(admin.TabularInline):
 
 class ContractEstimateInline(admin.TabularInline):
     model = models.ContractEstimate
+
+
+class ContractLogInline(admin.TabularInline):
+    view_on_site = False
+    model = models.ContractLog
+    formfield_overrides = {
+        TextField: {'widget': TextInput(attrs={'size': '60'})},
+    }
 
 
 class ContractForm(forms.ModelForm):
@@ -483,6 +499,7 @@ class ContractChildAdmin(PolymorphicChildModelAdmin):
                 .distinct())
 
     inlines = [
+        ContractLogInline,
         ContractEstimateInline,
         ContractUserGroupInline,
         ContractUserInline,
