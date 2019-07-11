@@ -1,29 +1,33 @@
 """Admin."""
+import logging
+from datetime import date
+
+from adminsortable.admin import SortableAdmin
+from django import forms
 from django.contrib import admin
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import Q, Prefetch, TextField
 from django.forms import TextInput
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
-from django import forms
-from django.urls import reverse
 from django_admin_listfilter_dropdown.filters import DropdownFilter
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from import_export import fields
+from import_export.admin import ExportMixin
+from import_export.resources import ModelResource
 from polymorphic.admin import PolymorphicChildModelAdmin
 from polymorphic.admin import PolymorphicChildModelFilter
 from polymorphic.admin import PolymorphicParentModelAdmin
 from rangefilter.filter import DateRangeFilter
 from rangefilter.filter import DateTimeRangeFilter
-from import_export.admin import ExportMixin
-from import_export.resources import ModelResource
-from adminsortable.admin import SortableAdmin
+
 from ninetofiver import models, redmine
 from ninetofiver.templatetags.markdown import markdown
-from datetime import date
-import logging
-
+from ninetofiver.utils import IntelligentManyToManyWidget
 
 log = logging.getLogger(__name__)
 
@@ -367,6 +371,11 @@ class ContractForm(forms.ModelForm):
 class ContractResource(ModelResource):
     """Contract resource."""
 
+    contract_users = fields.Field(
+        column_name='users',
+        attribute='contract_users',
+        widget=IntelligentManyToManyWidget(User, lookup='get_full_name'))
+
     class Meta:
         """Contract resource meta class."""
 
@@ -385,7 +394,27 @@ class ContractResource(ModelResource):
             'projectcontract__fixed_fee',
             'consultancycontract__duration',
             'consultancycontract__day_rate',
-            'supportcontract_fixed_fee',
+            'supportcontract__fixed_fee',
+            'supportcontract__fixed_fee_period',
+            'supportcontract__day_rate',
+            'polymorphic_ctype__model',
+        )
+        export_order = (
+            'id',
+            'name',
+            'description',
+            'starts_at',
+            'ends_at',
+            'active',
+            'company__id',
+            'company__name',
+            'customer__id',
+            'customer__name',
+            'contract_users',
+            'projectcontract__fixed_fee',
+            'consultancycontract__duration',
+            'consultancycontract__day_rate',
+            'supportcontract__fixed_fee',
             'supportcontract__fixed_fee_period',
             'supportcontract__day_rate',
             'polymorphic_ctype__model',

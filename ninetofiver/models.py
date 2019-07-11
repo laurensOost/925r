@@ -1,10 +1,15 @@
 """Models."""
-import humanize
-import uuid
-import logging
 import datetime
+import logging
+import uuid
 from decimal import Decimal
+
+import humanize
+from adminsortable.models import SortableMixin
+from dateutil.relativedelta import relativedelta
+from dirtyfields import DirtyFieldsMixin
 from django.contrib.auth import models as auth_models
+from django.contrib.auth.models import User
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -12,14 +17,9 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django_countries.fields import CountryField
 from model_utils import Choices
+from phonenumber_field.modelfields import PhoneNumberField
 from polymorphic.models import PolymorphicManager
 from polymorphic.models import PolymorphicModel
-from dirtyfields import DirtyFieldsMixin
-from dateutil.relativedelta import relativedelta
-from phonenumber_field.modelfields import PhoneNumberField
-from adminsortable.models import SortableMixin
-from ninetofiver.utils import days_in_month
-
 
 log = logging.getLogger(__name__)
 
@@ -743,6 +743,7 @@ class Contract(BaseModel):
     attachments = models.ManyToManyField(Attachment, blank=True)
     redmine_id = models.CharField(max_length=255, blank=True, null=True)
     external_only = models.BooleanField(default=False)
+    contract_users = models.ManyToManyField(User, through='ContractUser')
 
     def __str__(self):
         """Return a string representation."""

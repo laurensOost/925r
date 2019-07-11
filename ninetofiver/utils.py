@@ -1,14 +1,15 @@
 """Utils."""
-from importlib import import_module
-from calendar import monthrange
-from dateutil.relativedelta import relativedelta
+import copy
 import datetime
 import os
-import copy
-from django.core.mail import send_mail as base_send_mail
-from django.template.loader import render_to_string
-from django.db.models import Q
+from calendar import monthrange
+from importlib import import_module
 
+from dateutil.relativedelta import relativedelta
+from django.core.mail import send_mail as base_send_mail
+from django.db.models import Q
+from django.template.loader import render_to_string
+from import_export.widgets import ManyToManyWidget
 
 DEFAULT_DJANGO_ENVIRONMENT = 'dev'
 
@@ -114,3 +115,25 @@ def get_users_with_permission(permission):
                      Q(user_permissions__codename=permission))
              .distinct())
     return users
+
+
+class IntelligentManyToManyWidget(ManyToManyWidget):
+    """
+    Same as parent widget, but you can pass lookup key.
+    Behaves same if passed a Model field, but if it is method, it will try to execute it.
+    """
+
+    def __init__(self, model, separator=None, field=None, lookup=None, *args, **kwargs):
+        self.lookup = lookup
+        super(IntelligentManyToManyWidget, self).__init__(model, separator, field, *args, **kwargs)
+
+    def render(self, value, obj=None):
+        ids = []
+        lookup_field = self.lookup or self.field
+        for obj in value.all():
+            resolved_field = getattr(obj, lookup_field)
+            if callable(resolved_field):
+                ids.append(resolved_field())
+            else:
+                ids.append(resolved_field)
+        return self.separator.join(ids)
