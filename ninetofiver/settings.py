@@ -396,7 +396,7 @@ class Dev(Base):
             'ninetofiver': {
                 'handlers': ['console'],
                 'level': 'DEBUG',
-            }
+            },
         }
     }
 

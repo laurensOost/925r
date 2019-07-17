@@ -26,6 +26,7 @@ from rangefilter.filter import DateRangeFilter
 from rangefilter.filter import DateTimeRangeFilter
 
 from ninetofiver import models, redmine
+from ninetofiver.models import Timesheet
 from ninetofiver.templatetags.markdown import markdown
 from ninetofiver.utils import IntelligentManyToManyWidget
 
@@ -208,10 +209,32 @@ class LeaveDateInline(admin.TabularInline):
 
     model = models.LeaveDate
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == "timesheet" and hasattr(self, 'cached_timesheets'):
+            # use cached options because django will fetch them multiple times otherwise
+            formfield.choices = self.cached_timesheets
+
+        return formfield
+
 
 @admin.register(models.Leave)
 class LeaveAdmin(admin.ModelAdmin):
     """Leave admin."""
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        """Cache timesheets foreign-keys in inlines"""
+        cached_timesheets = [(None, "---------")]
+        if obj:
+            cached_timesheets.extend([(i.pk, str(i)) for i in Timesheet.objects.filter(user=obj.user)])
+        else:
+            cached_timesheets.extend([(i.pk, str(i)) for i in Timesheet.objects.all()])
+
+        # populate all inlines with cached properties - probably should select th
+        for inline in self.get_inline_instances(request, obj):
+            inline.cached_timesheets = cached_timesheets
+            yield inline.get_formset(request, obj), inline
 
     def make_approved(self, request, queryset):
         """Approve selected leaves."""
