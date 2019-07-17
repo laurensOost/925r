@@ -589,6 +589,12 @@ class LeaveDate(BaseModel):
         """Perform additional validation on the object."""
         super().perform_additional_validation()
 
+        if not self.starts_at:
+            raise ValidationError({'starts_at': _('The start date/time should be set')})
+
+        if not self.ends_at:
+            raise ValidationError({'ends_at': _('The end date/time should be set')})
+
         # Verify whether the start datetime of the leave date comes before the end datetime
         if self.starts_at >= self.ends_at:
             raise ValidationError({'starts_at': _('The start date should be set before the end date')})
