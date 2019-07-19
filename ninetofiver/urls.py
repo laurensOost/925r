@@ -108,6 +108,7 @@ urlpatterns += [
     url(r'^admin/ninetofiver/report/$', views.admin_report_index_view, name='admin_report_index'),  # noqa
     url(r'^admin/ninetofiver/report/timesheet_contract_overview/$', views.admin_report_timesheet_contract_overview_view, name='admin_report_timesheet_contract_overview'),  # noqa
     url(r'^admin/ninetofiver/report/timesheet_overview/$', views.admin_report_timesheet_overview_view, name='admin_report_timesheet_overview'),  # noqa
+    url(r'^admin/ninetofiver/report/timesheet_monthly_overview/$', views.admin_report_timesheet_monthly_overview_view, name='admin_report_timesheet_monthly_overview'),  # noqa
     url(r'^admin/ninetofiver/report/user_range_info/$', views.admin_report_user_range_info_view, name='admin_report_user_range_info'),  # noqa
     url(r'^admin/ninetofiver/report/user_leave_overview/$', views.admin_report_user_leave_overview_view, name='admin_report_user_leave_overview'),  # noqa
     url(r'^admin/ninetofiver/report/user_work_ratio_overview/$', views.admin_report_user_work_ratio_overview_view, name='admin_report_user_work_ratio_overview'),  # noqa

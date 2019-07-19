@@ -28,6 +28,9 @@ block content
             a(href="{% url 'admin_report_resource_availability_overview' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ next_month|date:'Y-m-d' }}") Resource availability overview
         tr
           th
+            a(href="{% url 'admin_report_timesheet_monthly_overview' %}?base_date={{ today|date:'Y-m-d' }}&fetch_previous=true") Timesheet monthly overview
+        tr
+          th
             a(href="{% url 'admin_report_invoiced_consultancy_contract_overview' %}?active=true&year={{ today|date:'Y'}}&month={{ today|date:'n' }}") Invoiced consultancy contract overview
         tr
           th
