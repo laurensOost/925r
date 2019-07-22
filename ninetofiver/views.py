@@ -36,7 +36,7 @@ from rest_framework.authtoken import models as authtoken_models
 from ninetofiver import settings, tables, calculation, pagination
 from ninetofiver.models import ContractLog
 from ninetofiver.utils import month_date_range, dates_in_range
-from django.db.models import Q, F, Sum, Prefetch, DecimalField
+from django.db.models import Q, F, Sum, Prefetch, DecimalField, Max, Subquery
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
 from datetime import datetime, date, timedelta
@@ -1163,6 +1163,61 @@ def admin_report_project_contract_budget_overview_view(request):
     }
 
     return render(request, 'ninetofiver/admin/reports/project_contract_budget_overview.pug', context)
+
+
+@staff_member_required
+def admin_report_expiring_user_training_overview_view(request):
+    """Expiring user training overview report."""
+    fltr = filters.AdminReportExpiringUserTrainingOverviewFilter(request.GET, models.Training.objects)
+
+    ends_at_lte = (parser.parse(request.GET.get('ends_at_lte', None)).date()
+                   if request.GET.get('ends_at_lte') else None)
+    data = []
+
+    # This SHOULD? work in Postgres if ever needed
+    # trainings = (models.Training.objects.all()
+    #              .select_related('training_type', 'user_training', 'user_training__user')
+    #              .distinct('training_type', 'user_training')
+    #              .order_by('-ends_at')
+    #              )
+
+    # But because MySQL doesn't know DISTINCT ON, we need to hack around.
+    # First get all wanted IDs from RAW query.
+    # And also Django adds 'id' to GROUP BY every time.
+    training_pks = models.Training.objects.raw('SELECT "id", max("ends_at") FROM "ninetofiver_training" GROUP BY "user_training_id", "training_type_id"')
+    pks = [training.id for training in training_pks]
+
+    # And then fetch them with related stuff + we can now use additional filtering.
+    if ends_at_lte:
+        trainings = (models.Training.objects.filter(pk__in=pks, ends_at__lte=ends_at_lte)
+                     .select_related('training_type', 'user_training', 'user_training__user')
+                     .order_by('-ends_at'))
+    else:
+        trainings = (models.Training.objects.filter(pk__in=pks)
+                     .select_related('training_type', 'user_training', 'user_training__user')
+                     .order_by('-ends_at'))
+
+    for training in trainings:
+        data.append({
+            'training': training,
+        })
+
+    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    table = tables.ExpiringUserTrainingOverviewTable(data, order_by='ends_at')
+    config.configure(table)
+
+    export_format = request.GET.get('_export', None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response('table.{}'.format(export_format))
+
+    context = {
+        'title': _('Expiring user training overview'),
+        'table': table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/expiring_user_training_overview.pug', context)
 
 
 class AdminTimesheetContractPdfExportView(BaseTimesheetContractPdfExportServiceAPIView):

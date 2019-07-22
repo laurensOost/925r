@@ -1231,6 +1231,7 @@ class Invoice(BaseModel):
             total_amount += item.price * item.amount
         return total_amount
 
+
 class InvoiceItem(BaseModel):
     """Invoice item."""
 
@@ -1246,3 +1247,99 @@ class InvoiceItem(BaseModel):
     )
     amount = models.PositiveIntegerField(default=1)
     description = models.TextField(max_length=255, blank=True, null=True)
+
+
+class UserTraining(BaseModel):
+    """User Training link table to be able to add inlines in admin under this"""
+    user = models.OneToOneField(auth_models.User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        """Return a string representation."""
+        return '{user}'.format(user=self.user)
+
+
+class TrainingType(BaseModel):
+    """Training type - for example '(OHS) - Occupational Health and Safety' """
+
+    name = models.CharField(max_length=255)
+    mandatory = models.BooleanField(default=True)
+    country = CountryField()
+    description = models.TextField(max_length=255, blank=True, null=True)
+    required_action = models.TextField(max_length=255, blank=True, null=True)
+
+    class Meta(BaseModel.Meta):
+        ordering = ['name']
+        unique_together = ['name', 'country']
+
+    def __str__(self):
+        """Return a string representation."""
+        if self.mandatory:
+            return '{name} (M)'.format(name=self.name)
+        return '{name}'.format(name=self.name)
+
+
+def in_one_year():
+    return datetime.date.today() + datetime.timedelta(days=365)
+
+
+class Training(BaseModel):
+    """Specific trainings for user"""
+    user_training = models.ForeignKey(UserTraining, on_delete=models.CASCADE)
+    training_type = models.ForeignKey(TrainingType, on_delete=models.PROTECT)
+    starts_at = models.DateField(default=datetime.date.today)
+    ends_at = models.DateField(default=in_one_year)
+
+    class Meta(BaseModel.Meta):
+        ordering = ['-ends_at']
+
+    def __str__(self):
+        """Return a string representation."""
+        return '{user} - {training_type} ({starts_at} - {ends_at})'.format(
+            user=self.user_training,
+            training_type=self.training_type,
+            starts_at=self.starts_at,
+            ends_at=self.ends_at,
+        )
+
+    @property
+    def remaining_days(self):
+        if self.pk:
+            return (self.ends_at - datetime.date.today()).days
+        return "-"
+
+    def perform_additional_validation(self):
+        """Perform additional validation on the object."""
+        super().perform_additional_validation()
+
+        if not self.starts_at:
+            raise ValidationError({'starts_at': _('The start date should be set')})
+
+        if not self.ends_at:
+            raise ValidationError({'ends_at': _('The end date should be set')})
+
+        # Verify whether the start date of the training comes before the end date
+        if self.starts_at >= self.ends_at:
+            raise ValidationError({'starts_at': _('The start date should be set before the end date')})
+
+        # # If trainings can't overlap, uncomment block below to enable validation
+        # # Check whether this doesn't already overlap with other trainings of the same type
+        # existing_trainings = self.__class__.objects.filter(user_training=self.user_training,
+        #                                                    training_type=self.training_type)
+        # if self.pk:
+        #     existing_trainings = existing_trainings.exclude(pk=self.pk)
+        #
+        # existing_trainings_starts_at = existing_trainings.filter(
+        #     Q(starts_at__lte=self.starts_at) & Q(ends_at__gte=self.starts_at))
+        # existing_trainings_ends_at = existing_trainings.filter(
+        #     Q(ends_at__gte=self.ends_at) & Q(starts_at__lte=self.ends_at))
+        #
+        # validation_error_dict = {}
+        # if existing_trainings_starts_at:
+        #     validation_error_dict['starts_at'] = ValidationError(
+        #         _('There is another training, which overlaps with this date.'))
+        # if existing_trainings_ends_at:
+        #     validation_error_dict['ends_at'] = ValidationError(
+        #         _('There is another training, which overlaps with this date.'))
+        #
+        # if validation_error_dict:
+        #     raise ValidationError(validation_error_dict)

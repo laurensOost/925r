@@ -698,3 +698,42 @@ class ProjectContractBudgetOverviewTable(BaseTable):
         })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
+
+
+class ExpiringUserTrainingOverviewTable(BaseTable):
+    """Expiring support contract overview table."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    user = tables.LinkColumn(
+        viewname='admin:auth_user_change',
+        args=[A('training.user_training.user.id')],
+        accessor='training.user_training.user',
+        order_by=['training.user_training.user.first_name', 'training.user_training.user.last_name', 'training.user_training.user.username']
+    )
+
+    training_type = tables.Column(
+        accessor='training.training_type'
+    )
+    training_description = tables.Column(
+        accessor='training.training_type.description'
+    )
+
+    mandatory = tables.BooleanColumn(accessor='training.training_type.mandatory')
+    starts_at = tables.DateColumn('d M, Y', accessor='training.starts_at')
+    ends_at = tables.DateColumn('d M, Y', accessor='training.ends_at')
+    remaining_days = tables.Column(accessor='training.remaining_days')
+    required_action = tables.Column(accessor='training.training_type.required_action')
+
+    actions = tables.Column(accessor='training', orderable=False, exclude_from_export=True)
+
+    def render_actions(self, record):
+        buttons = []
+
+        buttons.append('<a class="button" href="{url}?">{label}</a>'.format(
+            url=reverse('admin:ninetofiver_usertraining_change', args=(record['training'].user_training.id,)),
+            label="Details"
+        ))
+
+        return format_html('%s' % ('&nbsp;'.join(buttons)))

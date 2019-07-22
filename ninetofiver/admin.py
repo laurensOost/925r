@@ -850,3 +850,109 @@ class InvoiceAdmin(admin.ModelAdmin):
         InvoiceItemInline,
     ]
     ordering = ('-reference',)
+
+
+@admin.register(models.TrainingType)
+class UserTrainingTypeAdmin(admin.ModelAdmin):
+    """User training types admin"""
+
+    list_display = (
+        '__str__',
+        'description',
+        'mandatory',
+        'country',
+    )
+
+    list_filter = (
+        'mandatory',
+        ('country', DropdownFilter),
+    )
+
+
+class TrainingInline(admin.TabularInline):
+    model = models.Training
+    extra = 0
+    fields = ('training_type', 'starts_at', 'ends_at', 'remaining_days')
+    readonly_fields = ('remaining_days',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+        if db_field.name == "training_type" and hasattr(self, 'training_types_choices'):
+            # use cached options because django will fetch them multiple times otherwise
+            formfield.choices = self.training_types_choices
+
+        return formfield
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if hasattr(self, 'training_type_filter'):
+            return qs.filter(training_type=self.training_type_filter)
+        return qs.none()
+
+
+@admin.register(models.UserTraining)
+class UserTrainingAdmin(admin.ModelAdmin):
+    list_display = (
+        "__str__",
+        "enrolled_training_types",
+        "missing_mandatory_training",
+    )
+    list_filter = (
+        ('user', RelatedDropdownFilter),
+        ('user__userinfo__country', DropdownFilter),
+        'training__training_type'
+    )
+
+    def add_view(self, *args, **kwargs):
+        self.inlines = []
+        self.readonly_fields = []
+        return super(UserTrainingAdmin, self).add_view(*args, **kwargs)
+
+    def change_view(self, *args, **kwargs):
+        self.inlines = [TrainingInline]
+        self.readonly_fields = ["user"]
+        return super(UserTrainingAdmin, self).change_view(*args, **kwargs)
+
+    def enrolled_training_types(self, obj):
+        return format_html('<br>'.join(str(x) for x in list(
+            models.TrainingType.objects.filter(country=obj.user.userinfo.country,
+                                               training__user_training=obj).distinct())))
+
+    def missing_mandatory_training(self, obj):
+        return format_html('<br>'.join(str(x) for x in list(
+            models.TrainingType.objects.filter(country=obj.user.userinfo.country, mandatory=True).exclude(
+                                               training__user_training=obj).distinct())))
+
+    def get_inline_instances(self, request, obj=None):
+        """This method will create few dynamic inlines grouped on TrainingType."""
+        inlines = []
+
+        # if this is change_view (don't display anything on add_view)
+        if obj:
+
+            # Fetch all training types that are already associated with user.
+            enrolled_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country, training__user_training=obj).distinct()
+            # Fetch remaining training types that user can possibly have (filter by country)
+            available_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country).exclude(training__user_training=obj).distinct()
+
+            # For every active training, add separate and tweaked inline
+            for training_type in enrolled_training_types:
+                training_inline = TrainingInline(self.model, self.admin_site)
+                # Set naming
+                training_inline.verbose_name = training_type
+                training_inline.verbose_name_plural = "{training_type} - Trainings".format(training_type=training_type)
+                # See `formfield_for_foreignkey()` and `get_queryset()` methods in `TrainingInline` class
+                training_inline.training_types_choices = ((training_type.pk, str(training_type)),)
+                training_inline.training_type_filter = training_type
+                # Add to inlines which should be be display
+                inlines.append(training_inline)
+
+            # If there are any remaining training types, display inline for them.
+            if available_training_types:
+                general_training_inline = TrainingInline(self.model, self.admin_site)
+                general_training_inline.extra = 1
+                general_training_inline.training_types_choices = [(None, "---------")]+[(i.pk, str(i)) for i in available_training_types]
+                inlines.append(general_training_inline)
+
+        return inlines

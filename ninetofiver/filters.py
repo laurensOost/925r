@@ -221,3 +221,13 @@ class AdminReportInvoicedConsultancyContractOverviewFilter(FilterSet):
     class Meta:
         model = models.ConsultancyContract
         fields = {'active'}
+
+
+class AdminReportExpiringUserTrainingOverviewFilter(FilterSet):
+    """Expiring support contract overview admin report filter."""
+    ends_at_lte = django_filters.DateFilter(label='Ends before', widget=admin_widgets.AdminDateWidget(),
+                                            field_name='ends_at', lookup_expr='lte')
+
+    class Meta:
+        model = models.Training
+        fields = {}
