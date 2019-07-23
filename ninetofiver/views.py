@@ -1184,7 +1184,7 @@ def admin_report_expiring_user_training_overview_view(request):
     # But because MySQL doesn't know DISTINCT ON, we need to hack around.
     # First get all wanted IDs from RAW query.
     # And also Django adds 'id' to GROUP BY every time.
-    training_pks = models.Training.objects.raw('SELECT "id", max("ends_at") FROM "ninetofiver_training" GROUP BY "user_training_id", "training_type_id"')
+    training_pks = models.Training.objects.raw('SELECT "id", max("ends_at") FROM ninetofiver_training GROUP BY "user_training_id", "training_type_id"')
     pks = [training.id for training in training_pks]
 
     # And then fetch them with related stuff + we can now use additional filtering.
