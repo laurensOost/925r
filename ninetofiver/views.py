@@ -1182,18 +1182,20 @@ def admin_report_expiring_user_training_overview_view(request):
     #              )
 
     # But because MySQL doesn't know DISTINCT ON, we need to hack around.
-    # First get all wanted IDs from RAW query.
-    # And also Django adds 'id' to GROUP BY every time.
-    training_pks = models.Training.objects.raw('SELECT "id", max("ends_at") FROM ninetofiver_training GROUP BY "user_training_id", "training_type_id"')
-    pks = [training.id for training in training_pks]
+    selected = {}
+    training_pks = models.Training.objects.values("id", "user_training", "training_type").order_by("-ends_at")
+    for record in training_pks:
+        if (record.get('user_training'), record.get('training_type')) in selected:
+            continue
+        selected[(record.get('user_training'), record.get('training_type'))] = record.get('id')
 
     # And then fetch them with related stuff + we can now use additional filtering.
     if ends_at_lte:
-        trainings = (models.Training.objects.filter(pk__in=pks, ends_at__lte=ends_at_lte)
+        trainings = (models.Training.objects.filter(pk__in=selected.values(), ends_at__lte=ends_at_lte)
                      .select_related('training_type', 'user_training', 'user_training__user')
                      .order_by('-ends_at'))
     else:
-        trainings = (models.Training.objects.filter(pk__in=pks)
+        trainings = (models.Training.objects.filter(pk__in=selected.values())
                      .select_related('training_type', 'user_training', 'user_training__user')
                      .order_by('-ends_at'))
 
