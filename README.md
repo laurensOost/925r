@@ -13,7 +13,7 @@ ninetofiver (or 925r) is a free and open source time and leave tracking applicat
 Install build dependencies:
 
 ```bash
-apt-get install -y python-dev libldap2-dev libsasl2-dev libssl-dev
+apt-get install -y python-dev default-libmysqlclient-dev libldap2-dev libsasl2-dev libssl-dev
 ```
 or
 ```bash

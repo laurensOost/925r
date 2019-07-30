@@ -1245,7 +1245,7 @@ class InvoiceItem(BaseModel):
             validators.MaxValueValidator(9999999),
         ]
     )
-    amount = models.PositiveIntegerField(default=1)
+    amount = models.DecimalField(default=1.00, decimal_places=5, max_digits=9)
     description = models.TextField(max_length=255, blank=True, null=True)
 
 
