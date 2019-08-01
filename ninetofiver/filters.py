@@ -213,10 +213,8 @@ class AdminReportExpiringSupportContractOverviewFilter(FilterSet):
 
 class AdminReportInvoicedConsultancyContractOverviewFilter(FilterSet):
 
-    month = django_filters.MultipleChoiceFilter(label='Month', choices=lambda: [[x + 1, x + 1] for x in range(12)])
-    year = django_filters.MultipleChoiceFilter(label='Year', choices=lambda: [[x, x] for x in (models.Timesheet.objects
-                                                                         .values_list('year', flat=True)
-                                                                         .order_by('year').distinct())])
+    from_date = django_filters.DateFilter(label='From', widget=admin_widgets.AdminDateWidget())
+    until_date = django_filters.DateFilter(label='Until', widget=admin_widgets.AdminDateWidget())
 
     class Meta:
         model = models.ConsultancyContract

@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.db.models import Q, Prefetch, TextField
 from django.forms import TextInput
 from django.urls import reverse
+from django.utils.functional import curry
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django_admin_listfilter_dropdown.filters import DropdownFilter
@@ -810,6 +811,26 @@ class InvoiceItemInline(admin.TabularInline):
     """Invoice item inline."""
 
     model = models.InvoiceItem
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+
+        # Is it get?
+        if request.method == "GET" and (not obj or not obj.id):
+            data = {}
+            price = request.GET.get('price')
+            if price:
+                data['price'] = price
+                # formset.form.base_fields['price'].initial = price
+
+            amount = request.GET.get('amount')
+            if amount:
+                data['amount'] = amount
+                # formset.form.base_fields['amount'].initial = amount
+
+            formset.__init__ = curry(formset.__init__, initial=[data])
+
+        return formset
 
 
 @admin.register(models.Invoice)

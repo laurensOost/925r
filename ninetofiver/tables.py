@@ -43,6 +43,7 @@ class HoursColumn(tables.Column):
         """Return the value."""
         return value
 
+
 class EuroColumn(tables.Column):
     """Euro column."""
 
@@ -529,9 +530,10 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = EuroColumn(accessor='day_rate')
     to_be_invoiced = EuroColumn(accessor='to_be_invoiced')
-    invoiced = EuroColumn(accessor='invoiced')
+    invoiced = EuroColumn(accessor='invoiced',)
+    missing = tables.Column(accessor='invoiced_missing', orderable=False, exclude_from_export=True)
+    # performed_invoiced = SummedHoursColumn(accessor='performed_invoiced')
     actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
-
 
     def render_actions(self, record):
         buttons = []
@@ -542,6 +544,23 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
                         'url': reverse('admin_report_timesheet_contract_overview'),
                         'contract': record['contract'].id,
                         })
+
+        buttons.append('<a class="button" href="{url}?'
+                       'contract={contract_id}&'
+                       'period_starts_at={period_starts_at}&'
+                       'period_ends_at={period_ends_at}&'
+                       'date={date}&'
+                       'price={price}&'
+                       'amount={amount}&'
+                       '">{label}</a>'.format(url=reverse('admin:ninetofiver_invoice_add'),
+                                              label="Add invoice",
+                                              contract_id=record['contract'].id,
+                                              period_starts_at=record['action'].get('period_starts_at'),
+                                              period_ends_at=record['action'].get('period_ends_at'),
+                                              date=record['action'].get('date'),
+                                              price=record['action'].get('price'),
+                                              amount=record['action'].get('amount'),
+                                              ))
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 

@@ -1,3 +1,5 @@
+import itertools
+
 from django.contrib.auth import models as auth_models, mixins as auth_mixins
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -801,22 +803,31 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
 
     return render(request, 'ninetofiver/admin/reports/expiring_consultancy_contract_overview.pug', context)
 
+
 @staff_member_required
 def admin_report_invoiced_consultancy_contract_overview_view(request):
 
-    fltr = filters.AdminReportInvoicedConsultancyContractOverviewFilter(request.GET,
+    # Copy QueryDict of GET - so we can inject from_date and until_date if not filled
+    request_get = request.GET.copy()
+
+    # Update from and until date so they are not missing and are the first and last day of the selected month(s)
+    try:
+        from_date = datetime.strptime(request.GET.get('from_date'), '%Y-%m-%d').date().replace(day=1)
+    except Exception:
+        from_date = datetime.today().replace(day=1).date()
+    request_get['from_date'] = from_date.strftime("%Y-%m-%d")
+
+    try:
+        until_date = (datetime.strptime(request.GET.get('until_date'), '%Y-%m-%d').date().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
+    except Exception:
+        until_date = (datetime.today().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
+    request_get['until_date'] = until_date.strftime("%Y-%m-%d")
+
+    fltr = filters.AdminReportInvoicedConsultancyContractOverviewFilter(request_get,
                                                                         models.ConsultancyContract.objects)
     data = []
 
     active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
-    try:
-        years = list(map(int, request.GET.getlist('year', [])))
-    except Exception:
-        years = None
-    try:
-        months = list(map(int, request.GET.getlist('month', [])))
-    except Exception:
-        months = None
 
     contracts = models.ConsultancyContract.objects.all()
     if active is not None:
@@ -824,33 +835,54 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
 
     for contract in contracts:
         performed_hours = models.ActivityPerformance.objects.filter(contract=contract)
-        if months is not None:
-            performed_hours = performed_hours.filter(timesheet__month__in=months)
-        if years is not None:
-            performed_hours = performed_hours.filter(timesheet__year__in=years)
+
+        # Filter by timesheet (month/year)
+        performed_hours = performed_hours.filter(
+            Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
+            Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__gte=until_date.year)
+        )
+        # Filter by exact date
+        # performed_hours = performed_hours.filter(date__gte=from_date, date__lte=until_date)
+
         performed_hours = performed_hours.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
         performed_hours = performed_hours['performed_hours'] if performed_hours['performed_hours'] else Decimal('0.00')
 
         invoiced_total_amount = 0
-        for invoice in models.Invoice.objects.filter(contract=contract):
+        # performed_total_invoiced_hours = Decimal('0.00')
 
-            match = False
-            for year in years:
-                for month in months:
-                    period_start, period_end = month_date_range(year, month)
-                    if (invoice.period_starts_at <= period_start) & (invoice.period_ends_at >= period_end):
-                        match = True
-            if not match:
-                break
-
+        invoiced_missing = False
+        for invoice in models.Invoice.objects.filter(contract=contract, period_starts_at__lte=until_date, period_ends_at__gte=from_date):
             invoiced_total_amount += invoice.get_total_amount()
+            if from_date > invoice.period_starts_at or until_date < invoice.period_ends_at:
+                invoiced_missing = True
+            # performed_invoiced_hours = models.ActivityPerformance.objects.filter(contract=contract, date__gte=invoice.period_starts_at, date__lte=invoice.period_ends_at)
+            # performed_invoiced_hours = performed_invoiced_hours.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
+            # performed_total_invoiced_hours += performed_invoiced_hours['performed_hours'] if performed_invoiced_hours['performed_hours'] else Decimal('0.00')
+
+        # date is last day of the month of the specific period selected in the report
+        #  - if that date is less than 15 days before or after the current date
+        # else the current date.
+        invoice_date = until_date
+        if date.today() - timedelta(days=-15) < invoice_date < date.today() - timedelta(days=15):
+            invoice_date = date.today()
+
+        amount = (until_date - from_date).days + 1
 
         data.append({
             'contract': contract,
             'performed_hours': performed_hours,
             'day_rate': contract.day_rate,
-            'to_be_invoiced': round( performed_hours * contract.day_rate / 8, 2 ),
-            'invoiced': invoiced_total_amount
+            'to_be_invoiced': round(performed_hours * contract.day_rate / 8, 2),
+            'invoiced': invoiced_total_amount,
+            'invoiced_missing': "(!)" if invoiced_missing else "",
+            # 'performed_invoiced': performed_total_invoiced_hours,
+            'action': {
+                'period_starts_at': from_date,
+                'period_ends_at': until_date,
+                'date': invoice_date,
+                'price': contract.day_rate,
+                'amount': amount,
+            },
         })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
