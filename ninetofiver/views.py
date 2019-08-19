@@ -818,7 +818,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
     request_get['from_date'] = from_date.strftime("%Y-%m-%d")
 
     try:
-        until_date = (datetime.strptime(request.GET.get('until_date'), '%Y-%m-%d').date().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
+        until_date = (datetime.strptime(request.GET.get('until_date'), '%Y-%m-%d').date().replace(day=1) + relativedelta(months=1) - relativedelta(days=1))
     except Exception:
         until_date = (datetime.today().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
     request_get['until_date'] = until_date.strftime("%Y-%m-%d")
