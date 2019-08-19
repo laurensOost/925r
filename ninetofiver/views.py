@@ -37,7 +37,7 @@ from rest_framework_swagger.renderers import SwaggerUIRenderer
 from rest_framework.authtoken import models as authtoken_models
 from ninetofiver import settings, tables, calculation, pagination
 from ninetofiver.models import ContractLog
-from ninetofiver.utils import month_date_range, dates_in_range
+from ninetofiver.utils import month_date_range, dates_in_range, hours_to_days
 from django.db.models import Q, F, Sum, Prefetch, DecimalField, Max, Subquery
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
@@ -866,7 +866,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         if date.today() - timedelta(days=-15) < invoice_date < date.today() - timedelta(days=15):
             invoice_date = date.today()
 
-        amount = (until_date - from_date).days + 1
+        # amount = (until_date - from_date).days + 1
 
         data.append({
             'contract': contract,
@@ -881,7 +881,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
                 'period_ends_at': until_date,
                 'date': invoice_date,
                 'price': contract.day_rate,
-                'amount': amount,
+                'amount': hours_to_days(performed_hours),
             },
         })
 
