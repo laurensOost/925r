@@ -128,6 +128,7 @@ class ApiKey(BaseModel):
 
     """
 
+    # noinspection PyMethodParameters
     def generate_key():
         """Generate a key."""
         return str(uuid.uuid4()).replace('-', '')
@@ -282,6 +283,7 @@ class EmploymentContract(BaseModel):
 
     """Employment contract model."""
 
+    # noinspection PyMethodParameters
     def company_choices():
         return {'internal': True}
 
@@ -734,6 +736,7 @@ class Contract(BaseModel):
 
     """Contract model."""
 
+    # noinspection PyMethodParameters
     def company_choices():
         return {'internal': True}
 
