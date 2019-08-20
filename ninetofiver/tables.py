@@ -600,12 +600,14 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         # noinspection PyMethodParameters
         def determine_row_color(record):
             ends_at = record['contract'].ends_at
+            if not ends_at:
+                return
             if ends_at < date.today() + timedelta(days=30):
-                return 'table-danger' # Expires within 30 days
+                return 'table-danger'  # Expires within 30 days
             if ends_at < date.today() + timedelta(days=60):
-                return 'table-warning' # Expires within 60 days
+                return 'table-warning'  # Expires within 60 days
             if ends_at < date.today() + timedelta(days=90):
-                return 'table-info' # Expires within 90 days
+                return 'table-info'  # Expires within 90 days
             return
 
         row_attrs = {
