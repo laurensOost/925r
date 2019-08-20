@@ -1,15 +1,17 @@
 """Tables."""
 import uuid
+from datetime import timedelta, date
+
+import django_tables2 as tables
 import humanize
 import six
-from django.template.loader import get_template
-from django.utils.translation import ugettext_lazy as _
-from django.utils.html import format_html, strip_tags
-from django.urls import reverse
-import django_tables2 as tables
-from django_tables2.utils import A
-from django_tables2.export.export import TableExport
 from django.template import Context, Template
+from django.template.loader import get_template
+from django.urls import reverse
+from django.utils.html import format_html, strip_tags
+from django.utils.translation import ugettext_lazy as _
+from django_tables2.export.export import TableExport
+from django_tables2.utils import A
 
 from ninetofiver import models
 from ninetofiver.utils import month_date_range, format_duration, dates_in_range
@@ -150,6 +152,26 @@ class EuroColumn(tables.Column):
 
     def value(self, value):
         return value
+
+
+class InvoiceColoredEuroColumn(TemplateMixin, EuroColumn):
+    """Colored Euro column for Invoiced Consultancy Contract Overview."""
+
+    # Hack, normally methods should have self as the first parameters. This is fine.
+    # noinspection PyMethodParameters
+    def determine_invoiced_cell_color(record):
+        invoiced = record['invoiced']
+        to_be_invoiced = record['to_be_invoiced']
+        if invoiced >= to_be_invoiced:
+            return 'table-success'
+        elif invoiced == 0 and to_be_invoiced != 0:
+            return 'table-danger'
+        elif invoiced != 0 and to_be_invoiced != 0 and invoiced < to_be_invoiced:
+            return 'table-warning'
+        elif to_be_invoiced == 0:
+            return
+
+    attrs = { 'td': {'align': 'right', 'class': determine_invoiced_cell_color}}
 
 
 class BarChartComparisonColumn(tables.TemplateColumn):
@@ -574,7 +596,21 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     """Expiring consultancy contract overview table."""
 
     class Meta(BaseTable.Meta):
-        pass
+        # Hack, normally methods should have self as the first parameters. This is fine.
+        # noinspection PyMethodParameters
+        def determine_row_color(record):
+            ends_at = record['contract'].ends_at
+            if ends_at < date.today() + timedelta(days=30):
+                return 'table-danger' # Expires within 30 days
+            if ends_at < date.today() + timedelta(days=60):
+                return 'table-warning' # Expires within 60 days
+            if ends_at < date.today() + timedelta(days=90):
+                return 'table-info' # Expires within 90 days
+            return
+
+        row_attrs = {
+            'class': determine_row_color
+        }
 
     MULTIUSER_TEMPLATE = """
 <ul style="margin:0;padding-inline-start:10px">
@@ -618,10 +654,6 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
 
-class TemplatedEuroColumn(TemplateMixin, EuroColumn):
-    pass
-
-
 class InvoicedConsultancyContractOverviewTable(BaseTable):
 
     class Meta(BaseTable.Meta):
@@ -636,7 +668,7 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = EuroColumn(accessor='day_rate')
     to_be_invoiced = EuroColumn(accessor='to_be_invoiced')
-    invoiced = TemplatedEuroColumn(
+    invoiced = InvoiceColoredEuroColumn(
         post_template_code='{% if record.invoiced_missing %} <span style="color:#f02311;font-weight:bold;" title="%s">(!)&nbsp;</span>{% endif %}',
         accessor='invoiced',
     )
