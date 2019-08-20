@@ -1,14 +1,107 @@
 """Tables."""
 import uuid
 import humanize
+import six
+from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
-from django.utils.html import format_html
+from django.utils.html import format_html, strip_tags
 from django.urls import reverse
 import django_tables2 as tables
 from django_tables2.utils import A
 from django_tables2.export.export import TableExport
+from django.template import Context, Template
+
 from ninetofiver import models
 from ninetofiver.utils import month_date_range, format_duration, dates_in_range
+
+
+class TemplateMixin(object):
+    """
+    Inspired by TemplateColumn, this can be used to add wrapping template to any column as mixin.
+    Example:
+        TemplatedEuroColumn(TemplateMixin, EuroColumn)
+
+    Arguments:
+        pre_template_code (str): template code to render
+        pre_template_name (str): name of the template to render
+        post_template_code (str): template code to render
+        post_template_name (str): name of the template to render
+        extra_context (dict): optional extra template context
+
+    A `~django.template.Template` object is created from the
+    *template_code* or *template_name* and rendered with a context containing:
+
+    - *record*      -- data record for the current row
+    - *value*       -- value from `record` that corresponds to the current column
+    - *default*     -- appropriate default value to use as fallback.
+    - *row_counter* -- The number of the row this cell is being rendered in.
+    - any context variables passed using the `extra_context` argument to `TemplateColumn`.
+
+    Example:
+
+    .. code-block:: python
+
+        class ExampleTable(tables.Table):
+            foo = TemplatedEuroColumn(post_template_code: '<div style:'color: red'>', post_template_code:'</div>')
+
+    """
+
+    def __init__(self,
+                 *args,
+                 pre_template_code=None,
+                 pre_template_name=None,
+                 post_template_code=None,
+                 post_template_name=None,
+                 extra_context=None,
+                 **kwargs
+                 ):
+        self.pre_template_code = pre_template_code
+        self.pre_template_name = pre_template_name
+        self.post_template_code = post_template_code
+        self.post_template_name = post_template_name
+        self.extra_context = extra_context or {}
+
+        super(TemplateMixin, self).__init__(*args, **kwargs)
+
+    def render(self, record, table, value, bound_column, **kwargs):
+        # If the table is being rendered using `render_table`, it hackily
+        # attaches the context to the table as a gift to `TemplateColumn`.
+        context = getattr(table, "context", Context())
+        context.update(self.extra_context)
+        context.update(
+            {
+                "default": bound_column.default,
+                "column": bound_column,
+                "record": record,
+                "value": value,
+                "row_counter": kwargs["bound_row"].row_counter,
+            }
+        )
+
+        pre_html = ""
+        post_html = ""
+        try:
+            if self.pre_template_code:
+                pre_html = Template(self.pre_template_code).render(context)
+            elif self.pre_template_name:
+                pre_html = get_template(self.pre_template_name).render(context.flatten())
+
+            if self.post_template_code:
+                post_html = Template(self.post_template_code).render(context)
+            elif self.post_template_name:
+                pre_html = get_template(self.post_template_name).render(context.flatten())
+        finally:
+            context.pop()
+
+        in_html = super(TemplateMixin, self).render(value)
+        return format_html('{}{}{}', pre_html, in_html, post_html)
+
+    def value(self, **kwargs):
+        html = super(TemplateMixin, self).value(**kwargs)
+        if isinstance(html, six.string_types):
+            return strip_tags(html)
+        else:
+            return html
 
 
 class BaseTable(tables.Table):
@@ -53,7 +146,7 @@ class EuroColumn(tables.Column):
         if value:
             return '€ {}'.format(humanize.intcomma(value))
         else:
-            return format_html('<span style="color:#999;">{}</span>','€ {}'.format(humanize.intcomma(value)))
+            return format_html('<span style="color:#999;">{}</span>', '€ {}'.format(humanize.intcomma(value)))
 
     def value(self, value):
         return value
@@ -483,18 +576,27 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     class Meta(BaseTable.Meta):
         pass
 
-    user = tables.LinkColumn(
-        viewname='admin:auth_user_change',
-        args=[A('user.id')],
-        accessor='contract_user.user',
-        order_by=['user.first_name', 'user.last_name', 'user.username']
-    )
+    MULTIUSER_TEMPLATE = """
+<ul style="margin:0;padding-inline-start:10px">
+{% for user in value %}
+    <li><a href="{% url 'admin:auth_user_change' user.id %}">{{ user }}</a></li>
+{% empty %}
+-
+{% endfor %}
+</ul>
+    """
+
     contract = tables.LinkColumn(
         viewname='admin:ninetofiver_contract_change',
         args=[A('contract.id')],
         accessor='contract',
         order_by=['contract.name']
     )
+    users = tables.TemplateColumn(
+        template_code=MULTIUSER_TEMPLATE,
+        accessor='users',
+    )
+
     status = tables.Column(accessor='contract_log')
     day_rate = tables.Column(accessor='contract.day_rate')
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
@@ -516,6 +618,10 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
 
+class TemplatedEuroColumn(TemplateMixin, EuroColumn):
+    pass
+
+
 class InvoicedConsultancyContractOverviewTable(BaseTable):
 
     class Meta(BaseTable.Meta):
@@ -530,8 +636,11 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = EuroColumn(accessor='day_rate')
     to_be_invoiced = EuroColumn(accessor='to_be_invoiced')
-    invoiced = EuroColumn(accessor='invoiced',)
-    missing = tables.Column(accessor='invoiced_missing', orderable=False, exclude_from_export=True)
+    invoiced = TemplatedEuroColumn(
+        post_template_code='{% if record.invoiced_missing %} <span style="color:#f02311;font-weight:bold;" title="%s">(!)&nbsp;</span>{% endif %}',
+        accessor='invoiced',
+    )
+    # missing = tables.Column(accessor='invoiced_missing', orderable=False, exclude_from_export=True)
     # performed_invoiced = SummedHoursColumn(accessor='performed_invoiced')
     actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 

@@ -1,17 +1,13 @@
 """Filters."""
-import datetime
-import dateutil
 import logging
+
 import django_filters
-import rest_framework_filters as filters
-from django_filters.rest_framework import FilterSet
-from django.db.models import Q, Func
 from django.contrib.admin import widgets as admin_widgets
 from django.contrib.auth import models as auth_models
 from django.utils.translation import ugettext_lazy as _
-from ninetofiver import models
-from ninetofiver.utils import merge_dicts
+from django_filters.rest_framework import FilterSet
 
+from ninetofiver import models
 
 logger = logging.getLogger(__name__)
 
@@ -147,12 +143,14 @@ class AdminReportResourceAvailabilityOverviewFilter(FilterSet):
 
 class AdminReportExpiringConsultancyContractOverviewFilter(FilterSet):
     """Expiring consultancy contract overview admin report filter."""
-    ends_at_lte = django_filters.DateFilter(label='Ends before', widget=admin_widgets.AdminDateWidget(),
-                                            field_name='ends_at', lookup_expr='lte')
-    remaining_hours_lte = django_filters.NumberFilter(label='Remaining hours (<=, less than or equal)')
-    remaining_days_lte = django_filters.NumberFilter(label='Remaining 8h days (<=, less than or equal)')
-    only_final = django_filters.ChoiceFilter(label='Only display final consultancy contract for a user?',
-                                             choices=(('true', 'Yes'), ('false', 'No')))
+    company = (django_filters.ModelMultipleChoiceFilter(queryset=models.Company.objects.filter(internal=True),
+                                                        distinct=True))
+    filter_internal = django_filters.ChoiceFilter(label='Filter internal contracts',
+                                                  empty_label="Show all project",
+                                                  choices=(
+                                                      ('show_noninternal', 'Show only non-internal project'),
+                                                      ('show_internal', 'Show only internal project'),
+                                                  ))
 
     class Meta:
         model = models.ConsultancyContract

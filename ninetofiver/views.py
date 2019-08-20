@@ -1,54 +1,33 @@
-import itertools
-
-from django.contrib.auth import models as auth_models, mixins as auth_mixins
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render, redirect
-from django.forms.models import modelform_factory
-from django.views import generic as generic_views
-from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
-from django.urls import reverse_lazy
-from decimal import Decimal
-from ninetofiver import filters
-from ninetofiver import models
-from ninetofiver import serializers
-from ninetofiver import redmine
-from ninetofiver import feeds
-from rest_framework import parsers
-from rest_framework import permissions
-from rest_framework import response
-from rest_framework import status
-from rest_framework import schemas
-from rest_framework import viewsets
-from rest_framework import generics
-from rest_framework.decorators import api_view
-from rest_framework.decorators import permission_classes
-from rest_framework.decorators import renderer_classes
-from rest_framework.renderers import CoreJSONRenderer
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework_swagger.renderers import OpenAPIRenderer
-from rest_framework_swagger.renderers import SwaggerUIRenderer
-from rest_framework.authtoken import models as authtoken_models
-from ninetofiver import settings, tables, calculation, pagination
-from ninetofiver.models import ContractLog
-from ninetofiver.utils import month_date_range, dates_in_range, hours_to_days
-from django.db.models import Q, F, Sum, Prefetch, DecimalField, Max, Subquery
-from django_tables2 import RequestConfig
-from django_tables2.export.export import TableExport
+import copy
+import logging
+from collections import OrderedDict
 from datetime import datetime, date, timedelta
-from wkhtmltopdf.views import PDFTemplateView
+from decimal import Decimal
+
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
-from collections import OrderedDict
-import logging
-import copy
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import models as auth_models, mixins as auth_mixins
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q, F, Sum, DecimalField
+from django.forms.models import modelform_factory
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
+from django.views import generic as generic_views
+from django_tables2 import RequestConfig
+from django_tables2.export.export import TableExport
+from rest_framework import generics
+from rest_framework import permissions
+from wkhtmltopdf.views import PDFTemplateView
 
+from ninetofiver import filters
+from ninetofiver import models
+from ninetofiver import tables, calculation, pagination
+from ninetofiver.models import ContractLog
+from ninetofiver.utils import month_date_range, dates_in_range, hours_to_days
 
 logger = logging.getLogger(__name__)
 
@@ -723,68 +702,46 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
     """Expiring consultancy User work ratio overview report."""
     fltr = filters.AdminReportExpiringConsultancyContractOverviewFilter(request.GET,
                                                                         models.ConsultancyContract.objects)
-    ends_at_lte = (parser.parse(request.GET.get('ends_at_lte', None)).date()
-                   if request.GET.get('ends_at_lte') else None)
-    remaining_hours_lte = (Decimal(request.GET.get('remaining_hours_lte'))
-                           if request.GET.get('remaining_hours_lte') else None)
-    remaining_days_lte = (Decimal(request.GET.get('remaining_days_lte'))
-                          if request.GET.get('remaining_days_lte') else None)
-    only_final = request.GET.get('only_final', 'false') == 'true'
+    filter_internal = request.GET.get('filter_internal', 'show_noninternal')
     data = []
 
-    if ends_at_lte or remaining_hours_lte or remaining_days_lte:
-        # If remaining_days_lte * 8 is than remaining_hours_lte, use that instead
-        if remaining_days_lte and ((not remaining_hours_lte) or ((remaining_days_lte * 8) < remaining_hours_lte)):
-            remaining_hours_lte = remaining_days_lte * 8
+    contracts = (
+        models.ConsultancyContract.objects.all()
+        .select_related('customer')
+        .prefetch_related('contractuser_set', 'contractuser_set__contract_role', 'contractuser_set__user')
+        .filter(active=True)
+        # Ensure contracts without end date/duration are never shown, since they will never expire
+        .filter(Q(ends_at__isnull=False) | Q(duration__isnull=False))
+    )
 
-        contracts = (models.ConsultancyContract.objects.all()
-                     .select_related('customer')
-                     .prefetch_related('contractuser_set', 'contractuser_set__contract_role', 'contractuser_set__user')
-                     .filter(active=True)
-                     # Ensure contracts without end date/duration are never shown, since they will never expire
-                     .filter(Q(ends_at__isnull=False) | Q(duration__isnull=False))
-                     # Ensure contracts where the internal company and the customer are the same are filtered out
-                     # These are internal contracts to cover things such as meetings, talks, etc..
-                     .exclude(customer=F('company')))
+    if filter_internal == "show_noninternal":
+        contracts = contracts.exclude(customer=F('company'))
+    elif filter_internal == "show_internal":
+        contracts = contracts.filter(customer=F('company'))
+    elif filter_internal == "show_all":
+        # Do nothing - show all. (#readability_counts)
+        pass
 
-        for contract in contracts:
-            alotted_hours = contract.duration
-            performed_hours = (models.ActivityPerformance.objects
-                               .filter(contract=contract)
-                               .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
-            performed_hours = performed_hours if performed_hours else Decimal('0.00')
-            remaining_hours = (alotted_hours - performed_hours) if alotted_hours else None
-            try:
-                contract_log = ContractLog.objects.filter(contract=contract).latest('date').contract_log_type
-            except ObjectDoesNotExist:
-                contract_log = None
+    for contract in contracts:
+        alotted_hours = contract.duration
+        performed_hours = (models.ActivityPerformance.objects
+                           .filter(contract=contract)
+                           .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
+        performed_hours = performed_hours if performed_hours else Decimal('0.00')
+        remaining_hours = (alotted_hours - performed_hours) if alotted_hours else None
+        try:
+            contract_log = ContractLog.objects.filter(contract=contract).latest('date').contract_log_type
+        except ObjectDoesNotExist:
+            contract_log = None
 
-            if (((not ends_at_lte) or (not contract.ends_at) or (contract.ends_at > ends_at_lte)) and
-                ((remaining_hours_lte is None) or (remaining_hours is None) or (remaining_hours > remaining_hours_lte))):
-                continue
-
-            for contract_user in contract.contractuser_set.all():
-                # If we're only supposed to show final consultancy contracts for any given user
-                # AND if the current contract actually has an end date,
-                # ensure the user has no linked active consultancy contracts with a later end date
-                if only_final and contract.ends_at:
-                    final = (models.ConsultancyContract.objects
-                             .filter(contractuser__user=contract_user.user, ends_at__isnull=False,
-                                     ends_at__gte=contract.ends_at, active=True)
-                             .exclude(id=contract.id)
-                             .count()) == 0
-                    if not final:
-                        continue
-
-                data.append({
-                    'contract': contract,
-                    'contract_log': contract_log,
-                    'contract_user': contract_user,
-                    'user': contract_user.user,
-                    'alotted_hours': alotted_hours,
-                    'performed_hours': performed_hours,
-                    'remaining_hours': remaining_hours,
-                })
+        data.append({
+            'contract': contract,
+            'contract_log': contract_log,
+            'users': [contract_user.user for contract_user in contract.contractuser_set.all().order_by('user__first_name', 'user__last_name', 'user__username')],
+            'alotted_hours': alotted_hours,
+            'performed_hours': performed_hours,
+            'remaining_hours': remaining_hours,
+        })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
     table = tables.ExpiringConsultancyContractOverviewTable(data, order_by='ends_at')
@@ -874,7 +831,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
             'day_rate': contract.day_rate,
             'to_be_invoiced': round(performed_hours * contract.day_rate / 8, 2),
             'invoiced': invoiced_total_amount,
-            'invoiced_missing': "(!)" if invoiced_missing else "",
+            'invoiced_missing': invoiced_missing,
             # 'performed_invoiced': performed_total_invoiced_hours,
             'action': {
                 'period_starts_at': from_date,
