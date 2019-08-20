@@ -148,8 +148,8 @@ class AdminReportExpiringConsultancyContractOverviewFilter(FilterSet):
     filter_internal = django_filters.ChoiceFilter(label='Filter internal contracts',
                                                   empty_label="Show all project",
                                                   choices=(
-                                                      ('show_noninternal', 'Show only non-internal project'),
-                                                      ('show_internal', 'Show only internal project'),
+                                                      ('show_noninternal', 'Show only non-internal consultancy contracts'),
+                                                      ('show_internal', 'Show only internal consultancy contracts'),
                                                   ))
 
     class Meta:

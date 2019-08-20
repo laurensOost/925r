@@ -702,6 +702,7 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
     """Expiring consultancy User work ratio overview report."""
     fltr = filters.AdminReportExpiringConsultancyContractOverviewFilter(request.GET,
                                                                         models.ConsultancyContract.objects)
+    company = request.GET.getlist('company', [])
     filter_internal = request.GET.get('filter_internal', 'show_noninternal')
     data = []
 
@@ -713,6 +714,9 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
         # Ensure contracts without end date/duration are never shown, since they will never expire
         .filter(Q(ends_at__isnull=False) | Q(duration__isnull=False))
     )
+
+    if company:
+        contracts = contracts.filter(company__in=company)
 
     if filter_internal == "show_noninternal":
         contracts = contracts.exclude(customer=F('company'))
