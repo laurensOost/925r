@@ -484,7 +484,7 @@ class ResourceAvailabilityOverviewTable(BaseTable):
         super().__init__(*args, **kwargs)
 
 
-class TImesheetMonthlyOverviewTable(BaseTable):
+class TimesheetMonthlyOverviewTable(BaseTable):
     """Timesheet monthly overview table."""
 
     class Meta(BaseTable.Meta):

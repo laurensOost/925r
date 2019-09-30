@@ -5,6 +5,7 @@ from datetime import timedelta
 import copy
 from ninetofiver import models
 from ninetofiver.api_v2 import serializers
+from ninetofiver.utils import AvailabilityInfo
 
 
 def get_availability(users, from_date, until_date, serialize=False):
@@ -207,7 +208,7 @@ def get_availability_info(users, from_date, until_date):
         for i in range(day_count):
             # Determine date for this day
             current_date = copy.deepcopy(from_date) + timedelta(days=i)
-            user_data[str(current_date)] = user_day_tags = []
+            user_data[str(current_date)] = user_day_info = AvailabilityInfo()
 
             # Get employment contract for this day
             # This allows us to determine the work schedule and country of the user
@@ -225,12 +226,12 @@ def get_availability_info(users, from_date, until_date):
 
             # No work occurs when there is no work_schedule, or no hours should be worked that day
             if (not work_schedule) or (getattr(work_schedule, current_date.strftime('%A').lower(), 0.00) <= 0):
-                user_day_tags.append('no_work')
+                user_day_info.add_tag('no_work')
 
             # Holidays
             try:
                 if country and holiday_data[str(current_date)][country]:
-                    user_day_tags.append('holiday')
+                    user_day_info.add_tag('holiday')
             except KeyError:
                 pass
 
@@ -240,23 +241,24 @@ def get_availability_info(users, from_date, until_date):
                     leave_status = leave_date.leave.status
                     # TODO: We will probably need to add the leave type to the structure here as well so that the
                     # timesheet monthly overview report can distinguish between various kinds of leave for legal reasons?
+                    user_day_info.leave = leave_date.leave
                     if leave_date.leave.leave_type.id in sickness_type_ids:
                         if leave_status == models.STATUS_APPROVED:
-                            user_day_tags.append('sickness')
+                            user_day_info.add_tag('sickness')
                         else:
-                            user_day_tags.append('sickness_pending')
+                            user_day_info.add_tag('sickness_pending')
                     else:
                         if leave_status == models.STATUS_APPROVED:
-                            user_day_tags.append('leave')
+                            user_day_info.add_tag('leave')
                         else:
-                            user_day_tags.append('leave_pending')
+                            user_day_info.add_tag('leave_pending')
             except KeyError:
                 pass
 
             # Whereabouts
             try:
                 for whereabout in whereabout_data[str(current_date)][user.id]:
-                    user_day_tags.append('whereabout_%s' % whereabout.location.name.lower().replace(' ', '_'))
+                    user_day_info.add_tag('whereabout_%s' % whereabout.location.name.lower().replace(' ', '_'))
             except KeyError:
                 pass
 
