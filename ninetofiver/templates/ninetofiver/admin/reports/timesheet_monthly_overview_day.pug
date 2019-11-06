@@ -1,0 +1,41 @@
+div
+    if 'sickness' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#ff4444;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Sickness"
+            ) S
+    elif 'leave' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#00c851;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Leave"
+            )  {{ value.leave.leave_type.name }}
+    elif 'holiday' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#59b8e6;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Holiday"
+            )  H
+    elif 'no_work' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#9e9d9d;opacity:0.5;"
+                class="badge"
+                data-toggle="tooltip"
+                title="No work"
+            )  N
+    else
+        h5(class='my-0')
+            span(
+                style="background:#1693A5;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Working"
+            )  W
