@@ -592,6 +592,44 @@ class ResourceAvailabilityOverviewTable(BaseTable):
         super().__init__(*args, **kwargs)
 
 
+class InternalAvailabilityDayColumn(tables.TemplateColumn):
+    """Resource availability day column."""
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        kwargs['template_name'] = 'ninetofiver/admin/reports/internal_availability_overview_day.pug'
+        super().__init__(*args, **kwargs)
+
+
+class InternalAvailabilityOverviewTable(BaseTable):
+    """Resource availability overview table."""
+
+    export_formats = []
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    user = tables.LinkColumn(
+        viewname='admin:auth_user_change',
+        args=[A('user.id')],
+        accessor='user',
+        order_by=['user.first_name', 'user.last_name', 'user.username']
+    )
+
+    def __init__(self, from_date, until_date, *args, **kwargs):
+        """Constructor."""
+        # Create an additional column for every leave type
+        extra_columns = []
+        if from_date and until_date:
+            for day_date in dates_in_range(from_date, until_date):
+                date_str = str(day_date)
+                column = InternalAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
+                extra_columns.append([day_date.strftime('%a, %d %b'), column])
+        kwargs['extra_columns'] = extra_columns
+        kwargs['sequence'] = ('user', '...')
+        super().__init__(*args, **kwargs)
+
+
 class ExpiringConsultancyContractOverviewTable(BaseTable):
     """Expiring consultancy contract overview table."""
 

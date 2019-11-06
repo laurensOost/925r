@@ -262,6 +262,97 @@ def get_availability_info(users, from_date, until_date):
     return res
 
 
+def get_internal_availability_info(users, from_date, until_date):
+    """Determine and return availability info."""
+    res = {}
+
+    # Fetch all employment contracts for this period
+    employment_contracts = (models.EmploymentContract.objects
+                            .filter(
+                                (Q(ended_at__isnull=True) & Q(started_at__lte=until_date)) |
+                                (Q(started_at__lte=until_date) & Q(ended_at__gte=from_date)),
+                                user__in=users)
+                            .order_by('started_at')
+                            .select_related('user', 'company', 'work_schedule'))
+    # Index employment contracts by user ID
+    employment_contract_data = {}
+    for employment_contract in employment_contracts:
+        (employment_contract_data
+            .setdefault(employment_contract.user.id, [])
+            .append(employment_contract))
+
+    # Fetch contract user work schedules
+    contract_user_work_schedules = (models.ContractUserWorkSchedule.objects
+                                    .filter(contract_user__user__in=users)
+                                    .filter(Q(ends_at__isnull=True, starts_at__lte=until_date) |
+                                            Q(ends_at__isnull=False, starts_at__lte=until_date,
+                                              ends_at__gte=from_date))
+                                    .select_related('contract_user', 'contract_user__user',
+                                                    'contract_user__contract_role', 'contract_user__contract',
+                                                    'contract_user__contract__customer'))
+    # Index contract user work schedules by user
+    contract_user_work_schedule_data = {}
+    for contract_user_work_schedule in contract_user_work_schedules:
+        (contract_user_work_schedule_data
+            .setdefault(contract_user_work_schedule.contract_user.user.id, [])
+            .append(contract_user_work_schedule))
+
+    # Count days
+    day_count = (until_date - from_date).days + 1
+
+    # Iterate over users
+    for user in users:
+        # Initialize user data
+        res[str(user.id)] = user_data = {}
+        # Iterate over days
+        for i in range(day_count):
+            # Determine date for this day
+            current_date = copy.deepcopy(from_date) + timedelta(days=i)
+            user_data[str(current_date)] = user_day_tags = []
+
+            # Get employment contract for this day
+            # This allows us to determine the work schedule and country of the user
+            employment_contract = None
+            try:
+                for ec in employment_contract_data[user.id]:
+                    print(ec)
+                    if (ec.started_at <= current_date) and ((not ec.ended_at) or (ec.ended_at >= current_date)):
+                        employment_contract = ec
+                        break
+            except KeyError:
+                pass
+
+            valid_contract_user_work_schedules = []
+            contract_user_day_scheduled_hours = Decimal('0.00')
+
+            try:
+                for contract_user_work_schedule in contract_user_work_schedule_data.get(user.id, []):
+                    if (contract_user_work_schedule.starts_at <= current_date) and \
+                            ((not contract_user_work_schedule.ends_at) or
+                                (contract_user_work_schedule.ends_at >= current_date)):
+                        # this might return more you need to check the empty array and sum up the scheduled hours for that day
+                        # check these vars in views.py
+                        valid_contract_user_work_schedules.append(contract_user_work_schedule)
+                        contract_user_day_scheduled_hours += getattr(contract_user_work_schedule,
+                                                                     current_date.strftime('%A').lower(), Decimal('0.00'))
+            except KeyError:
+                pass
+
+            employment_contract_work_schedule = employment_contract.work_schedule if employment_contract else None
+            # No work occurs when there is no work_schedule, or no hours should be worked that day
+            if (not employment_contract_work_schedule) or (getattr(employment_contract_work_schedule, current_date.strftime('%A').lower(), 0.00) <= 0):
+                user_day_tags.append('no_employment_contract_work_schedule')
+
+            if (not valid_contract_user_work_schedules or contract_user_day_scheduled_hours <= 0):
+                user_day_tags.append('no_contract_user_work_schedule')
+
+            math_check = getattr(employment_contract_work_schedule, current_date.strftime('%A').lower(), 0) - contract_user_day_scheduled_hours
+            if (math_check <= 0):
+                user_day_tags.append('not_available_for_internal_work')
+
+    return res
+
+
 def get_range_info(users, from_date, until_date, daily=False, detailed=False, summary=False, serialize=False):
     """Determine and return range info."""
     res = {}

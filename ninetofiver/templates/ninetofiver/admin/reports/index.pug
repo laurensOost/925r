@@ -44,3 +44,6 @@ block content
         tr
           th
             a(href="{% url 'admin_report_expiring_user_training_overview_view' %}") Expiring user training overview
+        tr
+          th
+            a(href="{% url 'admin_report_internal_availability_overview_view' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}") Internal availability overview

@@ -26,6 +26,7 @@ from wkhtmltopdf.views import PDFTemplateView
 from ninetofiver import filters
 from ninetofiver import models
 from ninetofiver import tables, calculation, pagination
+from ninetofiver import redmine
 from ninetofiver.models import ContractLog
 from ninetofiver.utils import month_date_range, dates_in_range, hours_to_days
 
@@ -1213,6 +1214,144 @@ def admin_report_expiring_user_training_overview_view(request):
     }
 
     return render(request, 'ninetofiver/admin/reports/expiring_user_training_overview.pug', context)
+
+
+@staff_member_required
+def admin_report_internal_availability_overview_view(request):
+    """Internal availability overview report."""
+    data = []
+    fltr = filters.AdminReportResourceAvailabilityOverviewFilter(request.GET, models.Timesheet.objects)
+    from_date = parser.parse(request.GET.get('from_date', None)).date() if request.GET.get('from_date') else None
+    until_date = parser.parse(request.GET.get('until_date', None)).date() if request.GET.get('until_date') else None
+
+    users = auth_models.User.objects.filter(is_active=True).distinct()
+    try:
+        user_ids = list(map(int, request.GET.getlist('user', [])))
+        users = users.filter(id__in=user_ids) if user_ids else users
+    except Exception:
+        pass
+    try:
+        group_ids = list(map(int, request.GET.getlist('group', [])))
+        users = users.filter(groups__in=group_ids) if group_ids else users
+    except Exception:
+        pass
+
+    try:
+        contract_ids = list(map(int, request.GET.getlist('contract', [])))
+        users = users.filter(contractuser__contract__in=contract_ids) if contract_ids else users
+    except Exception:
+        pass
+
+    if users and from_date and until_date and (until_date >= from_date):
+        dates = dates_in_range(from_date, until_date)
+
+        # Fetch availability
+        availability = calculation.get_internal_availability_info(users, from_date, until_date)
+
+        # # Fetch contract user work schedules
+        contract_user_work_schedules = (models.ContractUserWorkSchedule.objects
+                                        .filter(contract_user__user__in=users)
+                                        .filter(Q(ends_at__isnull=True, starts_at__lte=until_date) |
+                                                Q(ends_at__isnull=False, starts_at__lte=until_date,
+                                                  ends_at__gte=from_date))
+                                        .select_related('contract_user', 'contract_user__user',
+                                                        'contract_user__contract_role', 'contract_user__contract',
+                                                        'contract_user__contract__customer'))
+        # Index contract user work schedules by user
+        contract_user_work_schedule_data = {}
+        for contract_user_work_schedule in contract_user_work_schedules:
+            (contract_user_work_schedule_data
+                .setdefault(contract_user_work_schedule.contract_user.user.id, [])
+                .append(contract_user_work_schedule))
+
+        # Fetch employment contracts
+        employment_contracts = (models.EmploymentContract.objects
+                                .filter(
+                                    (Q(ended_at__isnull=True) & Q(started_at__lte=until_date)) |
+                                    (Q(started_at__lte=until_date) & Q(ended_at__gte=from_date)),
+                                    user__in=users)
+                                .order_by('started_at')
+                                .select_related('user', 'company', 'work_schedule'))
+        # Index employment contracts by user ID
+        employment_contract_data = {}
+        for employment_contract in employment_contracts:
+            (employment_contract_data
+                .setdefault(employment_contract.user.id, [])
+                .append(employment_contract))
+
+        # Iterate over users, days to create daily user data
+        for user in users:
+            user_data = {
+                'user': user,
+                'days': {},
+            }
+            data.append(user_data)
+
+            for current_date in dates:
+                date_str = str(current_date)
+                user_day_data = user_data['days'][date_str] = {}
+
+                day_availability = availability[str(user.id)][date_str]
+                print(day_availability)
+                if day_availability == ['not_available_for_internal_work']:
+                    if len(dates) <= 1:
+                        data.remove(user_data)
+                        continue
+                day_contract_user_work_schedules = []
+                day_scheduled_hours = Decimal('0.00')
+                day_work_hours = Decimal('0.00')
+
+                # Get contract user work schedules for this day
+                # This allows us to determine the scheduled hours for this user
+                for contract_user_work_schedule in contract_user_work_schedule_data.get(user.id, []):
+                    if (contract_user_work_schedule.starts_at <= current_date) and \
+                            ((not contract_user_work_schedule.ends_at) or
+                                (contract_user_work_schedule.ends_at >= current_date)):
+                        day_contract_user_work_schedules.append(contract_user_work_schedule)
+                        day_scheduled_hours += getattr(contract_user_work_schedule,
+                                                       current_date.strftime('%A').lower(), Decimal('0.00'))
+
+                # Get employment contract for this day
+                # This allows us to determine the required hours for this user
+                employment_contract = None
+                try:
+                    for ec in employment_contract_data[user.id]:
+                        if (ec.started_at <= current_date) and ((not ec.ended_at) or (ec.ended_at >= current_date)):
+                            employment_contract = ec
+                            break
+                except KeyError:
+                    pass
+
+                work_schedule = employment_contract.work_schedule if employment_contract else None
+                if work_schedule:
+                    day_work_hours = getattr(work_schedule, current_date.strftime('%A').lower(), Decimal('0.00'))
+
+                user_day_data['availability'] = day_availability
+                user_day_data['contract_user_work_schedules'] = day_contract_user_work_schedules
+                user_day_data['scheduled_hours'] = day_scheduled_hours
+                user_day_data['work_hours'] = day_work_hours
+                user_day_data['enough_hours'] = day_scheduled_hours >= day_work_hours
+                free_hours = day_work_hours - day_scheduled_hours
+                user_day_data['free_hours'] = free_hours
+                user_day_data['available_for_internal'] = free_hours >= 1
+                print(user_day_data)
+
+    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size * 4})
+    table = tables.InternalAvailabilityOverviewTable(from_date, until_date, data)
+    config.configure(table)
+
+    export_format = request.GET.get('_export', None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response('table.{}'.format(export_format))
+
+    context = {
+        'title': _('Internal availability overview'),
+        'table': table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/internal_availability_overview.pug', context)
 
 
 class AdminTimesheetContractPdfExportView(BaseTimesheetContractPdfExportServiceAPIView):
