@@ -446,6 +446,7 @@ class ResourceAvailabilityDayColumn(tables.TemplateColumn):
         kwargs['template_name'] = 'ninetofiver/admin/reports/resource_availability_overview_day.pug'
         super().__init__(*args, **kwargs)
 
+
 class MonthlyResourceAvailabilityDayColumn(tables.TemplateColumn):
     """Timesheet monthly overview day column."""
 
@@ -453,6 +454,10 @@ class MonthlyResourceAvailabilityDayColumn(tables.TemplateColumn):
         """Constructor."""
         kwargs['template_name'] = 'ninetofiver/admin/reports/timesheet_monthly_overview_day.pug'
         super().__init__(*args, **kwargs)
+
+    def value(self, **kwargs):
+        html = super(MonthlyResourceAvailabilityDayColumn, self).value(**kwargs)
+        return html.strip()
 
 
 class ResourceAvailabilityOverviewTable(BaseTable):
@@ -505,10 +510,12 @@ class TimesheetMonthlyOverviewTable(BaseTable):
             for day_date in dates_in_range(from_date, until_date):
                 date_str = str(day_date)
                 column = MonthlyResourceAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
+                print(column)
                 extra_columns.append([day_date.strftime('%a, %d %b'), column])
         kwargs['extra_columns'] = extra_columns
         kwargs['sequence'] = ('user', '...')
         super().__init__(*args, **kwargs)
+
 
 class ExpiringConsultancyContractOverviewTable(BaseTable):
     """Expiring consultancy contract overview table."""
