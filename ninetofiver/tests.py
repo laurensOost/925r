@@ -192,6 +192,11 @@ class AdminReportViewTests(AuthenticatedAPITestCase):
         response = self.client.get(reverse('admin_report_timesheet_overview'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_internal_availability_overview_report_view(self):
+        """Test the internal availability overview report view."""
+        response = self.client.get(reverse('admin_report_internal_availability_overview_view'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_timesheet_monthly_overview_report_view(self):
         """Test the timesheet monthly overview report view."""
         response = self.client.get(reverse('admin_report_timesheet_monthly_overview'))
