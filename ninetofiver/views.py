@@ -14,14 +14,10 @@ from django.db.models import Q, F, Sum, DecimalField
 from django.forms.models import modelform_factory
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
-from django.forms.models import modelform_factory
-from django.utils.decorators import method_decorator
-from django.views import generic as generic_views, View
-from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
+from django.views import View
 from django.views import generic as generic_views
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
