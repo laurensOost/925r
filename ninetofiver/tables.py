@@ -563,6 +563,19 @@ class ResourceAvailabilityDayColumn(tables.TemplateColumn):
         super().__init__(*args, **kwargs)
 
 
+class MonthlyResourceAvailabilityDayColumn(tables.TemplateColumn):
+    """Timesheet monthly overview day column."""
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        kwargs['template_name'] = 'ninetofiver/admin/reports/timesheet_monthly_overview_day.pug'
+        super().__init__(*args, **kwargs)
+
+    def value(self, **kwargs):
+        html = super(MonthlyResourceAvailabilityDayColumn, self).value(**kwargs)
+        return html.strip()
+
+
 class ResourceAvailabilityOverviewTable(BaseTable):
     """Resource availability overview table."""
 
@@ -586,6 +599,34 @@ class ResourceAvailabilityOverviewTable(BaseTable):
             for day_date in dates_in_range(from_date, until_date):
                 date_str = str(day_date)
                 column = ResourceAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
+                extra_columns.append([day_date.strftime('%a, %d %b'), column])
+        kwargs['extra_columns'] = extra_columns
+        kwargs['sequence'] = ('user', '...')
+        super().__init__(*args, **kwargs)
+
+
+class TimesheetMonthlyOverviewTable(BaseTable):
+    """Timesheet monthly overview table."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    user = tables.LinkColumn(
+        viewname='admin:auth_user_change',
+        args=[A('user.id')],
+        accessor='user',
+        order_by=['user.first_name', 'user.last_name', 'user.username']
+    )
+
+    def __init__(self, from_date, until_date, *args, **kwargs):
+        """Constructor."""
+        # Create an additional column for every leave type
+        extra_columns = []
+        if from_date and until_date:
+            for day_date in dates_in_range(from_date, until_date):
+                date_str = str(day_date)
+                column = MonthlyResourceAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
+                print(column)
                 extra_columns.append([day_date.strftime('%a, %d %b'), column])
         kwargs['extra_columns'] = extra_columns
         kwargs['sequence'] = ('user', '...')
