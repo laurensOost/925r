@@ -626,7 +626,6 @@ class TimesheetMonthlyOverviewTable(BaseTable):
             for day_date in dates_in_range(from_date, until_date):
                 date_str = str(day_date)
                 column = MonthlyResourceAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
-                print(column)
                 extra_columns.append([day_date.strftime('%a, %d %b'), column])
         kwargs['extra_columns'] = extra_columns
         kwargs['sequence'] = ('user', '...')
