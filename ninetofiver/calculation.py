@@ -318,7 +318,6 @@ def get_internal_availability_info(users, from_date, until_date):
             employment_contract = None
             try:
                 for ec in employment_contract_data[user.id]:
-                    print(ec)
                     if (ec.started_at <= current_date) and ((not ec.ended_at) or (ec.ended_at >= current_date)):
                         employment_contract = ec
                         break
@@ -352,6 +351,8 @@ def get_internal_availability_info(users, from_date, until_date):
             math_check = getattr(employment_contract_work_schedule, current_date.strftime('%A').lower(), 0) - contract_user_day_scheduled_hours
             if (math_check <= 0):
                 user_day_tags.append('not_available_for_internal_work')
+
+            user_day_tags.append('available')
 
     return res
 

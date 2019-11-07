@@ -1362,9 +1362,8 @@ def admin_report_expiring_user_training_overview_view(request):
 def admin_report_internal_availability_overview_view(request):
     """Internal availability overview report."""
     data = []
-    fltr = filters.AdminReportResourceAvailabilityOverviewFilter(request.GET, models.Timesheet.objects)
-    from_date = parser.parse(request.GET.get('from_date', None)).date() if request.GET.get('from_date') else None
-    until_date = parser.parse(request.GET.get('until_date', None)).date() if request.GET.get('until_date') else None
+    fltr = filters.AdminReportInternalAvailabilityOverviewFilter(request.GET, models.Timesheet.objects)
+    date = parser.parse(request.GET.get('date', None)).date() if request.GET.get('date') else None
 
     users = auth_models.User.objects.filter(is_active=True).distinct()
     try:
@@ -1384,18 +1383,16 @@ def admin_report_internal_availability_overview_view(request):
     except Exception:
         pass
 
-    if users and from_date and until_date and (until_date >= from_date):
-        dates = dates_in_range(from_date, until_date)
-
+    if users and date:
         # Fetch availability
-        availability = calculation.get_internal_availability_info(users, from_date, until_date)
+        availability = calculation.get_internal_availability_info(users, date, date)
 
         # # Fetch contract user work schedules
         contract_user_work_schedules = (models.ContractUserWorkSchedule.objects
                                         .filter(contract_user__user__in=users)
-                                        .filter(Q(ends_at__isnull=True, starts_at__lte=until_date) |
-                                                Q(ends_at__isnull=False, starts_at__lte=until_date,
-                                                  ends_at__gte=from_date))
+                                        .filter(Q(ends_at__isnull=True, starts_at__lte=date) |
+                                                Q(ends_at__isnull=False, starts_at__lte=date,
+                                                  ends_at__gte=date))
                                         .select_related('contract_user', 'contract_user__user',
                                                         'contract_user__contract_role', 'contract_user__contract',
                                                         'contract_user__contract__customer'))
@@ -1409,8 +1406,8 @@ def admin_report_internal_availability_overview_view(request):
         # Fetch employment contracts
         employment_contracts = (models.EmploymentContract.objects
                                 .filter(
-                                    (Q(ended_at__isnull=True) & Q(started_at__lte=until_date)) |
-                                    (Q(started_at__lte=until_date) & Q(ended_at__gte=from_date)),
+                                    (Q(ended_at__isnull=True) & Q(started_at__lte=date)) |
+                                    (Q(started_at__lte=date) & Q(ended_at__gte=date)),
                                     user__in=users)
                                 .order_by('started_at')
                                 .select_related('user', 'company', 'work_schedule'))
@@ -1423,63 +1420,94 @@ def admin_report_internal_availability_overview_view(request):
 
         # Iterate over users, days to create daily user data
         for user in users:
+
             user_data = {
                 'user': user,
+                'issues': {},
                 'days': {},
             }
             data.append(user_data)
 
-            for current_date in dates:
-                date_str = str(current_date)
-                user_day_data = user_data['days'][date_str] = {}
+            date_str = str(date)
+            user_day_data = user_data['days'][date_str] = {}
 
-                day_availability = availability[str(user.id)][date_str]
-                print(day_availability)
-                if day_availability == ['not_available_for_internal_work']:
-                    if len(dates) <= 1:
-                        data.remove(user_data)
-                        continue
-                day_contract_user_work_schedules = []
-                day_scheduled_hours = Decimal('0.00')
-                day_work_hours = Decimal('0.00')
+            day_availability = availability[str(user.id)][date_str]
 
-                # Get contract user work schedules for this day
-                # This allows us to determine the scheduled hours for this user
-                for contract_user_work_schedule in contract_user_work_schedule_data.get(user.id, []):
-                    if (contract_user_work_schedule.starts_at <= current_date) and \
-                            ((not contract_user_work_schedule.ends_at) or
-                                (contract_user_work_schedule.ends_at >= current_date)):
-                        day_contract_user_work_schedules.append(contract_user_work_schedule)
-                        day_scheduled_hours += getattr(contract_user_work_schedule,
-                                                       current_date.strftime('%A').lower(), Decimal('0.00'))
+            if day_availability == ['not_available_for_internal_work']:
+                data.remove(user_data)
+                continue
 
-                # Get employment contract for this day
-                # This allows us to determine the required hours for this user
-                employment_contract = None
-                try:
-                    for ec in employment_contract_data[user.id]:
-                        if (ec.started_at <= current_date) and ((not ec.ended_at) or (ec.ended_at >= current_date)):
-                            employment_contract = ec
-                            break
-                except KeyError:
-                    pass
+            day_contract_user_work_schedules = []
+            day_scheduled_hours = Decimal('0.00')
+            day_work_hours = Decimal('0.00')
 
-                work_schedule = employment_contract.work_schedule if employment_contract else None
-                if work_schedule:
-                    day_work_hours = getattr(work_schedule, current_date.strftime('%A').lower(), Decimal('0.00'))
+            # Get contract user work schedules for this day
+            # This allows us to determine the scheduled hours for this user
+            for contract_user_work_schedule in contract_user_work_schedule_data.get(user.id, []):
+                if (contract_user_work_schedule.starts_at <= date) and \
+                        ((not contract_user_work_schedule.ends_at) or
+                            (contract_user_work_schedule.ends_at >= date)):
+                    day_contract_user_work_schedules.append(contract_user_work_schedule)
+                    day_scheduled_hours += getattr(contract_user_work_schedule,
+                                                   date.strftime('%A').lower(), Decimal('0.00'))
 
-                user_day_data['availability'] = day_availability
-                user_day_data['contract_user_work_schedules'] = day_contract_user_work_schedules
-                user_day_data['scheduled_hours'] = day_scheduled_hours
-                user_day_data['work_hours'] = day_work_hours
-                user_day_data['enough_hours'] = day_scheduled_hours >= day_work_hours
-                free_hours = day_work_hours - day_scheduled_hours
-                user_day_data['free_hours'] = free_hours
-                user_day_data['available_for_internal'] = free_hours >= 1
-                print(user_day_data)
+            # Get employment contract for this day
+            # This allows us to determine the required hours for this user
+            employment_contract = None
+            try:
+                for ec in employment_contract_data[user.id]:
+                    if (ec.started_at <= date) and ((not ec.ended_at) or (ec.ended_at >= date)):
+                        employment_contract = ec
+                        break
+            except KeyError:
+                pass
+
+            work_schedule = employment_contract.work_schedule if employment_contract else None
+            if work_schedule:
+                day_work_hours = getattr(work_schedule, date.strftime('%A').lower(), Decimal('0.00'))
+
+            user_day_data['availability'] = day_availability
+            user_day_data['contract_user_work_schedules'] = day_contract_user_work_schedules
+            user_day_data['scheduled_hours'] = day_scheduled_hours
+            user_day_data['work_hours'] = day_work_hours
+            user_day_data['enough_hours'] = day_scheduled_hours >= day_work_hours
+            free_hours = day_work_hours - day_scheduled_hours
+            user_day_data['free_hours'] = free_hours
+            user_day_data['available_for_internal'] = free_hours >= 1
+
+            if (not user_data['issues']) and (user_day_data['available_for_internal'] is True):
+                issues = {
+                    'count': 0,
+                    'results': [],
+                }
+                redmine_data = redmine.get_user_redmine_issues(user)
+                issues['results'] += redmine_data
+                issues['count'] = len(issues['results'])
+                user_data['issues'] = issues
+
+            if 'results' in user_data['issues']:
+                for issue in user_data['issues']['results']:
+                    if date == datetime.today().date():
+                        if(
+                           (issue.start_date <= date)
+                           and (issue.updated_on >= datetime.now() - timedelta(days=1))
+                           and (issue.status.name is 'Work in progress' or 'ready for testing')
+                           ):
+                            user_day_data['availability'] = 'green'
+                        else:
+                            user_day_data['availability'] = 'red'
+                    else:
+                        if(
+                           ('due_date' in issue and issue.due_date >= date)
+                           and (issue.updated_on >= date - timedelta(days=1))
+                           ):
+                            user_day_data['availability'] = 'green'
+                        else:
+                            user_day_data['availability'] = 'red'
+            print(user_day_data['availability'])
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size * 4})
-    table = tables.InternalAvailabilityOverviewTable(from_date, until_date, data)
+    table = tables.InternalAvailabilityOverviewTable(date, date, data)
     config.configure(table)
 
     export_format = request.GET.get('_export', None)

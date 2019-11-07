@@ -141,6 +141,25 @@ class AdminReportResourceAvailabilityOverviewFilter(FilterSet):
         fields = {}
 
 
+class AdminReportInternalAvailabilityOverviewFilter(FilterSet):
+    """Internal availability overview report filter."""
+    user = (django_filters.ModelMultipleChoiceFilter(label='User',
+                                                     queryset=auth_models.User.objects.filter(is_active=True),
+                                                     distinct=True))
+    group = (django_filters.ModelMultipleChoiceFilter(label='Group',
+                                                      queryset=auth_models.Group.objects.all(),
+                                                      distinct=True))
+    contract = (django_filters.ModelMultipleChoiceFilter(label='Contract',
+                                                         queryset=models.Contract.objects.filter(active=True),
+                                                         distinct=True))
+    date = django_filters.DateFilter(label='Date', widget=admin_widgets.AdminDateWidget(), field_name='starts_at',
+                                     lookup_expr='date__gte')
+
+    class Meta:
+        model = auth_models.User
+        fields = {}
+
+
 class AdminReportTimesheetMonthlyOverviewFilter(FilterSet):
     """Timesheet monthly overview admin report filter."""
     user = (django_filters.ModelMultipleChoiceFilter(label='User',

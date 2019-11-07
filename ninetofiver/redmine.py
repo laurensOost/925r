@@ -62,6 +62,25 @@ def get_user_redmine_id(user):
     return user_id
 
 
+def get_user_redmine_issues(user, status=None):
+    """Get assigned Redmine issues for the given user."""
+    data = []
+
+    redmine = get_redmine_connector()
+    if not redmine:
+        logger.debug('No base URL and API key provided for connecting to Redmine')
+        return data
+
+    user_id = get_user_redmine_id(user)
+    if not user_id:
+        logger.debug('No Redmine user ID found for user %s' % user.id)
+        return data
+
+    data = list(redmine.issue.filter(assigned_to_id=user_id))
+
+    return data
+
+
 def get_user_redmine_performances(user, from_date=None, to_date=None):
     """Get available Redmine performances for the given user."""
     data = []
