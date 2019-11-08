@@ -750,7 +750,13 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
                         'contract': record['contract'].id,
                         })
 
-        buttons.append('<a class="button" href="{url}?'
+        buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
+                       'contract__id__exact={contract_id}'
+                       '">Invoices</a>'.format(
+                           url=reverse('admin:ninetofiver_invoice_changelist'),
+                           contract_id=record['contract'].id)
+                       +
+                       '<a class="button" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;"href="{url}?'
                        'contract={contract_id}&'
                        'period_starts_at={period_starts_at}&'
                        'period_ends_at={period_ends_at}&'
@@ -758,7 +764,7 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
                        'price={price}&'
                        'amount={amount}&'
                        '">{label}</a>'.format(url=reverse('admin:ninetofiver_invoice_add'),
-                                              label="Add invoice",
+                                              label="+",
                                               contract_id=record['contract'].id,
                                               period_starts_at=record['action'].get('period_starts_at'),
                                               period_ends_at=record['action'].get('period_ends_at'),
