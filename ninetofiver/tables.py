@@ -230,6 +230,28 @@ class SummedHoursColumn(HoursColumn):
         return format_html(_('Total: {}'), self.render(total))
 
 
+class SummedEuroColumn(EuroColumn):
+    """Summed euro column."""
+
+    def render_footer(self, table, column, bound_column):
+        """Render the footer."""
+        accessor = self.accessor if self.accessor else A(bound_column.name)
+        total = [accessor.resolve(x) for x in table.data]
+        total = sum([x for x in total if x is not None])
+        return format_html(_('<div align="right">Total: {}</div>'), self.render(total))
+
+
+class SummedInvoiceColoredEuroColumn(InvoiceColoredEuroColumn):
+    """Summed euro column."""
+
+    def render_footer(self, table, column, bound_column):
+        """Render the footer."""
+        accessor = self.accessor if self.accessor else A(bound_column.name)
+        total = [accessor.resolve(x) for x in table.data]
+        total = sum([x for x in total if x is not None])
+        return format_html(_('<div align="right">Total: {}</div>'), EuroColumn.render(self, total))
+
+
 class TimesheetContractOverviewTable(BaseTable):
     """Timesheet contract overview table."""
 
@@ -709,8 +731,8 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
     )
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = EuroColumn(accessor='day_rate')
-    to_be_invoiced = EuroColumn(accessor='to_be_invoiced')
-    invoiced = InvoiceColoredEuroColumn(
+    to_be_invoiced = SummedEuroColumn(accessor='to_be_invoiced')
+    invoiced = SummedInvoiceColoredEuroColumn(
         post_template_code='{% if record.invoiced_missing %} <span style="color:#f02311;font-weight:bold;" title="%s">(!)&nbsp;</span>{% endif %}',
         accessor='invoiced',
     )
