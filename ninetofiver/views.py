@@ -930,11 +930,18 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
                                                                         models.ConsultancyContract.objects)
     data = []
 
-    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
-
     contracts = models.ConsultancyContract.objects.all()
+
+    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
     if active is not None:
         contracts = contracts.filter(active=active)
+
+    try:
+        company = list(map(int, request.GET.getlist('company', [])))
+    except Exception:
+        company = None
+    if company:
+        contracts = contracts.filter(company__id__in=company)
 
     for contract in contracts:
         performed_hours = models.ActivityPerformance.objects.filter(contract=contract)
