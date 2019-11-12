@@ -996,7 +996,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.InvoicedConsultancyContractOverviewTable(data, order_by='-to_be_invoiced')
+    table = tables.InvoicedConsultancyContractOverviewTable(data, order_by='-to_be_invoiced,-performed_hours')
     config.configure(table)
 
     context = {
