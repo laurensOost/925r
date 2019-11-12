@@ -71,9 +71,12 @@ def dates_in_range(from_date, until_date):
     return dates
 
 
-def hours_to_days(hours):
+def hours_to_days(hours, rounded=True):
     """Convert hours to days."""
-    return round(hours / 8, 2)
+    if rounded:
+        return round(hours / 8, 2)
+    else:
+        return hours / 8
 
 
 def format_duration(hours):

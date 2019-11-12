@@ -991,7 +991,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
                 'period_ends_at': until_date,
                 'date': invoice_date,
                 'price': contract.day_rate,
-                'amount': hours_to_days(performed_hours),
+                'amount': hours_to_days(performed_hours, rounded=False),
             },
         })
 
