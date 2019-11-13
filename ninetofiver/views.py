@@ -931,11 +931,18 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
                                                                         models.ConsultancyContract.objects)
     data = []
 
-    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
-
     contracts = models.ConsultancyContract.objects.all()
+
+    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
     if active is not None:
         contracts = contracts.filter(active=active)
+
+    try:
+        company = list(map(int, request.GET.getlist('company', [])))
+    except Exception:
+        company = None
+    if company:
+        contracts = contracts.filter(company__id__in=company)
 
     for contract in contracts:
         performed_hours = models.ActivityPerformance.objects.filter(contract=contract)
@@ -985,12 +992,12 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
                 'period_ends_at': until_date,
                 'date': invoice_date,
                 'price': contract.day_rate,
-                'amount': hours_to_days(performed_hours),
+                'amount': hours_to_days(performed_hours, rounded=False),
             },
         })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.InvoicedConsultancyContractOverviewTable(data)
+    table = tables.InvoicedConsultancyContractOverviewTable(data, order_by='-to_be_invoiced,-performed_hours')
     config.configure(table)
 
     context = {
