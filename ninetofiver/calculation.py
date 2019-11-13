@@ -332,8 +332,6 @@ def get_internal_availability_info(users, from_date, until_date):
                     if (contract_user_work_schedule.starts_at <= current_date) and \
                             ((not contract_user_work_schedule.ends_at) or
                                 (contract_user_work_schedule.ends_at >= current_date)):
-                        # this might return more you need to check the empty array and sum up the scheduled hours for that day
-                        # check these vars in views.py
                         valid_contract_user_work_schedules.append(contract_user_work_schedule)
                         contract_user_day_scheduled_hours += getattr(contract_user_work_schedule,
                                                                      current_date.strftime('%A').lower(), Decimal('0.00'))
@@ -348,11 +346,13 @@ def get_internal_availability_info(users, from_date, until_date):
             if (not valid_contract_user_work_schedules or contract_user_day_scheduled_hours <= 0):
                 user_day_tags.append('no_contract_user_work_schedule')
 
+            # If no hours available
             math_check = getattr(employment_contract_work_schedule, current_date.strftime('%A').lower(), 0) - contract_user_day_scheduled_hours
             if (math_check <= 0):
                 user_day_tags.append('not_available_for_internal_work')
 
-            user_day_tags.append('available')
+            if not user_day_tags:
+                user_day_tags.append('available')
 
     return res
 

@@ -1,0 +1,18 @@
+div
+    if 'results' in value
+        for issue in value.results
+            h5(class='my-0')
+                div(class='btn-group')
+                    button(
+                        style="background-color:{{ issue.internal_status }} "
+                        class="badge btn-default btn btn-sm"
+                        data-placement="auto"
+                        title="Status"
+                    )  {{ issue.internal_status }}
+                div
+                    {{ issue.subject }}
+                    span
+                        h6 Project - {{ issue.project.name }}
+                        h6 Status - {{ issue.status.name }}
+                        h6 Start date - {{ issue.start_date }}
+                        h6 Updated on - {{ issue.updated_on }}

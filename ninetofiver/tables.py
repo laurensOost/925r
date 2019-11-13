@@ -606,7 +606,7 @@ class ResourceAvailabilityOverviewTable(BaseTable):
 
 
 class InternalAvailabilityDayColumn(tables.TemplateColumn):
-    """Resource availability day column."""
+    """Internal availability day column."""
 
     def __init__(self, *args, **kwargs):
         """Constructor."""
@@ -614,8 +614,17 @@ class InternalAvailabilityDayColumn(tables.TemplateColumn):
         super().__init__(*args, **kwargs)
 
 
+class InternalAvailabilityIssuesColumn(tables.TemplateColumn):
+    """Internal availability issues column."""
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        kwargs['template_name'] = 'ninetofiver/admin/reports/internal_availability_overview_issues.pug'
+        super().__init__(*args, **kwargs)
+
+
 class InternalAvailabilityOverviewTable(BaseTable):
-    """Resource availability overview table."""
+    """Internal availability overview table."""
 
     export_formats = []
 
@@ -631,13 +640,19 @@ class InternalAvailabilityOverviewTable(BaseTable):
 
     def __init__(self, from_date, until_date, *args, **kwargs):
         """Constructor."""
-        # Create an additional column for every leave type
+        # Create an additional column for every availability type
         extra_columns = []
         if from_date and until_date:
             for day_date in dates_in_range(from_date, until_date):
                 date_str = str(day_date)
                 column = InternalAvailabilityDayColumn(accessor=A('days.%s' % date_str), orderable=False)
                 extra_columns.append([day_date.strftime('%a, %d %b'), column])
+
+        # Add issues if present
+        if any('issues' in x for x in args[0]):
+            column = InternalAvailabilityIssuesColumn(accessor=('issues'))
+            extra_columns.append(['Issues', column])
+
         kwargs['extra_columns'] = extra_columns
         kwargs['sequence'] = ('user', '...')
         super().__init__(*args, **kwargs)

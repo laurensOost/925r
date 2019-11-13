@@ -1487,24 +1487,34 @@ def admin_report_internal_availability_overview_view(request):
 
             if 'results' in user_data['issues']:
                 for issue in user_data['issues']['results']:
+                    issue['internal_status'] = []
                     if date == datetime.today().date():
                         if(
                            (issue.start_date <= date)
                            and (issue.updated_on >= datetime.now() - timedelta(days=1))
-                           and (issue.status.name is 'Work in progress' or 'ready for testing')
+                           # issue.status.id 2 for IP, 9 for RFUT
                            ):
-                            user_day_data['availability'] = 'green'
+                            if (issue.status.id is 2 or 9):
+                                user_day_data['availability'].append('green')
+                                issue['internal_status'] = 'green'
+                            else:
+                                user_day_data['availability'].append('yellow')
+                                issue['internal_status'] = 'yellow'
                         else:
-                            user_day_data['availability'] = 'red'
+                            user_day_data['availability'].append('red')
+                            issue['internal_status'] = 'red'
                     else:
                         if(
+                           # no expected_ready atm but is that for our estimates (we can use est hours) or client's
+                           # what is 'on hold'?
                            ('due_date' in issue and issue.due_date >= date)
                            and (issue.updated_on >= date - timedelta(days=1))
                            ):
-                            user_day_data['availability'] = 'green'
+                            user_day_data['availability'].append('green')
+                            issue['internal_status'] = 'green'
                         else:
-                            user_day_data['availability'] = 'red'
-            print(user_day_data['availability'])
+                            user_day_data['availability'].append('red')
+                            issue['internal_status'] = 'red'
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size * 4})
     table = tables.InternalAvailabilityOverviewTable(date, date, data)
