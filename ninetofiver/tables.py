@@ -510,6 +510,32 @@ class UserLeaveOverviewTable(BaseTable):
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
 
+class UserWorkRatioTable(BaseTable):
+    """User work ratio overview table."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    year = tables.Column()
+    month = tables.Column()
+    customer_hours = SummedHoursColumn()
+    internal_hours= SummedHoursColumn()
+    leaves = SummedHoursColumn()
+    ratio = tables.Column(empty_values=())
+
+    def render_ratio(self, record):
+        total_hours = record['customer_hours'] + record['internal_hours'] + record['leaves']
+        customer_hours_pct = round((record['customer_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
+        internal_hours_pct = round((record['internal_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
+        leaves_pct = round((record['leaves'] / (total_hours if total_hours else 1.0)) * 100, 2)
+        res  = '<div class="progress" style="min-width: 300px;">'
+        res += '<div class="progress-bar bg-success" role="progressbar" style="width: {}%">{}%</div>'.format(customer_hours_pct, customer_hours_pct)
+        res += '<div class="progress-bar bg-warning" role="progressbar" style="width: {}%">{}%</div>'.format(internal_hours_pct, internal_hours_pct)
+        res += '<div class="progress-bar bg-secondary" role="progressbar" style="width: {}%">{}%</div>'.format(leaves_pct, leaves_pct)
+        res += '</div>'
+        return format_html(res)
+
+
 class UserWorkRatioOverviewTable(BaseTable):
     """User work ratio overview table."""
 

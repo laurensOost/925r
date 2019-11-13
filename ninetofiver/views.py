@@ -506,6 +506,52 @@ def admin_report_user_leave_overview_view(request):
 
 
 @staff_member_required
+def admin_report_user_work_ratio_view(request):
+    """Shows the work ratio (billable vs. non-billable vs. leave) of a specific user."""
+    fltr = filters.AdminReportUserWorkRatioFilter(request.GET, models.Timesheet.objects)
+    data = []
+
+    if fltr.data.get('user', None) and fltr.data.get('year', None):
+        year = int(fltr.data['year'])
+        user = get_object_or_404(auth_models.User.objects,
+                                 pk=request.GET.get('user', None), is_active=True) if request.GET.get('user') else None
+
+        timesheets = fltr.qs.select_related('user').order_by('year', 'month')
+
+        for timesheet in timesheets:
+            date_range = timesheet.get_date_range()
+            range_info = calculation.get_range_info([timesheet.user], date_range[0], date_range[1], summary=True)
+            range_info = range_info[timesheet.user.id]
+
+            data.append({
+                'year': timesheet.year,
+                'month': timesheet.month,
+                'customer_hours': sum([x['duration'] for x in range_info['summary']['performances']
+                                 if x['contract'].customer != x['contract'].company]),
+                'internal_hours': sum([x['duration'] for x in range_info['summary']['performances']
+                                      if x['contract'].customer == x['contract'].company]),
+                'leaves': range_info['leave_hours'],
+            })
+
+    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    table = tables.UserWorkRatioTable(data)
+    config.configure(table)
+
+    export_format = request.GET.get('_export', None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response('table.{}'.format(export_format))
+
+    context = {
+        'title': _('User work ratio'),
+        'table': table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/user_work_ratio.pug', context)
+
+
+@staff_member_required
 def admin_report_user_work_ratio_overview_view(request):
     """User work ratio overview report."""
     fltr = filters.AdminReportUserWorkRatioOverviewFilter(request.GET, models.Timesheet.objects)
