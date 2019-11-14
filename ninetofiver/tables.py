@@ -410,7 +410,7 @@ class UserRangeInfoTable(BaseTable):
     class Meta(BaseTable.Meta):
         pass
 
-    date = tables.DateColumn('D d F')
+    date = tables.DateColumn('D d/m/Y')
     work_hours = SummedHoursColumn(accessor='day_detail.work_hours')
     performed_hours = SummedHoursColumn(accessor='day_detail.performed_hours')
     leave_hours = SummedHoursColumn(accessor='day_detail.leave_hours')
@@ -950,8 +950,8 @@ class ExpiringSupportContractOverviewTable(BaseTable):
         accessor='contract',
         order_by=['contract.name']
     )
-    starts_at = tables.DateColumn('D d F', accessor='contract.starts_at')
-    ends_at = tables.DateColumn('D d F', accessor='contract.ends_at')
+    starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
+    ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = tables.Column(accessor='contract.day_rate')
     fixed_fee = tables.Column(accessor='contract.fixed_fee')
@@ -1032,8 +1032,8 @@ class ExpiringUserTrainingOverviewTable(BaseTable):
     )
 
     mandatory = tables.BooleanColumn(accessor='training.training_type.mandatory')
-    starts_at = tables.DateColumn('d M, Y', accessor='training.starts_at')
-    ends_at = tables.DateColumn('d M, Y', accessor='training.ends_at')
+    starts_at = tables.DateColumn('d/m/Y', accessor='training.starts_at')
+    ends_at = tables.DateColumn('d/m/Y', accessor='training.ends_at')
     remaining_days = tables.Column(accessor='training.remaining_days')
     required_action = tables.Column(accessor='training.training_type.required_action')
 
