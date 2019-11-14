@@ -107,6 +107,16 @@ class AdminReportUserLeaveOverviewFilter(FilterSet):
         model = models.LeaveDate
         fields = {}
 
+class AdminReportUserWorkRatioFilter(FilterSet):
+    """User work ratio admin report filter."""
+    user = django_filters.ModelChoiceFilter(queryset=auth_models.User.objects.filter(is_active=True))
+    year = django_filters.ChoiceFilter(choices=lambda: [[x, x] for x in (models.Timesheet.objects
+                                                                         .values_list('year', flat=True)
+                                                                         .order_by('year').distinct())])
+
+    class Meta:
+        model = models.Timesheet
+        fields = {}
 
 class AdminReportUserWorkRatioOverviewFilter(FilterSet):
     """User work ratio overview admin report filter."""
