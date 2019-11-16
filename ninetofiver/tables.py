@@ -804,11 +804,25 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
     class Meta(BaseTable.Meta):
         pass
 
+    MULTIUSER_TEMPLATE = """
+<ul style="margin:0;padding-inline-start:10px">
+{% for user in value %}
+    <li><a href="{% url 'admin:auth_user_change' user.id %}">{{ user }}</a></li>
+{% empty %}
+-
+{% endfor %}
+</ul>
+    """
+
     contract = tables.LinkColumn(
         viewname='admin:ninetofiver_contract_change',
         args=[A('contract.id')],
         accessor='contract',
         order_by=['contract.name']
+    )
+    users = tables.TemplateColumn(
+        template_code=MULTIUSER_TEMPLATE,
+        accessor='users',
     )
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = EuroColumn(accessor='day_rate')

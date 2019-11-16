@@ -991,30 +991,25 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         contracts = contracts.filter(company__id__in=company)
 
     for contract in contracts:
-        performed_hours = models.ActivityPerformance.objects.filter(contract=contract)
+        performances = models.ActivityPerformance.objects.filter(contract=contract)
 
         # Filter by timesheet (month/year)
-        performed_hours = performed_hours.filter(
+        performances = performances.filter(
             Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
             Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__gte=until_date.year)
         )
         # Filter by exact date
         # performed_hours = performed_hours.filter(date__gte=from_date, date__lte=until_date)
 
-        performed_hours = performed_hours.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
+        performed_hours = performances.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
         performed_hours = performed_hours['performed_hours'] if performed_hours['performed_hours'] else Decimal('0.00')
 
         invoiced_total_amount = 0
-        # performed_total_invoiced_hours = Decimal('0.00')
-
         invoiced_missing = False
         for invoice in models.Invoice.objects.filter(contract=contract, period_starts_at__lte=until_date, period_ends_at__gte=from_date):
             invoiced_total_amount += invoice.get_total_amount()
             if from_date > invoice.period_starts_at or until_date < invoice.period_ends_at:
                 invoiced_missing = True
-            # performed_invoiced_hours = models.ActivityPerformance.objects.filter(contract=contract, date__gte=invoice.period_starts_at, date__lte=invoice.period_ends_at)
-            # performed_invoiced_hours = performed_invoiced_hours.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
-            # performed_total_invoiced_hours += performed_invoiced_hours['performed_hours'] if performed_invoiced_hours['performed_hours'] else Decimal('0.00')
 
         # date is last day of the month of the specific period selected in the report
         #  - if that date is less than 15 days before or after the current date
@@ -1023,16 +1018,16 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         if date.today() - timedelta(days=-15) < invoice_date < date.today() - timedelta(days=15):
             invoice_date = date.today()
 
-        # amount = (until_date - from_date).days + 1
-
         data.append({
             'contract': contract,
+#            'users': [contract_user.user for contract_user in contract.contractuser_set.all().order_by('user__first_name', 'user__last_name', 'user__username')],
+# works but is slow, testing if it is not too slow in production
+            'users': list(set([performance.timesheet.user for performance in performances])),
             'performed_hours': performed_hours,
             'day_rate': contract.day_rate,
             'to_be_invoiced': round(performed_hours * contract.day_rate / 8, 2),
             'invoiced': invoiced_total_amount,
             'invoiced_missing': invoiced_missing,
-            # 'performed_invoiced': performed_total_invoiced_hours,
             'action': {
                 'period_starts_at': from_date,
                 'period_ends_at': until_date,
