@@ -107,7 +107,8 @@ class AdminReportUserLeaveOverviewFilter(FilterSet):
         model = models.LeaveDate
         fields = {}
 
-class AdminReportUserWorkRatioFilter(FilterSet):
+
+class AdminReportUserWorkRatioByUserFilter(FilterSet):
     """User work ratio admin report filter."""
     user = django_filters.ModelChoiceFilter(queryset=auth_models.User.objects.filter(is_active=True))
     year = django_filters.ChoiceFilter(choices=lambda: [[x, x] for x in (models.Timesheet.objects
@@ -117,6 +118,20 @@ class AdminReportUserWorkRatioFilter(FilterSet):
     class Meta:
         model = models.Timesheet
         fields = {}
+
+
+class AdminReportUserWorkRatioByMonthFilter(FilterSet):
+    """User work ratio admin report filter."""
+    year = django_filters.ChoiceFilter(choices=lambda: [[x, x] for x in (models.Timesheet.objects
+                                                                                .values_list('year', flat=True)
+                                                                                .order_by('year').distinct())],
+                                                                                initial='2019')
+    month = django_filters.ChoiceFilter(choices=lambda: [[x + 1, x + 1] for x in range(12)])
+
+    class Meta:
+        model = models.Timesheet
+        fields = {}
+
 
 class AdminReportUserWorkRatioOverviewFilter(FilterSet):
     """User work ratio overview admin report filter."""

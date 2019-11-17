@@ -507,9 +507,9 @@ def admin_report_user_leave_overview_view(request):
 
 
 @staff_member_required
-def admin_report_user_work_ratio_view(request):
+def admin_report_user_work_ratio_by_user_view(request):
     """Shows the work ratio (billable vs. non-billable vs. leave) of a specific user."""
-    fltr = filters.AdminReportUserWorkRatioFilter(request.GET, models.Timesheet.objects)
+    fltr = filters.AdminReportUserWorkRatioByUserFilter(request.GET, models.Timesheet.objects)
     data = []
 
     if fltr.data.get('user', None) and fltr.data.get('year', None):
@@ -535,7 +535,7 @@ def admin_report_user_work_ratio_view(request):
             })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.UserWorkRatioTable(data)
+    table = tables.UserWorkRatioByUserTable(data)
     config.configure(table)
 
     export_format = request.GET.get('_export', None)
@@ -544,13 +544,51 @@ def admin_report_user_work_ratio_view(request):
         return exporter.response('table.{}'.format(export_format))
 
     context = {
-        'title': _('User work ratio'),
+        'title': _('User work ratio By User'),
         'table': table,
         'filter': fltr,
     }
 
-    return render(request, 'ninetofiver/admin/reports/user_work_ratio.pug', context)
+    return render(request, 'ninetofiver/admin/reports/user_work_ratio_by_user.pug', context)
 
+@staff_member_required
+def admin_report_user_work_ratio_by_month_view(request):
+    """Shows the work ratio (billable vs. non-billable vs. leave) of a specific month."""
+    fltr = filters.AdminReportUserWorkRatioByMonthFilter(request.GET, models.Timesheet.objects)
+    data = []
+
+    from pprint import pprint
+
+    year = int(fltr.data['year']) if fltr.data.get('year', None) else None
+
+    for timesheet in fltr.qs.select_related('user'):
+        date_range = timesheet.get_date_range()
+        range_info = calculation.get_range_info([timesheet.user], date_range[0], date_range[1], summary=True)
+        range_info = range_info[timesheet.user.id]
+
+        data.append({
+            'user':           timesheet.user,
+            'customer_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer != x['contract'].company]),
+            'internal_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer == x['contract'].company]),
+            'leaves':         range_info['leave_hours'],
+            })
+
+    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    table = tables.UserWorkRatioByMonthTable(data, order_by='user')
+    config.configure(table)
+
+    export_format = request.GET.get('_export', None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response('table.{}'.format(export_format))
+
+    context = {
+        'title': _('User work ratio By Month'),
+        'table': table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/user_work_ratio_by_month.pug', context)
 
 @staff_member_required
 def admin_report_user_work_ratio_overview_view(request):
