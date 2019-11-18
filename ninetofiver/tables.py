@@ -772,7 +772,7 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
         # Hack, normally methods should have self as the first parameters. This is fine.
         # noinspection PyMethodParameters
         def determine_row_color(record):
-            ends_at = record['contract'].ends_at
+            ends_at = record['calculated_enddate']
             if not ends_at:
                 return
             if ends_at < date.today() + timedelta(days=30):
@@ -809,13 +809,24 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
     )
 
     status = tables.Column(accessor='contract_log')
-    day_rate = tables.Column(accessor='contract.day_rate')
+    day_rate = EuroColumn(accessor='contract.day_rate')
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
     ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
     alotted_hours = SummedHoursColumn(accessor='alotted_hours')
     performed_hours = SummedHoursColumn(accessor='performed_hours')
     remaining_hours = SummedHoursColumn(accessor='remaining_hours')
+    calculated_enddate = tables.Column()
     actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
+
+    def render_calculated_enddate(self, record):
+        # A hack to fix the sorting
+        # We want contracts without enddate to end up at the end, equal to enddate if the far future.
+        # When populating the table date (in views.py) we transform contracts without enddate to an enddate of 31/12/2999
+        # In this function we transform them back to '—'
+        if record['calculated_enddate'] == date(2999, 12, 31):
+            return format_html('—')
+        else:
+            return format_html(record['calculated_enddate'].strftime('%d/%m/%Y'))
 
     def render_actions(self, record):
         buttons = []

@@ -938,8 +938,6 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
         .select_related('customer')
         .prefetch_related('contractuser_set', 'contractuser_set__contract_role', 'contractuser_set__user')
         .filter(active=True)
-        # Ensure contracts without end date/duration are never shown, since they will never expire
-        .filter(Q(ends_at__isnull=False) | Q(duration__isnull=False))
     )
 
     if company:
@@ -960,6 +958,22 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
                            .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
         performed_hours = performed_hours if performed_hours else Decimal('0.00')
         remaining_hours = (alotted_hours - performed_hours) if alotted_hours else None
+
+        calculated_enddate = contract.ends_at
+        if remaining_hours is not None:
+            business_days_to_add = hours_to_days(remaining_hours)
+            current_date = date.today().replace(day=1)
+            while business_days_to_add > 0:
+                current_date += timedelta(days=1)
+                weekday = current_date.weekday()
+                if weekday >= 5: # sunday = 6
+                    continue
+                business_days_to_add -= 1
+            calculated_enddate = current_date
+
+            if contract.ends_at is not None and contract.ends_at < calculated_enddate:
+                calculated_enddate = contract.ends_at
+
         try:
             contract_log = ContractLog.objects.filter(contract=contract).latest('date').contract_log_type
         except ObjectDoesNotExist:
@@ -972,10 +986,11 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
             'alotted_hours': alotted_hours,
             'performed_hours': performed_hours,
             'remaining_hours': remaining_hours,
+            'calculated_enddate': calculated_enddate if calculated_enddate is not None else date(2999, 12, 31)
         })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.ExpiringConsultancyContractOverviewTable(data, order_by='ends_at')
+    table = tables.ExpiringConsultancyContractOverviewTable(data, order_by='calculated_enddate')
     config.configure(table)
 
     export_format = request.GET.get('_export', None)
