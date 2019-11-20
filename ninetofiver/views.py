@@ -559,19 +559,19 @@ def admin_report_user_work_ratio_by_month_view(request):
 
     from pprint import pprint
 
-    year = int(fltr.data['year']) if fltr.data.get('year', None) else None
+    if fltr.data.get('month', None) and fltr.data.get('year', None):
 
-    for timesheet in fltr.qs.select_related('user'):
-        date_range = timesheet.get_date_range()
-        range_info = calculation.get_range_info([timesheet.user], date_range[0], date_range[1], summary=True)
-        range_info = range_info[timesheet.user.id]
+        for timesheet in fltr.qs.select_related('user'):
+            date_range = timesheet.get_date_range()
+            range_info = calculation.get_range_info([timesheet.user], date_range[0], date_range[1], summary=True)
+            range_info = range_info[timesheet.user.id]
 
-        data.append({
-            'user':           timesheet.user,
-            'customer_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer != x['contract'].company]),
-            'internal_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer == x['contract'].company]),
-            'leaves':         range_info['leave_hours'],
-            })
+            data.append({
+                'user':           timesheet.user,
+                'customer_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer != x['contract'].company]),
+                'internal_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer == x['contract'].company]),
+                'leaves':         range_info['leave_hours'],
+                })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
     table = tables.UserWorkRatioByMonthTable(data, order_by='user')
