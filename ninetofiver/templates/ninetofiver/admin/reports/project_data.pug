@@ -17,11 +17,22 @@ div(class='row')
                             td
                                 - include 'ninetofiver/admin/reports/progress_bar.html' with value=country_data.performed_pct
 
+        div(class='w-100 mt-3')
+
+        div
+            table(class='table table-sm table-striped my-0')
+                thead
                     tr
-                        th Total
-                        td(class='text-nowrap') {{ record.performed_hours | format_duration }}
+                        th Fixed fee
+                        th Invoiced amount
+                        th Invoiced ratio
+                tbody
+                    tr
+                        td {{ record.contract.fixed_fee }}
+                        td {{ record.invoiced_amount }}
                         td
-    
+                            - include 'ninetofiver/admin/reports/progress_bar_to_green.html' with value=record.invoiced_pct
+
     div(class='col-8')
         div
             table(class='table table-sm table-striped my-0')
@@ -57,15 +68,21 @@ div(class='row')
         table(class='table table-sm table-striped my-0')
             thead
                 tr
-                    th Fixed fee
-                    th Invoiced amount
-                    th Invoiced ratio
+                    th Month
+                    th Performed
+                    th Performed ratio
             tbody
+                for month_data in record.months
+                    tr
+                        td {{ month_data.month }}
+                        td(class='text-nowrap') {{ month_data.performed_hours | format_duration }}
+                        td
+                            - include 'ninetofiver/admin/reports/progress_bar.html' with value=month_data.performed_pct
+
                 tr
-                    td {{ record.contract.fixed_fee }}
-                    td {{ record.invoiced_amount }}
+                    th Total
+                    td(class='text-nowrap') {{ record.performed_hours | format_duration }}
                     td
-                        - include 'ninetofiver/admin/reports/progress_bar_to_green.html' with value=record.invoiced_pct
 
     div(class='col-8')
         table(class='table table-sm table-striped my-0')

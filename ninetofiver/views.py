@@ -1129,6 +1129,8 @@ def admin_report_project_contract_overview_view(request):
             country_data = {}
             # List containing performed hours per user
             user_data = {}
+            # List containing performed hours per month
+            month_data = {}
 
             # Fetch each performance for the contract, annotated with country
             performances = (models.ActivityPerformance.objects
@@ -1164,6 +1166,13 @@ def admin_report_project_contract_overview_view(request):
                         'performed_hours': Decimal('0.00'),
                     }
 
+                month = date(performance.timesheet.year, performance.timesheet.month, 1)
+                if month not in month_data:
+                    month_data[month] = {
+                        'month': month.strftime('%Y-%m'),
+                        'performed_hours': Decimal('0.00'),
+                    }
+
                 contract_role = performance.contract_role
                 if contract_role.id not in contract_role_data:
                     contract_role_data[contract_role.id] = {
@@ -1177,6 +1186,7 @@ def admin_report_project_contract_overview_view(request):
                 contract_role_data[performance.contract_role.id]['performed_hours'] += duration
                 country_data[country]['performed_hours'] += duration
                 user_data[user.id]['performed_hours'] += duration
+                month_data[month]['performed_hours']+= duration
 
             # Iterate over contract role, user, country data and calculate performed_pct
             for contract_role_id, item in contract_role_data.items():
@@ -1185,6 +1195,8 @@ def admin_report_project_contract_overview_view(request):
             for user_id, item in user_data.items():
                 item['performed_pct'] = round((item['performed_hours'] / performed_hours) * 100, 2) if performed_hours else None
             for country, item in country_data.items():
+                item['performed_pct'] = round((item['performed_hours'] / performed_hours) * 100, 2) if performed_hours else None
+            for month, item in month_data.items():
                 item['performed_pct'] = round((item['performed_hours'] / performed_hours) * 100, 2) if performed_hours else None
 
             # Fetch invoiced amount
@@ -1199,6 +1211,7 @@ def admin_report_project_contract_overview_view(request):
                 'contract_roles': contract_role_data.values(),
                 'countries': country_data.values(),
                 'users': user_data.values(),
+                'months': month_data.values(),
                 'performed_hours': performed_hours,
                 'estimated_hours': estimated_hours,
                 'estimated_pct': round((performed_hours / estimated_hours) * 100, 2) if estimated_hours else None,
