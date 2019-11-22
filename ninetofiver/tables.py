@@ -946,11 +946,19 @@ class ProjectContractOverviewTable(BaseTable):
                         'contract': record['contract'].id,
         })
 
-        buttons.append(('<a class="button" href="%(url)s?' +
-                        'contract__id__exact=%(contract)s">Invoices</a>') % {
-                        'url': reverse('admin:ninetofiver_invoice_changelist'),
-                        'contract': record['contract'].id,
-        })
+
+        buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
+                       'contract__id__exact={contract_id}'
+                       '">Invoices</a>'.format(
+                           url=reverse('admin:ninetofiver_invoice_changelist'),
+                           contract_id=record['contract'].id)
+                       +
+                       '<a class="button" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" href="{url}?'
+                       'contract={contract_id}&'
+                       '">{label}</a>'.format(url=reverse('admin:ninetofiver_invoice_add'),
+                                              label="+",
+                                              contract_id=record['contract'].id)
+                       )
 
 
         return format_html('%s' % ('</br></br>'.join(buttons)))
