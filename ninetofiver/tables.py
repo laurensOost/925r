@@ -518,6 +518,7 @@ class UserWorkRatioByUserTable(BaseTable):
 
     year = tables.Column()
     month = tables.Column()
+    work_hours = SummedHoursColumn()
     customer_hours = SummedHoursColumn()
     internal_hours= SummedHoursColumn()
     leaves = SummedHoursColumn()
@@ -548,6 +549,7 @@ class UserWorkRatioByMonthTable(BaseTable):
         accessor='user',
         order_by=['user.first_name', 'user.last_name', 'user.username']
     )
+    work_hours = SummedHoursColumn()
     customer_hours = SummedHoursColumn()
     internal_hours= SummedHoursColumn()
     leaves = SummedHoursColumn()

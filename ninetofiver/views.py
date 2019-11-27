@@ -527,6 +527,7 @@ def admin_report_user_work_ratio_by_user_view(request):
             data.append({
                 'year': timesheet.year,
                 'month': timesheet.month,
+                'work_hours': range_info['work_hours'],
                 'customer_hours': sum([x['duration'] for x in range_info['summary']['performances']
                                  if x['contract'].customer != x['contract'].company]),
                 'internal_hours': sum([x['duration'] for x in range_info['summary']['performances']
@@ -568,6 +569,7 @@ def admin_report_user_work_ratio_by_month_view(request):
 
             data.append({
                 'user':           timesheet.user,
+                'work_hours':     range_info['work_hours'],
                 'customer_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer != x['contract'].company]),
                 'internal_hours': sum([x['duration'] for x in range_info['summary']['performances'] if x['contract'].customer == x['contract'].company]),
                 'leaves':         range_info['leave_hours'],
