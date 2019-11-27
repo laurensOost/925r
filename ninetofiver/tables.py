@@ -142,7 +142,7 @@ class HoursColumn(tables.Column):
 class EuroColumn(tables.Column):
     """Euro column."""
 
-    attrs = { 'td': {'align': 'right'} }
+    attrs = { 'td': {'align': 'right', 'class': 'text-nowrap'} }
 
     def render(self, value):
         if value:
