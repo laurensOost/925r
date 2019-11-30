@@ -1,79 +1,82 @@
-extends ninetofiver/admin/reports/base.pug
-
+extends admin/base_site.html
 
 block content
-    hr
-    table(class="table table-bordered table-striped")
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption General
       tbody
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_timesheet_contract_overview' %}?year={{ today|date:'Y' }}&month={{ today|date:'n' }}") Timesheet contract overview
-        tr
-          th(colspan="2") Timesheets
-        tr
-          td
+
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Timesheets
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_timesheet_overview' %}?year={{ today|date:'Y' }}&month={{ today|date:'n' }}") Timesheet overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_timesheet_monthly_overview' %}?base_date={{ today|date:'Y-m-d' }}&fetch_previous=true") Timesheet monthly overview
-        tr
-          th(colspan="2") Users
-        tr
-          td
+
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Users
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_user_range_info' %}?from_date={{ last_week|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}&user={{ user.id }}") User range info
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_user_leave_overview' %}?from_date={{ last_week|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}&user={{ user.id }}") User leave overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_user_work_ratio_overview' %}?year={{ today|date:'Y' }}&user={{ user.id }}") User work ratio overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_user_overtime_overview' %}?from_date={{ last_week|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}&user={{ user.id }}") User overtime overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_expiring_user_training_overview_view' %}") Expiring user training overview
-        tr
-          th(colspan="2") Consultancy
-        tr
-          td
+
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Consultancy
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_invoiced_consultancy_contract_overview' %}?active=true") Invoiced consultancy contract overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_expiring_consultancy_contract_overview' %}?filter_internal={{ 'show_noninternal' }}") Expiring consultancy contract overview
-        tr
-          th(colspan="2") Support
-        tr
-          td
+
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Support
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_expiring_support_contract_overview' %}?ends_at_lte={{ two_months_from_now|date:'Y-m-d' }}") Expiring support contract overview
-        tr
-          th(colspan="2") Projects
-        tr
-          td
+
+  div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Projects
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_project_contract_overview' %}") Project contract overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_project_contract_budget_overview' %}") Project contract budget overview
-        tr
-          th(colspan="2") Availability
-        tr
-          td
+
+ div(class="module", style="width: 100%")
+    table(style="width: 100%")
+      caption Availability
+      tbody
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_resource_availability_overview' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ next_month|date:'Y-m-d' }}") Resource availability overview
-        tr
-          td
+        tr(scope="row")
           th
             a(href="{% url 'admin_report_internal_availability_overview_view' %}?date={{ today|date:'Y-m-d' }}") Internal availability overview
