@@ -1213,7 +1213,7 @@ def admin_report_project_contract_overview_view(request):
                 'contract_roles': contract_role_data.values(),
                 'countries': country_data.values(),
                 'users': user_data.values(),
-                'months': month_data.values(),
+                'months': sorted(month_data.values(), key=lambda i: i['month']),
                 'performed_hours': performed_hours,
                 'estimated_hours': estimated_hours,
                 'estimated_pct': round((performed_hours / estimated_hours) * 100, 2) if estimated_hours else None,
