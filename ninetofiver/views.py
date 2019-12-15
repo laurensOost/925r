@@ -1028,71 +1028,105 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         until_date = (datetime.today().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
     request_get['until_date'] = until_date.strftime("%Y-%m-%d")
 
+    # invoice_date is last day of the month of the specific period selected in the report
+    #  - if that date is less than 15 days before or after the current date
+    # else the current date.
+    invoice_date = until_date
+    if date.today() - timedelta(days=-15) < invoice_date < date.today() - timedelta(days=15):
+        invoice_date = date.today()
+
+
     fltr = filters.AdminReportInvoicedConsultancyContractOverviewFilter(request_get,
                                                                         models.ConsultancyContract.objects)
     data = []
 
-    contracts = models.ConsultancyContract.objects.all()
 
-    active = request.GET.get('active').lower() == 'true' if request.GET.get('active') else None
-    if active is not None:
-        contracts = contracts.filter(active=active)
+    performances = models.ActivityPerformance.objects
+    performances = performances.filter(
+            Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
+            Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__gte=until_date.year)
+            )
+    performances = performances.filter(Q(contract__polymorphic_ctype__model='consultancycontract'))
 
     try:
         company = list(map(int, request.GET.getlist('company', [])))
     except Exception:
         company = None
     if company:
-        contracts = contracts.filter(company__id__in=company)
-
-    for contract in contracts:
-        performances = models.ActivityPerformance.objects.filter(contract=contract)
-
-        # Filter by timesheet (month/year)
         performances = performances.filter(
-            Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
-            Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__gte=until_date.year)
+            Q(contract__company__id__in=company)
         )
-        # Filter by exact date
-        # performed_hours = performed_hours.filter(date__gte=from_date, date__lte=until_date)
 
-        performed_hours = performances.aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier')))
-        performed_hours = performed_hours['performed_hours'] if performed_hours['performed_hours'] else Decimal('0.00')
+    # Prefetching some more info in 1 DB query
+    performances = performances.select_related('performance_type')
+    performances = performances.select_related('contract__consultancycontract')
+    performances = performances.select_related('timesheet')
+    performances = performances.select_related('timesheet__user')
+
+    # We can't access ConsultancyContract specific items, like day_rate, when using the select_related on the performances
+    # Therefore we fetch all ConsultancyContracts and we match them in code
+    consultancycontracts = models.ConsultancyContract.objects
+    consultancycontracts = consultancycontracts.filter(contract_ptr_id__in=performances.values_list('contract_id', flat=True).distinct())
+    consultancycontracts = consultancycontracts.select_related('company')
+    consultancycontracts = consultancycontracts.select_related('customer')
+
+    invoiceitems = models.InvoiceItem.objects
+    invoiceitems = invoiceitems.filter(invoice__period_starts_at__lte=until_date, invoice__period_ends_at__gte=from_date)
+    invoiceitems = invoiceitems.select_related('invoice')
+
+
+    performed_hours = []
+
+    for performance in performances:
+
+        contract_already_added = False
+        for performed_hour in performed_hours:
+            if performed_hour['contract'].id == performance.contract.id:
+                performed_hour['duration'] = performed_hour['duration'] + ( performance.duration * performance.performance_type.multiplier )
+                performed_hour['users'].add(performance.timesheet.user) 
+                contract_already_added = True
+
+        if not contract_already_added:
+            # We loop through all ConsultancyContracts and find the matching one
+            # We will use the seperate contract instead the prefetched contract though performances
+            for contract in consultancycontracts:
+                if performance.contract.id == contract.id:
+                    performed_hours.append({
+                        'contract': contract,
+                        'duration': performance.duration * performance.performance_type.multiplier,
+                        'users':    set([performance.timesheet.user])
+                        })
+
+
+    for performed_hour in performed_hours:
 
         invoiced_total_amount = 0
         invoiced_missing = False
-        for invoice in models.Invoice.objects.filter(contract=contract, period_starts_at__lte=until_date, period_ends_at__gte=from_date):
-            invoiced_total_amount += invoice.get_total_amount()
-            if from_date > invoice.period_starts_at or until_date < invoice.period_ends_at:
-                invoiced_missing = True
-
-        # date is last day of the month of the specific period selected in the report
-        #  - if that date is less than 15 days before or after the current date
-        # else the current date.
-        invoice_date = until_date
-        if date.today() - timedelta(days=-15) < invoice_date < date.today() - timedelta(days=15):
-            invoice_date = date.today()
+        for invoiceitem in invoiceitems:
+            if invoiceitem.invoice.contract_id == performed_hour['contract'].id:
+                invoiced_total_amount += invoiceitem.price * invoiceitem.amount
+                if from_date > invoiceitem.invoice.period_starts_at or until_date < invoiceitem.invoice.period_ends_at:
+                    invoiced_missing = True
 
         data.append({
-            'contract': contract,
-#            'users': [contract_user.user for contract_user in contract.contractuser_set.all().order_by('user__first_name', 'user__last_name', 'user__username')],
-# works but is slow, testing if it is not too slow in production
-            'users': list(set([performance.timesheet.user for performance in performances])),
-            'performed_hours': performed_hours,
-            'day_rate': contract.day_rate,
-            'to_be_invoiced': round(performed_hours * contract.day_rate / 8, 2),
+            'contract': performed_hour['contract'],
+            'users': performed_hour['users'],
+            'performed_hours': performed_hour['duration'],
+            'day_rate': performed_hour['contract'].day_rate,
+            'to_be_invoiced': round(performed_hour['duration'] * performed_hour['contract'].day_rate / 8, 2),
             'invoiced': invoiced_total_amount,
             'invoiced_missing': invoiced_missing,
             'action': {
                 'period_starts_at': from_date,
                 'period_ends_at': until_date,
                 'date': invoice_date,
-                'price': contract.day_rate,
-                'amount': hours_to_days(performed_hours, rounded=False),
+                'price': performed_hour['contract'].day_rate,
+                'amount': hours_to_days(performed_hour['duration'], rounded=False),
             },
         })
 
-    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+
+    config = RequestConfig(request, paginate=False)
     table = tables.InvoicedConsultancyContractOverviewTable(data, order_by='-to_be_invoiced,-performed_hours')
     config.configure(table)
 

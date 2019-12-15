@@ -277,7 +277,6 @@ class AdminReportInvoicedConsultancyContractOverviewFilter(FilterSet):
     class Meta:
         model = models.ConsultancyContract
         fields = {
-                'active',
                 'company',
         }
 
