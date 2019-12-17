@@ -287,6 +287,7 @@ class LeaveAdmin(admin.ModelAdmin):
         'status',
         ('leave_type', RelatedDropdownFilter),
         ('user', RelatedDropdownFilter),
+        ('user__groups', RelatedDropdownFilter),
         ('leavedate__starts_at', DateTimeRangeFilter),
         ('leavedate__ends_at', DateTimeRangeFilter)
     )
