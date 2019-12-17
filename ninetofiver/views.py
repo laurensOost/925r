@@ -991,7 +991,7 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
             'calculated_enddate': calculated_enddate if calculated_enddate is not None else date(2999, 12, 31)
         })
 
-    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    config = RequestConfig(request, paginate=False)
     table = tables.ExpiringConsultancyContractOverviewTable(data, order_by='calculated_enddate')
     config.configure(table)
 
