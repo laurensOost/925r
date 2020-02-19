@@ -1029,6 +1029,16 @@ class ExpiringSupportContractOverviewTable(BaseTable):
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
 
+class InvoicesOverviewTable(BaseTable):
+    """Expiring support contract overview table."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    contract_type = tables.Column()
+    amount = SummedEuroColumn()
+
+
 class ProjectContractBudgetOverviewTable(BaseTable):
     """Project contract budget overview table."""
 

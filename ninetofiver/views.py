@@ -1684,6 +1684,72 @@ def admin_report_internal_availability_overview_view(request):
     return render(request, 'ninetofiver/admin/reports/internal_availability_overview.pug', context)
 
 
+@staff_member_required
+def admin_report_invoices_overview_view(request):
+
+    # Copy QueryDict of GET - so we can inject from_date and until_date if not filled
+    request_get = request.GET.copy()
+
+    # Update from and until date so they are not missing and are the first and last day of the selected month(s)
+    try:
+        from_date = datetime.strptime(request.GET.get('from_date'), '%Y-%m-%d').date().replace(day=1)
+    except Exception:
+        from_date = datetime.today().replace(day=1).date()
+    request_get['from_date'] = from_date.strftime("%Y-%m-%d")
+
+    try:
+        until_date = (datetime.strptime(request.GET.get('until_date'), '%Y-%m-%d').date().replace(day=1) + relativedelta(months=1) - relativedelta(days=1))
+    except Exception:
+        until_date = (datetime.today().replace(day=1) + relativedelta(months=1) - relativedelta(days=1)).date()
+    request_get['until_date'] = until_date.strftime("%Y-%m-%d")
+
+
+    fltr = filters.AdminReportInvoicesOverviewFilter(request_get,
+                                                     models.Invoice.objects)
+
+    invoiceitems = models.InvoiceItem.objects
+    invoiceitems = invoiceitems.filter(invoice__date__lte=until_date, invoice__date__gte=from_date)
+    if request.GET.get('company') is not None and request.GET.get('company') is not '':
+        invoiceitems = invoiceitems.filter(invoice__contract__company=request.GET.get('company'))
+    invoiceitems = invoiceitems.select_related('invoice', 'invoice__contract__polymorphic_ctype')
+
+    invoices = {}
+    for invoiceitem in invoiceitems:
+        if invoiceitem.invoice.contract.polymorphic_ctype.model not in invoices:
+            invoices[invoiceitem.invoice.contract.polymorphic_ctype.model] = 0
+
+        invoices[invoiceitem.invoice.contract.polymorphic_ctype.model] += invoiceitem.price * invoiceitem.amount
+
+
+    data = []
+
+    data.append({
+        'contract_type': 'Consultancy',
+        'amount': round(invoices['consultancycontract'],2) if 'consultancycontract' in invoices else 0,
+    })
+    data.append({
+        'contract_type': 'Support',
+        'amount': round(invoices['supportcontract'],2) if 'supportcontract' in invoices else 0,
+    })
+    data.append({
+        'contract_type': 'Project',
+        'amount': round(invoices['projectcontract'],2) if 'projectcontract' in invoices else 0,
+    })
+
+
+    config = RequestConfig(request, paginate=False)
+    table = tables.InvoicesOverviewTable(data)
+    config.configure(table)
+
+    context = {
+        'title':  _('Invoices overview'),
+        'table':  table,
+        'filter': fltr,
+    }
+
+    return render(request, 'ninetofiver/admin/reports/invoices_overview.pug', context)
+
+
 class AdminTimesheetContractPdfExportView(BaseTimesheetContractPdfExportServiceAPIView):
     """Export a timesheet contract to PDF."""
 

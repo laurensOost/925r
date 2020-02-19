@@ -289,3 +289,20 @@ class AdminReportExpiringUserTrainingOverviewFilter(FilterSet):
     class Meta:
         model = models.Training
         fields = {}
+
+
+class AdminReportInvoicesOverviewFilter(FilterSet):
+
+    company = django_filters.ModelChoiceFilter(label='Company',
+                                               queryset=models.Company.objects.filter(internal=True),
+                                               distinct=True)
+    from_date = django_filters.DateFilter(label='From', widget=admin_widgets.AdminDateWidget())
+    until_date = django_filters.DateFilter(label='Until', widget=admin_widgets.AdminDateWidget())
+
+    class Meta:
+        model = models.Invoice
+        fields = {
+                'company': ['exact'],
+                'from_date': ['exact'],
+                'until_date': ['exact']
+                }
