@@ -87,4 +87,4 @@ block content
       tbody
         tr(scope="row")
           th
-            a(href="{% url 'admin_report_invoices_overview_view' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ next_month|date:'Y-m-d' }}") Invoices overview 
+            a(href="{% url 'admin_report_invoices_overview_view' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}") Invoices overview 
