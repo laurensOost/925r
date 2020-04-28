@@ -1148,7 +1148,7 @@ def admin_report_project_contract_overview_view(request):
     if True in map(bool, list(fltr.data.values())):
         contracts = (fltr.qs.all()
                     .select_related('customer')
-                    .prefetch_related('contractestimate_set', 'contractestimate_set__contract_role')
+                    .prefetch_related('contractestimate_set', 'contractestimate_set__contract_role','attachments')
                     .filter(active=True)
                     # Ensure contracts where the internal company and the customer are the same are filtered out
                     # These are internal contracts to cover things such as meetings, talks, etc..
@@ -1167,6 +1167,8 @@ def admin_report_project_contract_overview_view(request):
             user_data = {}
             # List containing performed hours per month
             month_data = {}
+            # List containing contract attachments
+            attachment_data = {}
 
             # Fetch each performance for the contract, annotated with country
             performances = (models.ActivityPerformance.objects
@@ -1242,6 +1244,13 @@ def admin_report_project_contract_overview_view(request):
                                                    output_field=DecimalField(max_digits=9, decimal_places=2))))['invoiced_amount']
             invoiced_amount = invoiced_amount if invoiced_amount else Decimal('0.00')
 
+            # Attachments
+            for attachment in contract.attachments.all():
+                attachment_data[attachment.name] = {
+                            'file': attachment.file,
+                            'url': attachment.get_file_url(),
+                    }
+
             data.append({
                 'contract': contract,
                 'contract_roles': contract_role_data.values(),
@@ -1253,6 +1262,7 @@ def admin_report_project_contract_overview_view(request):
                 'estimated_pct': round((performed_hours / estimated_hours) * 100, 2) if estimated_hours else None,
                 'invoiced_amount': invoiced_amount,
                 'invoiced_pct': round((invoiced_amount / contract.fixed_fee) * 100, 2) if contract.fixed_fee else None,
+                'attachments': attachment_data,
             })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
