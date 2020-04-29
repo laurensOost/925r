@@ -965,16 +965,17 @@ class ProjectContractOverviewTable(BaseTable):
 
         attachment_list = ""
         for attachment in record['attachments']:
-            attachment_list = attachment_list + '<a class="dropdown-item" href="{url}">{name}</a>'.format(url=record['attachments'][attachment]['url'],
-                                                                                                          name=attachment)
-        if not attachment_list:
-            attachment_list = '<a class="dropdown-item disabled" href="#">No attachments available</a>'
-
-        buttons.append('<div class="dropdown">'
+            attachment_list = attachment_list + '<a class="dropdown-item" href="{url}">{name}</a>'.format(url=record['attachments'][attachment]['url'], name=attachment)
+        if attachment_list:
+             buttons.append('<div class="dropdown">'
                        '<a class="button dropdown-toggle" href="#" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Attachments</a>'
                        '<div class="dropdown-menu" aria-labelledby="dropdownMenuLink">' +
                        attachment_list +
                        '</div></div>')
+        else:
+            buttons.append('<div class="dropdown">'
+                    '<a disabled class="button dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-disabled="true" aria-haspopup="true" aria-expanded="false">Attachments</a>'
+                    '</div>')
 
         return format_html('%s' % ('</br></br>'.join(buttons)))
 
