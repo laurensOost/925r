@@ -1149,10 +1149,7 @@ def admin_report_project_contract_overview_view(request):
         contracts = (fltr.qs.all()
                     .select_related('customer')
                     .prefetch_related('contractestimate_set', 'contractestimate_set__contract_role','attachments')
-                    .filter(active=True)
-                    # Ensure contracts where the internal company and the customer are the same are filtered out
-                    # These are internal contracts to cover things such as meetings, talks, etc..
-                    .exclude(customer=F('company')))
+                    .filter(active=True))
 
         for contract in contracts:
             # Keep track of totals
