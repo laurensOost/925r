@@ -923,6 +923,7 @@ class ProjectContractOverviewTable(BaseTable):
         pass
 
     contract = tables.Column(accessor='contract', orderable=True,
+                             order_by=['contract.customer.name', 'contract.name'],
                              attrs={
                                  'th': {
                                      'style': 'width: 15%; min-width: 150px;'
