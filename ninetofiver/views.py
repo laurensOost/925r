@@ -1263,7 +1263,7 @@ def admin_report_project_contract_overview_view(request):
             })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.ProjectContractOverviewTable(data)
+    table = tables.ProjectContractOverviewTable(data, order_by='contract')
     config.configure(table)
 
     export_format = request.GET.get('_export', None)
