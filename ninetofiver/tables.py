@@ -1028,7 +1028,7 @@ class ExpiringSupportContractOverviewTable(BaseTable):
         viewname='admin:ninetofiver_contract_change',
         args=[A('contract.id')],
         accessor='contract',
-        order_by=['contract.name']
+        order_by=['contract.customer.name', 'contract.name']
     )
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
     ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')

@@ -261,8 +261,14 @@ class AdminReportUserOvertimeOverviewFilter(FilterSet):
 
 class AdminReportExpiringSupportContractOverviewFilter(FilterSet):
     """Expiring support contract overview admin report filter."""
-    ends_at_lte = django_filters.DateFilter(label='Ends before', widget=admin_widgets.AdminDateWidget(),
-                                            field_name='ends_at', lookup_expr='lte')
+    company = (django_filters.ModelMultipleChoiceFilter(queryset=models.Company.objects.filter(internal=True),
+                                                        distinct=True))
+    filter_internal = django_filters.ChoiceFilter(label='Filter internal contracts',
+                                                  empty_label="Show all project",
+                                                  choices=(
+                                                      ('show_noninternal', 'Show only non-internal consultancy contracts'),
+                                                      ('show_internal', 'Show only internal consultancy contracts'),
+                                                  ))
 
     class Meta:
         model = models.SupportContract

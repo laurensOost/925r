@@ -1357,33 +1357,41 @@ def admin_report_expiring_support_contract_overview_view(request):
     """Expiring support contract overview report."""
     fltr = filters.AdminReportExpiringSupportContractOverviewFilter(request.GET,
                                                                     models.SupportContract.objects)
-    ends_at_lte = (parser.parse(request.GET.get('ends_at_lte', None)).date()
-                   if request.GET.get('ends_at_lte') else None)
+    company = request.GET.getlist('company', [])
+    filter_internal = request.GET.get('filter_internal')
     data = []
 
-    if ends_at_lte:
-        contracts = (models.SupportContract.objects.all()
-                     .select_related('customer')
-                     .filter(active=True)
-                     # Ensure contracts without end date/duration are never shown, since they will never expire
-                     .filter(Q(ends_at__isnull=False, ends_at__lte=ends_at_lte))
-                     # Ensure contracts where the internal company and the customer are the same are filtered out
-                     # These are internal contracts to cover things such as meetings, talks, etc..
-                     .exclude(customer=F('company')))
 
-        for contract in contracts:
-            performed_hours = (models.ActivityPerformance.objects
-                               .filter(contract=contract)
-                               .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
-            performed_hours = performed_hours if performed_hours else Decimal('0.00')
+    contracts = (
+        models.SupportContract.objects.all()
+        .select_related('customer')
+        .filter(active=True)
+    )
 
-            data.append({
-                'contract': contract,
-                'performed_hours': performed_hours,
-            })
+    if company:
+        contracts = contracts.filter(company__in=company)
 
-    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
-    table = tables.ExpiringSupportContractOverviewTable(data, order_by='ends_at')
+    if filter_internal == "show_noninternal":
+        contracts = contracts.exclude(customer=F('company'))
+    elif filter_internal == "show_internal":
+        contracts = contracts.filter(customer=F('company'))
+    elif filter_internal == "show_all" or filter_internal is "":
+        # Do nothing - show all. (#readability_counts)
+        pass
+
+    for contract in contracts:
+        performed_hours = (models.ActivityPerformance.objects
+                           .filter(contract=contract)
+                           .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
+        performed_hours = performed_hours if performed_hours else Decimal('0.00')
+
+        data.append({
+            'contract': contract,
+            'performed_hours': performed_hours,
+        })
+
+    config = RequestConfig(request, paginate=False)
+    table = tables.ExpiringSupportContractOverviewTable(data, order_by='contract')
     config.configure(table)
 
     export_format = request.GET.get('_export', None)
