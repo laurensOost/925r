@@ -654,6 +654,7 @@ class LeaveDate(BaseModel):
 
         return label
 
+    @property
     def duration(self):
         """Return duration LeaveDate in hours."""
         duration = round((self.ends_at - self.starts_at).total_seconds() / 3600, 2)
