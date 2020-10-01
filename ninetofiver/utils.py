@@ -141,10 +141,11 @@ class IntelligentManyToManyWidget(ManyToManyWidget):
                 ids.append(resolved_field)
         return self.separator.join(ids)
 
-class AvailabilityInfo():
+
+class AvailabilityInfo(object):
     def __init__(self):
         self.day_tags = []
-        self.leave = None
+        self.leave_date = None
 
     def add_tag(self, tag):
         self.day_tags.append(tag)

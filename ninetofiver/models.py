@@ -654,6 +654,11 @@ class LeaveDate(BaseModel):
 
         return label
 
+    def duration(self):
+        """Return duration LeaveDate in hours."""
+        duration = round((self.ends_at - self.starts_at).total_seconds() / 3600, 2)
+        return Decimal(str(duration))
+
 
 class PerformanceType(BaseModel):
 

@@ -741,8 +741,6 @@ class InternalAvailabilityOverviewTable(BaseTable):
 class TimesheetMonthlyOverviewTable(BaseTable):
     """Timesheet monthly overview table."""
 
-    export_formats = []
-
     class Meta(BaseTable.Meta):
         pass
 

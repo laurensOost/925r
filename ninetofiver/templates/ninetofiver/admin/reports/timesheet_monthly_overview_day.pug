@@ -7,14 +7,6 @@ div
                 data-toggle="tooltip"
                 title="Sickness"
             ) S
-    elif 'leave' in value.availability
-        h5(class='my-0')
-            span(
-                style="background:#00c851;opacity:0.75;"
-                class="badge"
-                data-toggle="tooltip"
-                title="Leave"
-            )  {{ value.leave.leave_type.name }}
     elif 'holiday' in value.availability
         h5(class='my-0')
             span(
@@ -22,7 +14,7 @@ div
                 class="badge"
                 data-toggle="tooltip"
                 title="Holiday"
-            )  H
+            ) H
     elif 'no_work' in value.availability
         h5(class='my-0')
             span(
@@ -30,7 +22,23 @@ div
                 class="badge"
                 data-toggle="tooltip"
                 title="No work"
-            )  N
+            ) N
+    elif 'leave' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#00c851;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Leave"
+            )  {{ value.leave_date.leave.leave_type.name }} ({{ value.leave_date.duration }})
+        if value.leave_date.duration < value.work_hours
+            h5(class='my-0') /
+                span(
+                    style="background:#1693A5;opacity:0.75;"
+                    class="badge"
+                    data-toggle="tooltip"
+                    title="Working"
+                ) W
     else
         h5(class='my-0')
             span(
@@ -38,4 +46,4 @@ div
                 class="badge"
                 data-toggle="tooltip"
                 title="Working"
-            )  W
+            ) W

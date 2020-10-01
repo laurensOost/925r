@@ -376,6 +376,7 @@ def admin_report_timesheet_overview_view(request):
     table = tables.TimesheetOverviewTable(data)
     config.configure(table)
 
+
     export_format = request.GET.get('_export', None)
     if TableExport.is_valid_format(export_format):
         exporter = TableExport(export_format, table)
@@ -880,7 +881,7 @@ class TimesheetMonthlyOverviewView(AvailabilityView):
                     day_availability = availability[str(user.id)][date_str]
                     day_availability_tags = day_availability.day_tags
                     user_day_data['availability'] = day_availability_tags
-                    user_day_data['leave'] = day_availability.leave
+                    user_day_data['leave_date'] = day_availability.leave_date
 
                     user_day_data['contract_user_work_schedules'] = day_contract_user_work_schedules
                     user_day_data['scheduled_hours'] = day_scheduled_hours
@@ -911,6 +912,7 @@ class TimesheetMonthlyOverviewView(AvailabilityView):
                                paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size * 4})
         table = tables.TimesheetMonthlyOverviewTable(from_date, until_date, data)
         config.configure(table)
+
 
         export_format = request.GET.get('_export', None)
         if TableExport.is_valid_format(export_format):
