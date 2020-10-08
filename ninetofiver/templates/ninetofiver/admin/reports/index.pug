@@ -80,11 +80,3 @@ block content
         tr(scope="row")
           th
             a(href="{% url 'admin_report_internal_availability_overview_view' %}?date={{ today|date:'Y-m-d' }}") Internal availability overview
-
-  div(class="module", style="width: 100%")
-    table(style="width: 100%")
-      caption Invoices
-      tbody
-        tr(scope="row")
-          th
-            a(href="{% url 'admin_report_invoices_overview_view' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ today|date:'Y-m-d' }}") Invoices overview 
