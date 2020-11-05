@@ -165,12 +165,16 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
     issue_dict = {x.id: x for x in issues}
 
     # Fetch a list of redmine project IDs and contract ID for the user
-    contracts = (models.Contract.objects
+    user_contracts = (models.Contract.objects
                  .filter(contractuser__user=user)
-                 .values('redmine_id', 'id', 'active'))
-    contract_ids_status = {x['id']: x['active']  for x in contracts}
+                 .values('id', 'active'))
+    contract_ids_status = {x['id']: x['active']  for x in user_contracts}
     # Contract a dict mapping redmine project IDs to a user's contract IDs
-    redmine_contracts = {str(x['redmine_id']): x['id'] for x in contracts}
+    # Use all contracts so we can show correct error
+    all_contracts = (models.Contract.objects
+                 .all()
+                 .values('redmine_id', 'id'))
+    redmine_contracts = {str(x['redmine_id']): x['id'] for x in all_contracts}
 
     # Construct a dict mapping redmine time entry IDs to a user's performance IDs
     time_entry_ids = [x.id for x in time_entries]
