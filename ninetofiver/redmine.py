@@ -3,6 +3,7 @@ import logging
 import datetime
 from redminelib import Redmine
 from ninetofiver import models, settings
+from ninetofiver.exceptions import InvalidRedmineUserException
 
 
 logger = logging.getLogger(__name__)
@@ -147,7 +148,7 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
     user_id = get_user_redmine_id(user)
     if not user_id:
         logger.debug('No Redmine user ID found for user %s' % user.id)
-        return data
+        raise InvalidRedmineUserException("No redmine user id found")
 
     if not from_date:
         from_date = datetime.date.today()
@@ -166,20 +167,20 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
     # Fetch a list of redmine project IDs and contract ID for the user
     contracts = (models.Contract.objects
                  .filter(contractuser__user=user)
-                 .values('redmine_id', 'id'))
-    contract_ids = [x['id'] for x in contracts]
+                 .values('redmine_id', 'id', 'active'))
+    contract_ids_status = {x['id']: x['active']  for x in contracts}
     # Contract a dict mapping redmine project IDs to a user's contract IDs
     redmine_contracts = {str(x['redmine_id']): x['id'] for x in contracts}
 
     # Construct a dict mapping redmine time entry IDs to a user's performance IDs
     time_entry_ids = [x.id for x in time_entries]
-    redmine_performances = (models.Performance.objects
-                            .filter(timesheet__user=user, redmine_id__in=time_entry_ids)
-                            .values('redmine_id', 'id'))
-    redmine_performances = {str(x['redmine_id']): x['id'] for x in redmine_performances}
+    redmine_performances = models.ActivityPerformance.objects.filter(timesheet__user=user, redmine_id__in=time_entry_ids)
+    redmine_performances = {str(x.redmine_id): x for x in redmine_performances}
 
     for entry in time_entries:
-        performance_id = redmine_performances.get(str(entry.id), None)
+        invalid_reason = None
+        performance = redmine_performances.get(str(entry.id), None)
+        performance_id = getattr(performance, 'id', None)
 
         # The contract ID for the given time entry is determined by:
         # * Looking for a custom field value which is part of the user's contract list
@@ -191,9 +192,19 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
         if not contract_id:
             contract_id = redmine_contracts.get(str(entry.project.id), None)
 
-        if (not contract_id) or (contract_id not in contract_ids):
+        if not contract_id:
             logger.debug('No contract found for Redmine time entry with ID %s' % entry.id)
-            continue
+            invalid_reason = 'No yayata contract link found'
+        elif contract_id not in contract_ids_status:
+            logger.debug(
+                'Contract with ID %s found for time entry with ID %s, but contract not available to user' % (contract_id, entry.id)
+            )
+            invalid_reason = "Contract with ID %s not available for user" % contract_id
+        elif not contract_ids_status.get(contract_id):
+            logger.debug(
+                'Contract with ID %s found for time entry with ID %s, but contract isnt active' % (contract_id, entry.id)
+            )
+            invalid_reason = "Contract with ID %s isn't active" % contract_id
 
         if getattr(entry, 'issue', None):
             description = '_See [#%s](%s/issues/%s)._' % (entry.issue.id, url, entry.issue.id)
@@ -202,13 +213,24 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
         if entry.comments:
             description = '%s\n%s' % (entry.comments, description)
 
+        # Check whether there are differences if performance already imported
+        updated = False
+        if performance_id:
+            updated = (performance.date != entry.spent_on
+                or performance.duration != entry.hours
+                or performance.description != description)
+
+
         perf = {
             'id': performance_id,
+            'updated': updated,
             'contract': contract_id,
             'redmine_id': entry.id,
             'duration': entry.hours,
             'description': description,
             'date': entry.spent_on,
+            'valid': not invalid_reason, 
+            'invalid_reason': invalid_reason,
         }
 
         data.append(perf)

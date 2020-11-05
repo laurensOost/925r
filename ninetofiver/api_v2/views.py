@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from ninetofiver.api_v2 import serializers, filters
 from ninetofiver import models, feeds, calculation, redmine
 from ninetofiver.views import BaseTimesheetContractPdfExportServiceAPIView
+from ninetofiver.exceptions import InvalidRedmineUserException
 
 
 class MeAPIView(APIView):
@@ -264,7 +265,15 @@ class PerformanceImportAPIView(APIView):
         }
 
         # Redmine
-        redmine_data = redmine.get_user_redmine_performances(request.user, from_date=from_date, to_date=until_date)
+        try:
+            redmine_data = redmine.get_user_redmine_performances(request.user, from_date=from_date, to_date=until_date)
+        except InvalidRedmineUserException as exc:
+            data = {
+                'message': str(exc)
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        
         data['results'] += redmine_data
         data['count'] = len(data['results'])
 

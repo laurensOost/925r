@@ -5,6 +5,9 @@ from rest_framework import serializers
 from rest_framework.utils.serializer_helpers import ReturnDict
 import re
 
+class InvalidRedmineUserException(Exception):
+    pass
+
 
 def error_message_to_key(msg):
     """Convert an error message to a translation key."""
