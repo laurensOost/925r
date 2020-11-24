@@ -241,7 +241,7 @@ def get_availability_info(users, from_date, until_date):
                     leave_status = leave_date.leave.status
                     # TODO: We will probably need to add the leave type to the structure here as well so that the
                     # timesheet monthly overview report can distinguish between various kinds of leave for legal reasons?
-                    user_day_info.leave_date = leave_date
+                    user_day_info.leave_dates.append(leave_date)
                     if leave_date.leave.leave_type.id in sickness_type_ids:
                         if leave_status == models.STATUS_APPROVED:
                             user_day_info.add_tag('sickness')
