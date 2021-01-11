@@ -145,7 +145,7 @@ class IntelligentManyToManyWidget(ManyToManyWidget):
 class AvailabilityInfo(object):
     def __init__(self):
         self.day_tags = []
-        self.leave_date = None
+        self.leave_dates = []
 
     def add_tag(self, tag):
         self.day_tags.append(tag)

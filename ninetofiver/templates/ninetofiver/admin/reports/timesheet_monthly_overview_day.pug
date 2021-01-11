@@ -7,7 +7,7 @@ div
                 data-toggle="tooltip"
                 title="Sickness"
             ) S
-    elif 'holiday' in value.availability
+    if 'holiday' in value.availability
         h5(class='my-0')
             span(
                 style="background:#59b8e6;opacity:0.75;"
@@ -15,7 +15,7 @@ div
                 data-toggle="tooltip"
                 title="Holiday"
             ) H
-    elif 'no_work' in value.availability
+    if 'no_work' in value.availability
         h5(class='my-0')
             span(
                 style="background:#9e9d9d;opacity:0.5;"
@@ -23,23 +23,37 @@ div
                 data-toggle="tooltip"
                 title="No work"
             ) N
-    elif 'leave' in value.availability
-        h5(class='my-0')
-            span(
-                style="background:#00c851;opacity:0.75;"
-                class="badge"
-                data-toggle="tooltip"
-                title="Leave"
-            )  {{ value.leave_date.leave.leave_type.name }} ({{ value.leave_date.duration }})
-        if value.leave_date.duration < value.work_hours
-            h5(class='my-0') /
-                span(
-                    style="background:#1693A5;opacity:0.75;"
-                    class="badge"
-                    data-toggle="tooltip"
-                    title="Working"
-                ) W
-    else
+    if 'leave' in value.availability
+
+        for leave_date in value.leave_dates
+            if leave_date.leave.leave_type.sickness
+                //pass
+            elif leave_date.leave.leave_type.overtime
+                h5(class='my-0')
+                    span(
+                        style="background:#1693A5;opacity:0.75;"
+                        class="badge"
+                        data-toggle="tooltip"
+                        title="Working"
+                    ) W*
+            else
+                h5(class='my-0')
+                    span(
+                        style="background:#00c851;opacity:0.75;"
+                        class="badge"
+                        data-toggle="tooltip"
+                        title="Leave"
+                    )  {{ leave_date.leave.leave_type.name }} ({{ leave_date.duration }})
+
+                if leave_date.duration < value.work_hours
+                    h5(class='my-0')
+                        span(
+                            style="background:#1693A5;opacity:0.75;"
+                            class="badge"
+                            data-toggle="tooltip"
+                            title="Working"
+                        ) W
+    if not value.availability
         h5(class='my-0')
             span(
                 style="background:#1693A5;opacity:0.75;"

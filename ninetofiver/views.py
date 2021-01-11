@@ -881,7 +881,7 @@ class TimesheetMonthlyOverviewView(AvailabilityView):
                     day_availability = availability[str(user.id)][date_str]
                     day_availability_tags = day_availability.day_tags
                     user_day_data['availability'] = day_availability_tags
-                    user_day_data['leave_date'] = day_availability.leave_date
+                    user_day_data['leave_dates'] = day_availability.leave_dates
 
                     user_day_data['contract_user_work_schedules'] = day_contract_user_work_schedules
                     user_day_data['scheduled_hours'] = day_scheduled_hours
@@ -951,7 +951,7 @@ def admin_report_expiring_consultancy_contract_overview_view(request):
         contracts = contracts.exclude(customer=F('company'))
     elif filter_internal == "show_internal":
         contracts = contracts.filter(customer=F('company'))
-    elif filter_internal == "show_all" or filter_internal is "":
+    elif filter_internal == "show_all" or filter_internal == "":
         # Do nothing - show all. (#readability_counts)
         pass
 
@@ -1377,7 +1377,7 @@ def admin_report_expiring_support_contract_overview_view(request):
         contracts = contracts.exclude(customer=F('company'))
     elif filter_internal == "show_internal":
         contracts = contracts.filter(customer=F('company'))
-    elif filter_internal == "show_all" or filter_internal is "":
+    elif filter_internal == "show_all" or filter_internal == "":
         # Do nothing - show all. (#readability_counts)
         pass
 
@@ -1661,7 +1661,7 @@ def admin_report_internal_availability_overview_view(request):
                            and (issue.updated_on >= datetime.now() - timedelta(days=1))
                            # issue.status.id 2 for IP, 9 for RFUT
                            ):
-                            if (issue.status.id is 2 or 9):
+                            if issue.status.id in [2, 9]:
                                 user_day_data['availability'].append('green')
                                 issue['internal_status'] = 'green'
                             else:
