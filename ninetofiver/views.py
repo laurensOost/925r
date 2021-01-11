@@ -1116,7 +1116,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
             'performed_hours': performed_hour['duration'],
             'day_rate': performed_hour['contract'].day_rate,
             'to_be_invoiced': round(performed_hour['duration'] * performed_hour['contract'].day_rate / 8, 2),
-            'invoiced': invoiced_total_amount,
+            'invoiced': round(invoiced_total_amount, 2),
             'invoiced_missing': invoiced_missing,
             'action': {
                 'period_starts_at': from_date,
