@@ -880,7 +880,8 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
         buttons = []
 
         buttons.append(('<a class="button" href="%(url)s?' +
-                        'performance__contract=%(contract)s' +
+                        'performance__contract=%(contract)s&' +
+                        'sort=-timesheet' +
                         '">Performances</a>') % {
                         'url': reverse('admin_report_timesheet_contract_overview'),
                         'contract': record['contract'].id,
