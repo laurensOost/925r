@@ -171,7 +171,15 @@ class InvoiceColoredEuroColumn(TemplateMixin, EuroColumn):
         elif to_be_invoiced == 0:
             return
 
-    attrs = { 'td': {'align': 'right', 'class': determine_invoiced_cell_color}}
+    def determine_invoiced_style(record):
+        invoiced = record['invoiced']
+        to_be_invoiced = record['to_be_invoiced']
+        if invoiced > to_be_invoiced:
+            return 'font-weight: bold'
+        else:
+            return 'font-weight: normal'
+
+    attrs = { 'td': {'align': 'right', 'class': determine_invoiced_cell_color, 'style': determine_invoiced_style}}
 
 
 class BarChartComparisonColumn(tables.TemplateColumn):
