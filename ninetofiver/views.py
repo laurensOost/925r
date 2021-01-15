@@ -1363,6 +1363,7 @@ def admin_report_expiring_support_contract_overview_view(request):
     filter_internal = request.GET.get('filter_internal')
     data = []
     data_yearly = []
+    data_monthly = []
 
 
     contracts = (
@@ -1393,6 +1394,11 @@ def admin_report_expiring_support_contract_overview_view(request):
                 'contract': contract,
                 'performed_hours': performed_hours,
             })
+        elif contract.fixed_fee_period == 'monthly' and not contract.ends_at:
+            data_monthly.append({
+                'contract': contract,
+                'performed_hours': performed_hours,
+            })
         else:
             data.append({
                 'contract': contract,
@@ -1409,12 +1415,18 @@ def admin_report_expiring_support_contract_overview_view(request):
     yearly_table = tables.ExpiringSupportContractOverviewTable(data_yearly, order_by='ends_at')
     config.configure(yearly_table)
 
+    # data_monthly
+    monthly_table = tables.ExpiringSupportContractOverviewTable(data_monthly, order_by='ends_at')
+    config.configure(monthly_table)
+
     context = {
         'title': _('Expiring support contract overview'),
         'filter': fltr,
         'content': [ { 'subtitle': _('Yearly contracts'),
                        'subtable': yearly_table },
-                     { 'subtitle': _('two'),
+                     { 'subtitle': _('Monthly contracts'),
+                       'subtable': monthly_table },
+                     { 'subtitle': _('Other'),
                        'subtable': table },
                    ]
     }
