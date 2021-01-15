@@ -1362,6 +1362,7 @@ def admin_report_expiring_support_contract_overview_view(request):
     company = request.GET.getlist('company', [])
     filter_internal = request.GET.get('filter_internal')
     data = []
+    data_yearly = []
 
 
     contracts = (
@@ -1387,24 +1388,35 @@ def admin_report_expiring_support_contract_overview_view(request):
                            .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
         performed_hours = performed_hours if performed_hours else Decimal('0.00')
 
-        data.append({
-            'contract': contract,
-            'performed_hours': performed_hours,
-        })
+        if contract.fixed_fee_period == 'yearly' and contract.ends_at:
+            data_yearly.append({
+                'contract': contract,
+                'performed_hours': performed_hours,
+            })
+        else:
+            data.append({
+                'contract': contract,
+                'performed_hours': performed_hours,
+            })
 
     config = RequestConfig(request, paginate=False)
+
+    # data
     table = tables.ExpiringSupportContractOverviewTable(data, order_by='contract')
     config.configure(table)
 
-    export_format = request.GET.get('_export', None)
-    if TableExport.is_valid_format(export_format):
-        exporter = TableExport(export_format, table)
-        return exporter.response('table.{}'.format(export_format))
+    # data_yearly
+    yearly_table = tables.ExpiringSupportContractOverviewTable(data_yearly, order_by='ends_at')
+    config.configure(yearly_table)
 
     context = {
         'title': _('Expiring support contract overview'),
-        'table': table,
         'filter': fltr,
+        'content': [ { 'subtitle': _('Yearly contracts'),
+                       'subtable': yearly_table },
+                     { 'subtitle': _('two'),
+                       'subtable': table },
+                   ]
     }
 
     return render(request, 'ninetofiver/admin/reports/expiring_support_contract_overview.pug', context)
