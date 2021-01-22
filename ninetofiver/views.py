@@ -10,7 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import models as auth_models, mixins as auth_mixins
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, F, Sum, DecimalField
+from django.db.models import Q, F, Sum, Max, DecimalField
 from django.forms.models import modelform_factory
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
@@ -1365,7 +1365,6 @@ def admin_report_expiring_support_contract_overview_view(request):
     data_yearly_fixed = []
     data_yearly_performances = []
     data_monthly_fixed = []
-    data_monthly_performances = []
     data_free = []
     data_consultancy = []
 
@@ -1388,45 +1387,51 @@ def admin_report_expiring_support_contract_overview_view(request):
         pass
 
     for contract in contracts:
-        performed_hours = (models.ActivityPerformance.objects
-                           .filter(contract=contract)
-                           .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
-        performed_hours = performed_hours if performed_hours else Decimal('0.00')
+        #performed_hours = (models.ActivityPerformance.objects
+        #                   .filter(contract=contract)
+        #                   .aggregate(performed_hours=Sum(F('duration') * F('performance_type__multiplier'))))['performed_hours']
+        #performed_hours = performed_hours if performed_hours else Decimal('0.00')
+
+        last_invoiced_period = (models.Invoice.objects
+                                .filter(contract=contract)
+                                .aggregate(Max('period_ends_at'))['period_ends_at__max']
+                                )
 
         if contract.fixed_fee_period == 'yearly' and contract.day_rate == 0:
             data_yearly_fixed.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
         elif contract.fixed_fee_period == 'yearly' and contract.day_rate != 0:
             data_yearly_performances.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
         elif contract.fixed_fee_period == 'monthly' and contract.day_rate == 0:
             data_monthly_fixed.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
-            })
-        elif contract.fixed_fee_period == 'monthly' and contract.day_rate != 0:
-            data_monthly_performances.append({
-                'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
         elif contract.fixed_fee == 0 and contract.day_rate == 0:
             data_free.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
         elif contract.day_rate != 0:
             data_consultancy.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
         else:
             data.append({
                 'contract': contract,
-                'performed_hours': performed_hours,
+                #'performed_hours': performed_hours,
+                'last_invoiced_period': last_invoiced_period,
             })
 
     config = RequestConfig(request, paginate=False)
@@ -1436,43 +1441,37 @@ def admin_report_expiring_support_contract_overview_view(request):
     config.configure(table)
 
     # data_yearly_fixed
-    yearly_fixed_table = tables.ExpiringSupportContractOverviewTable(data_yearly_fixed, order_by='ends_at')
+    yearly_fixed_table = tables.ExpiringSupportContractOverviewTable(data_yearly_fixed, order_by='contract')
     config.configure(yearly_fixed_table)
 
     # data_yearly_performances
-    yearly_performances_table= tables.ExpiringSupportContractOverviewTable(data_yearly_performances, order_by='ends_at')
+    yearly_performances_table= tables.ExpiringSupportContractOverviewTable(data_yearly_performances, order_by='contract')
     config.configure(yearly_performances_table)
 
     # data_monthly_fixed
-    monthly_fixed_table = tables.ExpiringSupportContractOverviewTable(data_monthly_fixed, order_by='ends_at')
+    monthly_fixed_table = tables.ExpiringSupportContractOverviewTable(data_monthly_fixed, order_by='contract')
     config.configure(monthly_fixed_table)
 
-    # data_monthly_performances
-    monthly_performances_table = tables.ExpiringSupportContractOverviewTable(data_monthly_performances, order_by='ends_at')
-    config.configure(monthly_performances_table)
-
     # data_free
-    free_table = tables.ExpiringSupportContractOverviewTable(data_free, order_by='ends_at')
+    free_table = tables.ExpiringSupportContractOverviewTable(data_free, order_by='contract')
     config.configure(free_table)
 
     # data_consultancy
-    consultancy_table = tables.ExpiringSupportContractOverviewTable(data_consultancy, order_by='ends_at')
+    consultancy_table = tables.ExpiringSupportContractOverviewTable(data_consultancy, order_by='contract')
     config.configure(consultancy_table)
 
     context = {
         'title': _('Expiring support contract overview'),
         'filter': fltr,
-        'content': [ { 'subtitle': _('Billable performances'),
+        'content': [ { 'subtitle': _('Monthly Billable performances'),
                        'subtable': consultancy_table },
-                     { 'subtitle': _('Yearly contracts, Fixed Fee only'),
-                       'subtable': yearly_fixed_table },
-                     { 'subtitle': _('Yearly contracts, Fixed Fee and Performances'),
-                       'subtable': yearly_performances_table },
-                     { 'subtitle': _('Monthly contracts, Fixed Fee only'),
+                     { 'subtitle': _('Monthly Billable fixed fee'),
                        'subtable': monthly_fixed_table },
-                     { 'subtitle': _('Monthly contracts, Fixed Fee and Performances'),
-                       'subtable': monthly_performances_table },
-                     { 'subtitle': _('Non-Billable contracts'),
+                     { 'subtitle': _('Yearly Billable Performances'),
+                       'subtable': yearly_performances_table },
+                     { 'subtitle': _('Yearly Billable fixed fee'),
+                       'subtable': yearly_fixed_table },
+                     { 'subtitle': _('Non-Billable'),
                        'subtable': free_table },
                      { 'subtitle': _('Other'),
                        'subtable': table },

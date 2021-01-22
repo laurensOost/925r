@@ -1039,14 +1039,33 @@ class ExpiringSupportContractOverviewTable(BaseTable):
     )
     starts_at = tables.DateColumn('d/m/Y', accessor='contract.starts_at')
     ends_at = tables.DateColumn('d/m/Y', accessor='contract.ends_at')
-    performed_hours = SummedHoursColumn(accessor='performed_hours')
     day_rate = tables.Column(accessor='contract.day_rate')
     fixed_fee = tables.Column(accessor='contract.fixed_fee')
     fixed_fee_period = tables.Column(accessor='contract.fixed_fee_period')
-    # actions = tables.Column(accessor='user', orderable=False, exclude_from_export=True)
+    last_invoiced_periode = tables.DateColumn('d/m/Y', accessor='last_invoiced_period')
+    actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 
     def render_actions(self, record):
         buttons = []
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'performance__contract=%(contract)s">Performances</a>') % {
+                        'url': reverse('admin_report_timesheet_contract_overview'),
+                        'contract': record['contract'].id,
+                        })
+
+        buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
+                       'contract__id__exact={contract_id}'
+                       '">Invoices</a>'.format(
+                           url=reverse('admin:ninetofiver_invoice_changelist'),
+                           contract_id=record['contract'].id)
+                       +
+                       '<a class="button" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" href="{url}?'
+                       'contract={contract_id}&'
+                       '">{label}</a>'.format(url=reverse('admin:ninetofiver_invoice_add'),
+                                              label="+",
+                                              contract_id=record['contract'].id)
+                       )
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
