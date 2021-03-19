@@ -1336,7 +1336,7 @@ def admin_report_user_overtime_overview_view(request):
 
             current_date += relativedelta(months=1)
 
-    config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
+    config = RequestConfig(request, paginate=False)
     table = tables.UserOvertimeOverviewTable(data)
     config.configure(table)
 
