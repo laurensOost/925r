@@ -1,6 +1,7 @@
 """ninetofiver URL Configuration"""
 from django.conf.urls import include
 from django.conf.urls import url
+
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.generic.base import TemplateView
@@ -8,12 +9,12 @@ from rest_framework import routers
 # from rest_framework.urlpatterns import format_suffix_patterns
 from django_downloadview import ObjectDownloadView
 from oauth2_provider import views as oauth2_views
-from registration.backends.hmac import views as registration_views
+from django_registration.backends.activation import views as registration_views
 from ninetofiver import views, models
 
 
 urlpatterns = [
-    url(r'^api/v2/', include('ninetofiver.api_v2.urls', namespace='ninetofiver_api_v2')),
+    url(r'^api/v2/', include(('ninetofiver.api_v2.urls', 'api_v2_appname'), namespace='ninetofiver_api_v2')),
 ]
 
 router = routers.DefaultRouter()
@@ -29,7 +30,7 @@ urlpatterns += [
 
     # OAuth2
     url(r'^oauth/v2/', include(
-        [
+        ([
             url(r'^authorize/$', oauth2_views.AuthorizationView.as_view(template_name='ninetofiver/oauth2/authorize.pug'), name="authorize"),
             url(r'^token/$', oauth2_views.TokenView.as_view(), name="token"),
             url(r'^revoke_token/$', oauth2_views.RevokeTokenView.as_view(), name="revoke-token"),
@@ -40,26 +41,26 @@ urlpatterns += [
             url(r'^applications/(?P<pk>\d+)/update/$', oauth2_views.ApplicationUpdate.as_view(template_name='ninetofiver/oauth2/applications/update.pug'), name="update"),
             url(r'^authorized_tokens/$', oauth2_views.AuthorizedTokensListView.as_view(template_name='ninetofiver/oauth2/tokens/list.pug'), name="authorized-token-list"),
             url(r'^authorized_tokens/(?P<pk>\d+)/delete/$', oauth2_views.AuthorizedTokenDeleteView.as_view(template_name='ninetofiver/oauth2/tokens/delete.pug'), name="authorized-token-delete"),
-        ],
+        ], 'oauth_appname'),
         namespace='oauth2_provider',
     )),
 
     # Account
     url(r'^accounts/profile/$', views.account_view, name='account'),
-    url(r'^accounts/password/change/$', auth_views.password_change, {'template_name': 'ninetofiver/account/password_change.pug'}, name='password_change'),
-    url(r'^accounts/password/change/done/$', auth_views.password_change_done, {'template_name': 'ninetofiver/account/password_change_done.pug'}, name='password_change_done'),
+    url(r'^accounts/password/change/$', auth_views.PasswordChangeView, {'template_name': 'ninetofiver/account/password_change.pug'}, name='password_change'),
+    url(r'^accounts/password/change/done/$', auth_views.PasswordChangeDoneView, {'template_name': 'ninetofiver/account/password_change_done.pug'}, name='password_change_done'),
 
     url(r'^accounts/api_keys/$', views.ApiKeyListView.as_view(), name='api-key-list'),
     url(r'^accounts/api_keys/create/$', views.ApiKeyCreateView.as_view(), name='api-key-create'),
     url(r'^accounts/api_keys/(?P<pk>\d+)/delete/$', views.ApiKeyDeleteView.as_view(), name='api-key-delete'),
 
     # Auth
-    url(r'^auth/login/$', auth_views.login, {'template_name': 'ninetofiver/authentication/login.pug'}, name='login'),
-    url(r'^auth/logout/$', auth_views.logout, {'template_name': 'ninetofiver/authentication/logout.pug'}, name='logout'),
-    url(r'^auth/password/reset/$', auth_views.password_reset, {'template_name': 'ninetofiver/authentication/password_reset.pug'}, name='password_reset'),
-    url(r'^auth/password/reset/done$', auth_views.password_reset_done, {'template_name': 'ninetofiver/authentication/password_reset_done.pug'}, name='password_reset_done'),
-    url(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
-    url(r'^auth/password/reset/complete/$', auth_views.password_reset_complete, {'template_name': 'ninetofiver/authentication/password_reset_complete.pug'}, name='password_reset_complete'),
+    url(r'^auth/login/$', auth_views.LoginView, {'template_name': 'ninetofiver/authentication/login.pug'}, name='login'),
+    url(r'^auth/logout/$', auth_views.LogoutView, {'template_name': 'ninetofiver/authentication/logout.pug'}, name='logout'),
+    url(r'^auth/password/reset/$', auth_views.PasswordResetView, {'template_name': 'ninetofiver/authentication/password_reset.pug'}, name='password_reset'),
+    url(r'^auth/password/reset/done$', auth_views.PasswordResetDoneView, {'template_name': 'ninetofiver/authentication/password_reset_done.pug'}, name='password_reset_done'),
+    url(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView, {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
+    url(r'^auth/password/reset/complete/$', auth_views.PasswordResetDoneView, {'template_name': 'ninetofiver/authentication/password_reset_complete.pug'}, name='password_reset_complete'),
 
     # Registration
     url(

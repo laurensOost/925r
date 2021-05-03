@@ -134,7 +134,7 @@ class Base(Configuration):
                 ],
                 'loaders': [
                     ('pypugjs.ext.django.Loader', (
-                        'app_namespace.Loader',
+                        'apptemplates.Loader',
                         'django.template.loaders.filesystem.Loader',
                         'django.template.loaders.app_directories.Loader',
                     )),
@@ -210,7 +210,7 @@ class Base(Configuration):
     REST_FRAMEWORK = {
         'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
         'DEFAULT_AUTHENTICATION_CLASSES': (
-            'oauth2_provider.ext.rest_framework.OAuth2Authentication',
+            'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
             'rest_framework.authentication.SessionAuthentication',
             'rest_framework.authentication.BasicAuthentication',
             'ninetofiver.authentication.ApiKeyAuthentication',

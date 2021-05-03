@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.db.models import Q, Prefetch, TextField
 from django.forms import TextInput
 from django.urls import reverse
-from django.utils.functional import curry
+from functools import partial as curry
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django_admin_listfilter_dropdown.filters import DropdownFilter

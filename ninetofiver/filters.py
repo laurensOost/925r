@@ -236,7 +236,8 @@ class AdminReportProjectContractOverviewFilter(FilterSet):
     class Meta:
         model = models.ProjectContract
         fields = {
-            'contract': ['exact'],
+            # TODO fix this!!!
+            'contract_ptr': ['exact'],
             'name': ['icontains'],
             'contract_groups': ['exact'],
             'company': ['exact'],
