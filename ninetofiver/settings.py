@@ -75,7 +75,7 @@ class Base(Configuration):
     INSTALLED_APPS = [
         'whitenoise.runserver_nostatic',
     ] + NINETOFIVER_APPS + [
-        'django_admin_select2',
+        # 'django_admin_select2',
         'django.contrib.admin',
         'django.contrib.auth',
         'django.contrib.contenttypes',
@@ -267,7 +267,7 @@ class Base(Configuration):
     EXPLORER_CONNECTIONS = { 'Default': 'default' }
     EXPLORER_DEFAULT_CONNECTION = 'default'
     EXPLORER_SCHEMA_EXCLUDE_TABLE_PREFIXES = []
-    EXPLORER_PERMISSION_CHANGE = lambda env: lambda u: u.is_superuser
+    EXPLORER_PERMISSION_CHANGE = lambda env: lambda u: u.user.is_superuser
 
     # Crispy forms
     CRISPY_TEMPLATE_PACK = 'bootstrap3'
@@ -351,10 +351,15 @@ class Base(Configuration):
 class Dev(Base):
     """Dev configuration."""
 
+    INSTALLED_APPS = ['debug_toolbar'] + Base.INSTALLED_APPS
+    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + Base.MIDDLEWARE
+
     DEBUG = True
 
     ALLOWED_HOSTS = ['*']
 
+    # Database
+    # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

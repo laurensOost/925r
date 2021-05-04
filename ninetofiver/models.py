@@ -113,7 +113,7 @@ class BaseModel(DirtyFieldsMixin, PolymorphicModel):
 
         abstract = True
         ordering = ['id']
-        base_manager_name = 'base_objects'
+        base_manager_name = 'objects'
 
 
 class ApiKey(BaseModel):
