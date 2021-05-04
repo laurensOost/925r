@@ -53,10 +53,10 @@ django-sql-explorer = "*"
 django-apptemplates = "*"
 gunicorn = "*"
 whitenoise = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 tox = "*"
 pudb = "*"
 pylint = "*"
 v = {version = "*",editable = true}
-django-debug-toolbar = "*"

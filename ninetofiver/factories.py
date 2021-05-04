@@ -9,7 +9,7 @@ from ninetofiver import models
 fake = Faker()
 
 
-class UserFactory(factory.DjangoModelFactory):
+class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = auth_models.User
 
@@ -26,14 +26,14 @@ class AdminFactory(UserFactory):
     is_superuser = True
 
 
-class GroupFactory(factory.DjangoModelFactory):
+class GroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = auth_models.Group
 
     name = factory.Sequence(lambda n: 'Group%d' % n)
 
 
-class CompanyFactory(factory.DjangoModelFactory):
+class CompanyFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Company
 
@@ -50,14 +50,14 @@ class InternalCompanyFactory(CompanyFactory):
     internal = True
 
 
-class EmploymentContractTypeFactory(factory.DjangoModelFactory):
+class EmploymentContractTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.EmploymentContractType
 
     name = factory.Sequence(lambda n: 'EmploymentContractType%d' % n)
 
 
-class EmploymentContractFactory(factory.DjangoModelFactory):
+class EmploymentContractFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.EmploymentContract
 
@@ -65,7 +65,7 @@ class EmploymentContractFactory(factory.DjangoModelFactory):
     ended_at = factory.LazyFunction(lambda: fake.date_time_this_decade(before_now=False, after_now=True))
 
 
-class WorkScheduleFactory(factory.DjangoModelFactory):
+class WorkScheduleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.WorkSchedule
 
@@ -79,7 +79,7 @@ class WorkScheduleFactory(factory.DjangoModelFactory):
     sunday = factory.LazyFunction(lambda: random.randint(0, 10))
 
 
-class UserInfoFactory(factory.DjangoModelFactory):
+class UserInfoFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.UserInfo
 
@@ -88,7 +88,7 @@ class UserInfoFactory(factory.DjangoModelFactory):
     country = factory.LazyFunction(fake.country_code)
 
 
-class UserRelativeFactory(factory.DjangoModelFactory):
+class UserRelativeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.UserRelative
 
@@ -98,7 +98,7 @@ class UserRelativeFactory(factory.DjangoModelFactory):
     relation = factory.LazyFunction(fake.word)
 
 
-class AttachmentFactory(factory.DjangoModelFactory):
+class AttachmentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Attachment
 
@@ -107,7 +107,7 @@ class AttachmentFactory(factory.DjangoModelFactory):
     file = factory.LazyFunction(lambda: ContentFile(fake.text(max_nb_chars=200)))
 
 
-class HolidayFactory(factory.DjangoModelFactory):
+class HolidayFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Holiday
 
@@ -116,7 +116,7 @@ class HolidayFactory(factory.DjangoModelFactory):
     country = factory.LazyFunction(fake.country_code)
 
 
-class LeaveTypeFactory(factory.DjangoModelFactory):
+class LeaveTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.LeaveType
 
@@ -124,21 +124,21 @@ class LeaveTypeFactory(factory.DjangoModelFactory):
     description = factory.LazyFunction(lambda: fake.text(max_nb_chars=200))
 
 
-class LocationFactory(factory.DjangoModelFactory):
+class LocationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Location
 
     name = factory.Sequence(lambda n: 'Location%d' % n)
 
 
-class LeaveFactory(factory.DjangoModelFactory):
+class LeaveFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Leave
 
     description = factory.LazyFunction(lambda: fake.text(max_nb_chars=200))
 
 
-class LeaveDateFactory(factory.DjangoModelFactory):
+class LeaveDateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.LeaveDate
 
@@ -146,7 +146,7 @@ class LeaveDateFactory(factory.DjangoModelFactory):
     ends_at = factory.LazyFunction(lambda: fake.date_time_between(start_date='now', end_date='+1h', tzinfo=utc))
 
 
-class PerformanceTypeFactory(factory.DjangoModelFactory):
+class PerformanceTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.PerformanceType
 
@@ -155,14 +155,14 @@ class PerformanceTypeFactory(factory.DjangoModelFactory):
     multiplier = factory.LazyFunction(lambda: random.randint(0, 3))
 
 
-class ContractGroupFactory(factory.DjangoModelFactory):
+class ContractGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ContractGroup
 
     name = factory.Sequence(lambda n: 'ContractGroup%d' % n)
 
 
-class ContractFactory(factory.DjangoModelFactory):
+class ContractFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Contract
 
@@ -197,7 +197,7 @@ class SupportContractFactory(ContractFactory):
     day_rate = factory.LazyFunction(lambda: random.randint(0, 9999))
 
 
-class ContractRoleFactory(factory.DjangoModelFactory):
+class ContractRoleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ContractRole
 
@@ -205,19 +205,19 @@ class ContractRoleFactory(factory.DjangoModelFactory):
     description = factory.LazyFunction(lambda: fake.text(max_nb_chars=200))
 
 
-class ContractUserFactory(factory.DjangoModelFactory):
+class ContractUserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ContractUser
 
     contract_role = factory.SubFactory(ContractRoleFactory)
 
 
-class ContractUserGroupFactory(factory.DjangoModelFactory):
+class ContractUserGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ContractUserGroup
 
 
-class TimesheetFactory(factory.DjangoModelFactory):
+class TimesheetFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Timesheet
 
@@ -229,7 +229,7 @@ class OpenTimesheetFactory(TimesheetFactory):
     status = models.STATUS_ACTIVE
 
 
-class WhereaboutFactory(factory.DjangoModelFactory):
+class WhereaboutFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Whereabout
 
@@ -239,7 +239,7 @@ class WhereaboutFactory(factory.DjangoModelFactory):
     timesheet = factory.SubFactory(OpenTimesheetFactory)
 
 
-class PerformanceFactory(factory.DjangoModelFactory):
+class PerformanceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Performance
 
