@@ -94,7 +94,7 @@ class Base(Configuration):
         'django_countries',
         'rangefilter',
         'django_admin_listfilter_dropdown',
-        #'silk',  # TODO 'WhiteNoiseFileResponse' problem
+        'silk',
         'wkhtmltopdf',
         'django_tables2',
         'phonenumber_field',
@@ -105,7 +105,7 @@ class Base(Configuration):
     ]
 
     MIDDLEWARE = [
-        #'silk.middleware.SilkyMiddleware',  # TODO 'WhiteNoiseFileResponse' problem
+        'silk.middleware.SilkyMiddleware',
         'corsheaders.middleware.CorsMiddleware',
         'django.middleware.security.SecurityMiddleware',
         'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -353,6 +353,11 @@ class Dev(Base):
 
     INSTALLED_APPS = ['debug_toolbar'] + Base.INSTALLED_APPS
     MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + Base.MIDDLEWARE
+
+    # for 'debug_toolbar'
+    DEBUG_TOOLBAR_CONFIG = {
+        'RESULTS_CACHE_SIZE': 150,  # to see more SQL queries
+    }
 
     DEBUG = True
 

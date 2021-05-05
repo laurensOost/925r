@@ -2,7 +2,7 @@
 from django.urls import include
 from django.urls import re_path
 from django.urls import path
-import debug_toolbar
+from django.conf import settings
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
@@ -24,8 +24,6 @@ router = routers.DefaultRouter()
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browseable API.
 urlpatterns += [
-    # django debug toolbar - only for dev
-    path('__debug__/', include(debug_toolbar.urls)),
     path('', views.home_view, name='home'),
     path('api-docs/', views.api_docs_view, name='api_docs'),
     path('api-docs/swagger_ui/', views.api_docs_swagger_ui_view, name='api_docs_swagger_ui'),
@@ -99,8 +97,8 @@ urlpatterns += [
         name='registration_disallowed',
     ),
 
-    # Silk (profiling) # TODO
-    #path('admin/silk/', include('silk.urls', namespace='silk')),
+    # Silk (profiling)
+    path('admin/silk/', include('silk.urls', namespace='silk')),
 
     # Django SQL explorer
     path('admin/sqlexplorer/', include('explorer.urls')),
@@ -132,3 +130,12 @@ urlpatterns += [
     # Admin
     path('admin/', admin.site.urls),
 ]
+
+
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns += [
+        # django debug toolbar - only for dev
+        path('__debug__/', include(debug_toolbar.urls)),
+    ]
