@@ -94,7 +94,7 @@ class Base(Configuration):
         'django_countries',
         'rangefilter',
         'django_admin_listfilter_dropdown',
-        'silk',
+        #'silk',  # TODO 'WhiteNoiseFileResponse' problem
         'wkhtmltopdf',
         'django_tables2',
         'phonenumber_field',
@@ -105,7 +105,7 @@ class Base(Configuration):
     ]
 
     MIDDLEWARE = [
-        'silk.middleware.SilkyMiddleware',
+        #'silk.middleware.SilkyMiddleware',  # TODO 'WhiteNoiseFileResponse' problem
         'corsheaders.middleware.CorsMiddleware',
         'django.middleware.security.SecurityMiddleware',
         'whitenoise.middleware.WhiteNoiseMiddleware',

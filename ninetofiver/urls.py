@@ -1,6 +1,7 @@
 """ninetofiver URL Configuration"""
-from django.conf.urls import include
-from django.conf.urls import url
+from django.urls import include
+from django.urls import re_path
+from django.urls import path
 import debug_toolbar
 
 from django.contrib import admin
@@ -15,7 +16,7 @@ from ninetofiver import views, models
 
 
 urlpatterns = [
-    url(r'^api/v2/', include(('ninetofiver.api_v2.urls', 'api_v2_appname'), namespace='ninetofiver_api_v2')),
+    path('api/v2/', include('ninetofiver.api_v2.urls', namespace='ninetofiver_api_v2')),
 ]
 
 router = routers.DefaultRouter()
@@ -25,61 +26,61 @@ router = routers.DefaultRouter()
 urlpatterns += [
     # django debug toolbar - only for dev
     url('__debug__/', include(debug_toolbar.urls)),
-    url(r'^$', views.home_view, name='home'),
-    url(r'^api-docs/$', views.api_docs_view, name='api_docs'),
-    url(r'^api-docs/swagger_ui/$', views.api_docs_swagger_ui_view, name='api_docs_swagger_ui'),
-    url(r'^api-docs/redoc/$', views.api_docs_redoc_view, name='api_docs_redoc'),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('', views.home_view, name='home'),
+    path('api-docs/', views.api_docs_view, name='api_docs'),
+    path('api-docs/swagger_ui/', views.api_docs_swagger_ui_view, name='api_docs_swagger_ui'),
+    path('api-docs/redoc/', views.api_docs_redoc_view, name='api_docs_redoc'),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     # OAuth2
-    url(r'^oauth/v2/', include(
+    path('oauth/v2/', include(
         ([
-            url(r'^authorize/$', oauth2_views.AuthorizationView.as_view(template_name='ninetofiver/oauth2/authorize.pug'), name="authorize"),
-            url(r'^token/$', oauth2_views.TokenView.as_view(), name="token"),
-            url(r'^revoke_token/$', oauth2_views.RevokeTokenView.as_view(), name="revoke-token"),
-            url(r'^applications/$', oauth2_views.ApplicationList.as_view(template_name='ninetofiver/oauth2/applications/list.pug'), name="list"),
-            url(r'^applications/register/$', oauth2_views.ApplicationRegistration.as_view(template_name='ninetofiver/oauth2/applications/register.pug'), name="register"),
-            url(r'^applications/(?P<pk>\d+)/$', oauth2_views.ApplicationDetail.as_view(template_name='ninetofiver/oauth2/applications/detail.pug'), name="detail"),
-            url(r'^applications/(?P<pk>\d+)/delete/$', oauth2_views.ApplicationDelete.as_view(template_name='ninetofiver/oauth2/applications/delete.pug'), name="delete"),
-            url(r'^applications/(?P<pk>\d+)/update/$', oauth2_views.ApplicationUpdate.as_view(template_name='ninetofiver/oauth2/applications/update.pug'), name="update"),
-            url(r'^authorized_tokens/$', oauth2_views.AuthorizedTokensListView.as_view(template_name='ninetofiver/oauth2/tokens/list.pug'), name="authorized-token-list"),
-            url(r'^authorized_tokens/(?P<pk>\d+)/delete/$', oauth2_views.AuthorizedTokenDeleteView.as_view(template_name='ninetofiver/oauth2/tokens/delete.pug'), name="authorized-token-delete"),
+            path('authorize/', oauth2_views.AuthorizationView.as_view(template_name='ninetofiver/oauth2/authorize.pug'), name="authorize"),
+            path('token/', oauth2_views.TokenView.as_view(), name="token"),
+            path('revoke_token/', oauth2_views.RevokeTokenView.as_view(), name="revoke-token"),
+            path('applications/', oauth2_views.ApplicationList.as_view(template_name='ninetofiver/oauth2/applications/list.pug'), name="list"),
+            path('applications/register/', oauth2_views.ApplicationRegistration.as_view(template_name='ninetofiver/oauth2/applications/register.pug'), name="register"),
+            path('applications/<int:pk>/', oauth2_views.ApplicationDetail.as_view(template_name='ninetofiver/oauth2/applications/detail.pug'), name="detail"),
+            path('applications/<int:pk>/delete/', oauth2_views.ApplicationDelete.as_view(template_name='ninetofiver/oauth2/applications/delete.pug'), name="delete"),
+            path('applications/<int:pk>/update/', oauth2_views.ApplicationUpdate.as_view(template_name='ninetofiver/oauth2/applications/update.pug'), name="update"),
+            path('authorized_tokens/', oauth2_views.AuthorizedTokensListView.as_view(template_name='ninetofiver/oauth2/tokens/list.pug'), name="authorized-token-list"),
+            path('authorized_tokens/<int:pk>/delete/', oauth2_views.AuthorizedTokenDeleteView.as_view(template_name='ninetofiver/oauth2/tokens/delete.pug'), name="authorized-token-delete"),
         ], 'oauth_appname'),
         namespace='oauth2_provider',
     )),
 
     # Account
-    url(r'^accounts/profile/$', views.account_view, name='account'),
-    url(r'^accounts/password/change/$', auth_views.PasswordChangeView.as_view(template_name='ninetofiver/account/password_change.pug'), name='password_change'),
-    url(r'^accounts/password/change/done/$', auth_views.PasswordChangeDoneView.as_view(template_name='ninetofiver/account/password_change_done.pug'), name='password_change_done'),
+    path('accounts/profile/', views.account_view, name='account'),
+    path('accounts/password/change/', auth_views.PasswordChangeView.as_view(template_name='ninetofiver/account/password_change.pug'), name='password_change'),
+    path('accounts/password/change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='ninetofiver/account/password_change_done.pug'), name='password_change_done'),
 
-    url(r'^accounts/api_keys/$', views.ApiKeyListView.as_view(), name='api-key-list'),
-    url(r'^accounts/api_keys/create/$', views.ApiKeyCreateView.as_view(), name='api-key-create'),
-    url(r'^accounts/api_keys/(?P<pk>\d+)/delete/$', views.ApiKeyDeleteView.as_view(), name='api-key-delete'),
+    path('accounts/api_keys/', views.ApiKeyListView.as_view(), name='api-key-list'),
+    path('accounts/api_keys/create/', views.ApiKeyCreateView.as_view(), name='api-key-create'),
+    path('accounts/api_keys/<int:pk>/delete/', views.ApiKeyDeleteView.as_view(), name='api-key-delete'),
 
     # Auth
-    url(r'^auth/login/$', auth_views.LoginView.as_view(template_name='ninetofiver/authentication/login.pug'), name='login'),
-    url(r'^auth/logout/$', auth_views.LogoutView.as_view(template_name='ninetofiver/authentication/logout.pug'), name='logout'),
-    url(r'^auth/password/reset/$', auth_views.PasswordResetView.as_view(template_name='ninetofiver/authentication/password_reset.pug'), name='password_reset'),
-    url(r'^auth/password/reset/done$', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_done.pug'), name='password_reset_done'),
-    url(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView, {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
-    url(r'^auth/password/reset/complete/$', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_complete.pug'), name='password_reset_complete'),
+    path('auth/login/', auth_views.LoginView.as_view(template_name='ninetofiver/authentication/login.pug'), name='login'),
+    path('auth/logout/', auth_views.LogoutView.as_view(template_name='ninetofiver/authentication/logout.pug'), name='logout'),
+    path('auth/password/reset/', auth_views.PasswordResetView.as_view(template_name='ninetofiver/authentication/password_reset.pug'), name='password_reset'),
+    path('auth/password/reset/done', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_done.pug'), name='password_reset_done'),
+    re_path(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView, {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
+    path('auth/password/reset/complete/', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_complete.pug'), name='password_reset_complete'),
 
     # Registration
-    url(
-        r'^auth/activate/complete/$',
+    path(
+        'auth/activate/complete/',
         TemplateView.as_view(template_name='ninetofiver/registration/activation_complete.pug'),
         name='registration_activation_complete',
     ),
     # The activation key can make use of any character from the
     # URL-safe base64 alphabet, plus the colon as a separator.
-    url(
-        r'^auth/activate/(?P<activation_key>[-:\w]+)/$',
+    path(
+        'auth/activate/<str:activation_key>/',
         registration_views.ActivationView.as_view(template_name='ninetofiver/registration/activate.pug'),
         name='registration_activate',
     ),
-    url(
-        r'^auth/register/$',
+    path(
+        'auth/register/',
         registration_views.RegistrationView.as_view(
             template_name='ninetofiver/registration/register.pug',
             email_body_template='ninetofiver/registration/activation_email.txt',
@@ -87,47 +88,47 @@ urlpatterns += [
         ),
         name='registration_register',
     ),
-    url(
-        r'^auth/register/complete/$',
+    path(
+        'auth/register/complete/',
         TemplateView.as_view(template_name='ninetofiver/registration/register_complete.pug'),
         name='registration_complete',
     ),
-    url(
-        r'^auth/register/closed/$',
+    path(
+        'auth/register/closed/',
         TemplateView.as_view(template_name='ninetofiver/registration/register_closed.pug'),
         name='registration_disallowed',
     ),
 
-    # Silk (profiling)
-    url(r'^admin/silk/', include('silk.urls', namespace='silk')),
+    # Silk (profiling) # TODO
+    #path('admin/silk/', include('silk.urls', namespace='silk')),
 
     # Django SQL explorer
-    url(r'^admin/sqlexplorer/', include('explorer.urls')),
+    path('admin/sqlexplorer/', include('explorer.urls')),
 
     # Custom admin routes
-    url(r'^admin/ninetofiver/leave/approve/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_approve_view, name='admin_leave_approve'),  # noqa
-    url(r'^admin/ninetofiver/leave/reject/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_reject_view, name='admin_leave_reject'),  # noqa
-    url(r'^admin/ninetofiver/timesheet/close/(?P<timesheet_pk>[0-9,]+)/$', views.admin_timesheet_close_view, name='admin_timesheet_close'),  # noqa
-    url(r'^admin/ninetofiver/timesheet/activate/(?P<timesheet_pk>[0-9,]+)/$', views.admin_timesheet_activate_view, name='admin_timesheet_activate'),  # noqa
-    url(r'^admin/ninetofiver/report/$', views.admin_report_index_view, name='admin_report_index'),  # noqa
-    url(r'^admin/ninetofiver/report/timesheet_contract_overview/$', views.admin_report_timesheet_contract_overview_view, name='admin_report_timesheet_contract_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/timesheet_overview/$', views.admin_report_timesheet_overview_view, name='admin_report_timesheet_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/timesheet_monthly_overview/$', views.TimesheetMonthlyOverviewView.as_view(), name='admin_report_timesheet_monthly_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/user_range_info/$', views.admin_report_user_range_info_view, name='admin_report_user_range_info'),  # noqa
-    url(r'^admin/ninetofiver/report/user_leave_overview/$', views.admin_report_user_leave_overview_view, name='admin_report_user_leave_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/user_work_ratio_by_user/$', views.admin_report_user_work_ratio_by_user_view, name='admin_report_user_work_ratio_by_user'),  # noqa
-    url(r'^admin/ninetofiver/report/user_work_ratio_by_month/$', views.admin_report_user_work_ratio_by_month_view, name='admin_report_user_work_ratio_by_month'),  # noqa
-    url(r'^admin/ninetofiver/report/user_work_ratio_overview/$', views.admin_report_user_work_ratio_overview_view, name='admin_report_user_work_ratio_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/user_overtime_overview/$', views.admin_report_user_overtime_overview_view, name='admin_report_user_overtime_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/resource_availability_overview/$', views.ResourceAvailabilityOverviewView.as_view(), name='admin_report_resource_availability_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/expiring_consultancy_contract_overview/$', views.admin_report_expiring_consultancy_contract_overview_view, name='admin_report_expiring_consultancy_contract_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/invoiced_consultancy_contract_overview/$', views.admin_report_invoiced_consultancy_contract_overview_view, name='admin_report_invoiced_consultancy_contract_overview'), # noqa
-    url(r'^admin/ninetofiver/report/expiring_support_contract_overview/$', views.admin_report_expiring_support_contract_overview_view, name='admin_report_expiring_support_contract_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/project_contract_overview/$', views.admin_report_project_contract_overview_view, name='admin_report_project_contract_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/project_contract_budget_overview/$', views.admin_report_project_contract_budget_overview_view, name='admin_report_project_contract_budget_overview'),  # noqa
-    url(r'^admin/ninetofiver/report/expiring_user_training_overview/$', views.admin_report_expiring_user_training_overview_view, name='admin_report_expiring_user_training_overview_view'),  # noqa
-    url(r'^admin/ninetofiver/timesheet_contract_pdf_export/(?P<user_timesheet_contract_pks>[0-9:,]+)/$', views.AdminTimesheetContractPdfExportView.as_view(), name='admin_timesheet_contract_pdf_export'),  # noqa
-    url(r'^admin/ninetofiver/report/internal_availability_overview/$', views.admin_report_internal_availability_overview_view, name='admin_report_internal_availability_overview_view'),  # noqa
+    re_path(r'^admin/ninetofiver/leave/approve/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_approve_view, name='admin_leave_approve'),  # noqa
+    re_path(r'^admin/ninetofiver/leave/reject/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_reject_view, name='admin_leave_reject'),  # noqa
+    re_path(r'^admin/ninetofiver/timesheet/close/(?P<timesheet_pk>[0-9,]+)/$', views.admin_timesheet_close_view, name='admin_timesheet_close'),  # noqa
+    re_path(r'^admin/ninetofiver/timesheet/activate/(?P<timesheet_pk>[0-9,]+)/$', views.admin_timesheet_activate_view, name='admin_timesheet_activate'),  # noqa
+    path('admin/ninetofiver/report/', views.admin_report_index_view, name='admin_report_index'),  # noqa
+    path('admin/ninetofiver/report/timesheet_contract_overview/', views.admin_report_timesheet_contract_overview_view, name='admin_report_timesheet_contract_overview'),  # noqa
+    path('admin/ninetofiver/report/timesheet_overview/', views.admin_report_timesheet_overview_view, name='admin_report_timesheet_overview'),  # noqa
+    path('admin/ninetofiver/report/timesheet_monthly_overview/', views.TimesheetMonthlyOverviewView.as_view(), name='admin_report_timesheet_monthly_overview'),  # noqa
+    path('admin/ninetofiver/report/user_range_info/', views.admin_report_user_range_info_view, name='admin_report_user_range_info'),  # noqa
+    path('admin/ninetofiver/report/user_leave_overview/', views.admin_report_user_leave_overview_view, name='admin_report_user_leave_overview'),  # noqa
+    path('admin/ninetofiver/report/user_work_ratio_by_user/', views.admin_report_user_work_ratio_by_user_view, name='admin_report_user_work_ratio_by_user'),  # noqa
+    path('admin/ninetofiver/report/user_work_ratio_by_month/', views.admin_report_user_work_ratio_by_month_view, name='admin_report_user_work_ratio_by_month'),  # noqa
+    path('admin/ninetofiver/report/user_work_ratio_overview/', views.admin_report_user_work_ratio_overview_view, name='admin_report_user_work_ratio_overview'),  # noqa
+    path('admin/ninetofiver/report/user_overtime_overview/', views.admin_report_user_overtime_overview_view, name='admin_report_user_overtime_overview'),  # noqa
+    path('admin/ninetofiver/report/resource_availability_overview/', views.ResourceAvailabilityOverviewView.as_view(), name='admin_report_resource_availability_overview'),  # noqa
+    path('admin/ninetofiver/report/expiring_consultancy_contract_overview/', views.admin_report_expiring_consultancy_contract_overview_view, name='admin_report_expiring_consultancy_contract_overview'),  # noqa
+    path('admin/ninetofiver/report/invoiced_consultancy_contract_overview/', views.admin_report_invoiced_consultancy_contract_overview_view, name='admin_report_invoiced_consultancy_contract_overview'), # noqa
+    path('admin/ninetofiver/report/expiring_support_contract_overview/', views.admin_report_expiring_support_contract_overview_view, name='admin_report_expiring_support_contract_overview'),  # noqa
+    path('admin/ninetofiver/report/project_contract_overview/', views.admin_report_project_contract_overview_view, name='admin_report_project_contract_overview'),  # noqa
+    path('admin/ninetofiver/report/project_contract_budget_overview/', views.admin_report_project_contract_budget_overview_view, name='admin_report_project_contract_budget_overview'),  # noqa
+    path('admin/ninetofiver/report/expiring_user_training_overview/', views.admin_report_expiring_user_training_overview_view, name='admin_report_expiring_user_training_overview_view'),  # noqa
+    re_path(r'^admin/ninetofiver/timesheet_contract_pdf_export/(?P<user_timesheet_contract_pks>[0-9:,]+)/$', views.AdminTimesheetContractPdfExportView.as_view(), name='admin_timesheet_contract_pdf_export'),  # noqa
+    path('admin/ninetofiver/report/internal_availability_overview/', views.admin_report_internal_availability_overview_view, name='admin_report_internal_availability_overview_view'),  # noqa
     # Admin
-    url(r'^admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
 ]
