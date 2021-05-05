@@ -815,7 +815,7 @@ class TimesheetMonthlyOverviewView(AvailabilityView):
         data = []
         fltr = filters.AdminReportTimesheetMonthlyOverviewFilter(request.GET, models.Timesheet.objects)
         # TODO: Maybe replace the date selection with a dropdown with months?
-        base_date = parser.parse(request.GET.get('base_date', None)).date() if request.GET.get('base_date') else None
+        base_date = parser.parse(request.GET.get('base_date', None)).date() if request.GET.get('base_date') else datetime.today()
 
         # The default month should not be the current one, but previous
         fetch_previous = request.GET.get('fetch_previous', None)
