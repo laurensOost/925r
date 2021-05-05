@@ -25,7 +25,7 @@ router = routers.DefaultRouter()
 # Additionally, we include login URLs for the browseable API.
 urlpatterns += [
     # django debug toolbar - only for dev
-    url('__debug__/', include(debug_toolbar.urls)),
+    path('__debug__/', include(debug_toolbar.urls)),
     path('', views.home_view, name='home'),
     path('api-docs/', views.api_docs_view, name='api_docs'),
     path('api-docs/swagger_ui/', views.api_docs_swagger_ui_view, name='api_docs_swagger_ui'),
