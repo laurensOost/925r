@@ -146,12 +146,15 @@ def populate_performance_tables():
         contract_groups.append(cg)
         cg.save()
 
+    print(len(users))
     for x in range(1, 10001):
+        curr_minor_index = x % 1000
+        # print(curr_minor_index)
         ctr = Contract(
             name='test_contract_' + str(x),
             description='test_contract_' + str(x),
-            customer=companies_customers.pop(x % 10),
-            company=companies.pop(x % 10),
+            customer=companies_customers[curr_minor_index],
+            company=companies[curr_minor_index],
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
@@ -166,14 +169,14 @@ def populate_performance_tables():
         ctr.save()
 
         cu = ContractUser(
-            user=users.pop(x % 1000),
+            user=users[curr_minor_index],
             contract=ctr,
-            contract_role=contract_roles.pop(x % 1000)
+            contract_role=contract_roles[curr_minor_index]
         )
         contract_users.append(cu)
         cu.save()
 
-    ninetofiver.management.commands.create_timesheets.Command.handle()
+    # ninetofiver.management.commands.create_timesheets.Command.handle()
 
     # # Performance
     # for x in range(1, 1001):
