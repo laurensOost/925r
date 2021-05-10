@@ -1,11 +1,12 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
-    ContractUser, Contract, ContractGroup, Performance
+    ContractUser, Contract, ContractGroup, Performance, Timesheet
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
 from django.conf import settings
 import datetime
 import random
+from calendar import monthrange
 log = logging.getLogger(__name__)
 
 
@@ -104,7 +105,7 @@ def populate_performance_tables():
     contract_roles = []
 
     # add users, companies, customers, contract_groups
-    for x in range(1, 1001):
+    for x in range(1, 101):
         cr = ContractRole(
             name='test_contract_role_' + str(x),
             description='test_contract_role_' + str(x)
@@ -146,10 +147,8 @@ def populate_performance_tables():
         contract_groups.append(cg)
         cg.save()
 
-    print(len(users))
-    for x in range(1, 10001):
-        curr_minor_index = x % 1000
-        # print(curr_minor_index)
+    for x in range(1, 1001):
+        curr_minor_index = x % 100
         ctr = Contract(
             name='test_contract_' + str(x),
             description='test_contract_' + str(x),
@@ -158,13 +157,8 @@ def populate_performance_tables():
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
-            # performance_types=PerformanceType.objects.get(pk=1),
-            # contract_groups=contract_groups.pop(x % 10),
-            # contract_users=contract_users.pop(x % 10)
         )
-        # ctr.contract_groups.set(contract_groups.pop(x % 10))
-        # ctr.contract_users.set(contract_users.pop(x % 10))
-        # ctr.performance_types.set(PerformanceType.objects.get(pk=1))
+
         contracts.append(ctr)
         ctr.save()
 
@@ -176,17 +170,23 @@ def populate_performance_tables():
         contract_users.append(cu)
         cu.save()
 
-    # ninetofiver.management.commands.create_timesheets.Command.handle()
+    timesheets_maker = ninetofiver.management.commands.create_timesheets.Command()
 
-    # # Performance
-    # for x in range(1, 1001):
-    #     pfr = Performance(
-    #         timesheet=
-    #         date=
-    #         contract=
-    #         redmine_id=
-    #     )
-    #     pfr.save()
+    timesheets_maker.handle()
+
+    all_timesheets = Timesheet.objects.filter()
+    no_of_timesheets = all_timesheets.count()
+    # Performance
+    for x in range(1, 10000):
+        curr_timesheet_index = x % no_of_timesheets
+        curr_timesheet = all_timesheets[curr_timesheet_index]
+        days_in_month = monthrange(curr_timesheet.year, curr_timesheet.month)[1]
+        pfr = Performance(
+            timesheet=curr_timesheet,
+            date=datetime.date(curr_timesheet.year, curr_timesheet.month, random.randint(1, days_in_month)),
+            contract=contracts[x % 10]
+        )
+        pfr.save()
 
 
 def get_random_date(start_date, end_date):
