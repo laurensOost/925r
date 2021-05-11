@@ -1,5 +1,5 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
-    ContractUser, Contract, ContractGroup, Performance, Timesheet
+    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
@@ -89,6 +89,13 @@ def populate_basic_tables():
         )
         ws.save()
 
+    # ContractRole
+    cr = ContractRole(
+        name='test_contract_role',
+        description='test_contract_role'
+    )
+    cr.save()
+
 
 # fills higher amount of test data to all contract/performance-related tables
 def populate_performance_tables():
@@ -99,20 +106,15 @@ def populate_performance_tables():
     users = []
     companies = []
     companies_customers = []
-    contracts = []
+    project_contracts = []
     contract_users = []
     contract_groups = []
-    contract_roles = []
+    activityperformances = []
+    performancetypes = PerformanceType.objects.filter()
 
-    # add users, companies, customers, contract_groups
+    # populate db with users, companies, customers, contract_groups
+    # its ok to have smaller no. of records for these tables
     for x in range(1, 101):
-        cr = ContractRole(
-            name='test_contract_role_' + str(x),
-            description='test_contract_role_' + str(x)
-        )
-        contract_roles.append(cr)
-        cr.save()
-
         usr = User(
             username='test_user_' + str(x),
             email='test@mail.com'
@@ -147,9 +149,10 @@ def populate_performance_tables():
         contract_groups.append(cg)
         cg.save()
 
+    # populate contracts & activity performances -> higher number of records is good
     for x in range(1, 1001):
         curr_minor_index = x % 100
-        ctr = Contract(
+        proj_ctr = ProjectContract(
             name='test_contract_' + str(x),
             description='test_contract_' + str(x),
             customer=companies_customers[curr_minor_index],
@@ -157,18 +160,22 @@ def populate_performance_tables():
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
+            fixed_fee=2,
         )
 
-        contracts.append(ctr)
-        ctr.save()
+        project_contracts.append(proj_ctr)
+        proj_ctr.save()
 
-        cu = ContractUser(
-            user=users[curr_minor_index],
-            contract=ctr,
-            contract_role=contract_roles[curr_minor_index]
-        )
-        contract_users.append(cu)
-        cu.save()
+    for u in users:
+        for c in project_contracts:
+            # curr_minor_index = x % 100
+            cu = ContractUser(
+                user=u,
+                contract=c,
+                contract_role=ContractRole.objects.get()
+            )
+            contract_users.append(cu)
+            cu.save()
 
     timesheets_maker = ninetofiver.management.commands.create_timesheets.Command()
 
@@ -181,12 +188,18 @@ def populate_performance_tables():
         curr_timesheet_index = x % no_of_timesheets
         curr_timesheet = all_timesheets[curr_timesheet_index]
         days_in_month = monthrange(curr_timesheet.year, curr_timesheet.month)[1]
-        pfr = Performance(
+
+        act_perf = ActivityPerformance(
             timesheet=curr_timesheet,
             date=datetime.date(curr_timesheet.year, curr_timesheet.month, random.randint(1, days_in_month)),
-            contract=contracts[x % 10]
-        )
-        pfr.save()
+            contract=project_contracts[x % 10],
+            performance_type=performancetypes[0],
+            contract_role=ContractRole.objects.get(),
+            description='test_activity_performance_' + str(x),
+            duration=1,
+            )
+        activityperformances.append(act_perf)
+        act_perf.save()
 
 
 def get_random_date(start_date, end_date):
