@@ -1,5 +1,6 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
-    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract, Leave, LeaveDate
+    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract, Leave, LeaveDate, \
+    ProjectContract, ConsultancyContract, SupportContract
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
@@ -117,7 +118,7 @@ def populate_performance_tables():
     for x in range(1, 101):
         usr = User(
             username='test_user_' + str(x),
-            email='test@mail.com'
+            email='test_' + str(x) + '@mail.com'
         )
         users.append(usr)
         usr.save()
@@ -150,32 +151,59 @@ def populate_performance_tables():
         cg.save()
 
     # populate contracts & activity performances -> higher number of records is good
-    for x in range(1, 1001):
-        curr_minor_index = x % 100
-        proj_ctr = ProjectContract(
-            name='test_contract_' + str(x),
-            description='test_contract_' + str(x),
-            customer=companies_customers[curr_minor_index],
-            company=companies[curr_minor_index],
+    for x in range(1, 501):
+        proj_cont = ProjectContract(
+            name='test_project_contract_' + str(x),
+            description='Test project contract ' + str(x),
+            customer=companies_customers[random.randrange(len(companies_customers))],
+            company=companies[random.randrange(len(companies))],
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
-            fixed_fee=2,
+            fixed_fee=round(random.uniform(0, 1000),2),
         )
 
-        project_contracts.append(proj_ctr)
-        proj_ctr.save()
+        cons_cont = ConsultancyContract(
+            name='test_consultancy_contract_' + str(x),
+            description='Test consultancy contract ' + str(x),
+            customer=companies_customers[random.randrange(len(companies_customers))],
+            company=companies[random.randrange(len(companies))],
+            starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
+            ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
+            active=1,
+            duration=round(random.uniform(0, 100),1),
+            day_rate=round(random.uniform(0, 100),2),
+        )
 
-    for u in users:
-        for c in project_contracts:
-            # curr_minor_index = x % 100
-            cu = ContractUser(
-                user=u,
-                contract=c,
-                contract_role=ContractRole.objects.get()
-            )
-            contract_users.append(cu)
-            cu.save()
+        supp_cont = SupportContract(
+            name='test_support_contract_' + str(x),
+            description='Test support contract ' + str(x),
+            customer=companies_customers[random.randrange(len(companies_customers))],
+            company=companies[random.randrange(len(companies))],
+            starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
+            ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
+            active=1,
+            day_rate=round(random.uniform(0, 100),2),
+            fixed_fee=round(random.uniform(0, 1000),2),
+        )
+
+        contracts.append(proj_cont)
+        contracts.append(cons_cont)
+        contracts.append(supp_cont)
+        proj_cont.save()
+        cons_cont.save()
+        supp_cont.save()
+
+    # add contract users
+    for x in range(1, 1001):
+        cu = ContractUser(
+            user=users[random.randrange(len(users))],
+            contract=contracts[random.randrange(len(contracts))],
+            contract_role=contract_roles[random.randrange(len(contract_roles))]
+        )
+        contract_users.append(cu)
+
+    ContractUser.objects.bulk_create(contract_users)
 
     timesheets_maker = ninetofiver.management.commands.create_timesheets.Command()
 
