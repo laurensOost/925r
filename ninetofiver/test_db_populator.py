@@ -1,6 +1,6 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
     ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract, Leave, LeaveDate, \
-    ProjectContract, ConsultancyContract, SupportContract
+    ProjectContract, ConsultancyContract, SupportContract, Contract
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
@@ -107,7 +107,7 @@ def populate_performance_tables():
     users = []
     companies = []
     companies_customers = []
-    project_contracts = []
+    contracts = []
     contract_users = []
     contract_groups = []
     activityperformances = []
@@ -160,7 +160,7 @@ def populate_performance_tables():
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
-            fixed_fee=round(random.uniform(0, 1000),2),
+            fixed_fee=round(random.uniform(0, 1000), 2),
         )
 
         cons_cont = ConsultancyContract(
@@ -171,8 +171,8 @@ def populate_performance_tables():
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
-            duration=round(random.uniform(0, 100),1),
-            day_rate=round(random.uniform(0, 100),2),
+            duration=round(random.uniform(0, 100), 1),
+            day_rate=round(random.uniform(0, 100), 2),
         )
 
         supp_cont = SupportContract(
@@ -183,8 +183,8 @@ def populate_performance_tables():
             starts_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
             ends_at=get_random_date(datetime.date(2021, 9, 9), datetime.date(2030, 1, 1)),
             active=1,
-            day_rate=round(random.uniform(0, 100),2),
-            fixed_fee=round(random.uniform(0, 1000),2),
+            day_rate=round(random.uniform(0, 100), 2),
+            fixed_fee=round(random.uniform(0, 1000), 2),
         )
 
         contracts.append(proj_cont)
@@ -195,13 +195,14 @@ def populate_performance_tables():
         supp_cont.save()
 
     # add contract users
-    for x in range(1, 1001):
-        cu = ContractUser(
-            user=users[random.randrange(len(users))],
-            contract=contracts[random.randrange(len(contracts))],
-            contract_role=contract_roles[random.randrange(len(contract_roles))]
-        )
-        contract_users.append(cu)
+    for usr in users:
+        for ctr in contracts:
+            cu = ContractUser(
+                user=usr,
+                contract=ctr,
+                contract_role=ContractRole.objects.get()
+            )
+            contract_users.append(cu)
 
     ContractUser.objects.bulk_create(contract_users)
 
@@ -211,6 +212,7 @@ def populate_performance_tables():
 
     all_timesheets = Timesheet.objects.filter()
     no_of_timesheets = all_timesheets.count()
+    # contracts_pure = Contract.objects.filter()
     # Performance
     for x in range(1, 10000):
         curr_timesheet_index = x % no_of_timesheets
@@ -220,7 +222,7 @@ def populate_performance_tables():
         act_perf = ActivityPerformance(
             timesheet=curr_timesheet,
             date=datetime.date(curr_timesheet.year, curr_timesheet.month, random.randint(1, days_in_month)),
-            contract=project_contracts[x % 10],
+            contract=contracts[random.randrange(len(contracts))],
             performance_type=performancetypes[0],
             contract_role=ContractRole.objects.get(),
             description='test_activity_performance_' + str(x),
@@ -228,6 +230,8 @@ def populate_performance_tables():
             )
         activityperformances.append(act_perf)
         act_perf.save()
+
+    # ActivityPerformance.objects.bulk_create(activityperformances)
 
 
 def get_random_date(start_date, end_date):
