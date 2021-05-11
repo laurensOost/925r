@@ -1,5 +1,5 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
-    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract
+    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract, Leave, LeaveDate
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
@@ -210,3 +210,26 @@ def get_random_date(start_date, end_date):
     random_date = start_date + datetime.timedelta(days=random_number_of_days)
 
     return random_date
+
+
+# fills higher amount of test data to all leave-related tables
+def populate_leave_tables():
+    if not settings.DEBUG:
+        log.error('settings.DEBUG is False. Aborting')
+        exit(1)
+
+    leaves = []
+    leavedates = []
+
+    # retrieving information from already populated tables we'll be using
+    users = User.objects.filter()
+
+    for usr in users:
+        for x in range(1, 100):
+            lv = Leave(
+                user=usr,
+                leave_type=LeaveType.objects.get(name='Vacation'),
+                description='vacation_test',
+            )
+            leaves.append(lv)
+            lv.save()
