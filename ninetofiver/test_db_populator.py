@@ -8,6 +8,7 @@ from django.conf import settings
 import datetime
 import random
 from calendar import monthrange
+import time
 log = logging.getLogger(__name__)
 
 
@@ -239,7 +240,7 @@ def get_random_date(start_date, end_date):
     days_between_dates = time_between_dates.days
 
     random_number_of_days = random.randrange(days_between_dates)
-    random_date = start_date + datetime.timedelta(days=random_number_of_days)
+    random_date = start_date+ datetime.timedelta(days=random_number_of_days)
 
     return random_date
 
@@ -257,7 +258,8 @@ def populate_leave_tables():
     users = User.objects.filter()
 
     for usr in users:
-        for x in range(1, 100):
+        start_dates_for_user = []
+        for x in range(1, 10):
             lv = Leave(
                 user=usr,
                 leave_type=LeaveType.objects.get(name='Vacation'),
@@ -265,3 +267,32 @@ def populate_leave_tables():
             )
             leaves.append(lv)
             lv.save()
+
+            # leave length in days
+            leave_length = 6
+
+            # load all timesheets for user
+            timesheets_for_user = Timesheet.objects.filter(user=usr)
+            # select one timesheet for user
+            ts = timesheets_for_user[random.randrange(len(timesheets_for_user))]
+            while True:
+                # find a leave date in selected timesheet
+                start_date = get_random_date(datetime.datetime(ts.year, ts.month, 1),
+                                             # potential end date. must be within ts by no. of days of the leave length
+                                             datetime.datetime(ts.year, ts.month+1, 1)
+                                             - datetime.timedelta(days=leave_length))  # unknown no. of days in month
+                # check if user already has leave planned in this date. if so, find another date
+                if start_date not in start_dates_for_user:
+                    break
+
+            for day in range(leave_length, 1):
+                ld = LeaveDate(
+                    leave=lv,
+                    timesheet=ts,
+                    starts_at=start_date.replace(hour=9, minute=00, second=00) + datetime.timedelta(days=day),
+                    ends_at=start_date.replace(hour=17, minute=00, second=00) + datetime.timedelta(days=day),
+                )
+                # adding each day of user's holiday to the list so that holidays never collide
+                start_dates_for_user.append(start_date + datetime.timedelta(days=day))
+                leavedates.append(ld)
+                ld.save()
