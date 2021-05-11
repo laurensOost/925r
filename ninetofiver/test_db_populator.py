@@ -1,6 +1,6 @@
 from ninetofiver.models import LeaveType, Company, Location, PerformanceType, WorkSchedule, ContractRole,\
-    ContractUser, Contract, ContractGroup, Performance, Timesheet
-from ninetofiver.models import ProjectContract, ConsultancyContract, SupportContract
+    ContractUser, ContractGroup, Timesheet, ActivityPerformance, ProjectContract, Leave, LeaveDate, \
+    ProjectContract, ConsultancyContract, SupportContract
 from django.contrib.auth.models import User
 import ninetofiver.management.commands.create_timesheets
 import logging
@@ -90,6 +90,13 @@ def populate_basic_tables():
         )
         ws.save()
 
+    # ContractRole
+    cr = ContractRole(
+        name='test_contract_role',
+        description='test_contract_role'
+    )
+    cr.save()
+
 
 # fills higher amount of test data to all contract/performance-related tables
 def populate_performance_tables():
@@ -100,20 +107,15 @@ def populate_performance_tables():
     users = []
     companies = []
     companies_customers = []
-    contracts = []
+    project_contracts = []
     contract_users = []
     contract_groups = []
-    contract_roles = []
+    activityperformances = []
+    performancetypes = PerformanceType.objects.filter()
 
-    # add users, companies, customers, contract_groups
+    # populate db with users, companies, customers, contract_groups
+    # its ok to have smaller no. of records for these tables
     for x in range(1, 101):
-        cr = ContractRole(
-            name='test_contract_role_' + str(x),
-            description='test_contract_role_' + str(x)
-        )
-        contract_roles.append(cr)
-        cr.save()
-
         usr = User(
             username='test_user_' + str(x),
             email='test_' + str(x) + '@mail.com'
@@ -148,7 +150,7 @@ def populate_performance_tables():
         contract_groups.append(cg)
         cg.save()
 
-    # add contracts
+    # populate contracts & activity performances -> higher number of records is good
     for x in range(1, 501):
         proj_cont = ProjectContract(
             name='test_project_contract_' + str(x),
@@ -214,12 +216,18 @@ def populate_performance_tables():
         curr_timesheet_index = x % no_of_timesheets
         curr_timesheet = all_timesheets[curr_timesheet_index]
         days_in_month = monthrange(curr_timesheet.year, curr_timesheet.month)[1]
-        pfr = Performance(
+
+        act_perf = ActivityPerformance(
             timesheet=curr_timesheet,
             date=datetime.date(curr_timesheet.year, curr_timesheet.month, random.randint(1, days_in_month)),
-            contract=contracts[x % 10]
-        )
-        pfr.save()
+            contract=project_contracts[x % 10],
+            performance_type=performancetypes[0],
+            contract_role=ContractRole.objects.get(),
+            description='test_activity_performance_' + str(x),
+            duration=1,
+            )
+        activityperformances.append(act_perf)
+        act_perf.save()
 
 
 def get_random_date(start_date, end_date):
@@ -230,3 +238,26 @@ def get_random_date(start_date, end_date):
     random_date = start_date + datetime.timedelta(days=random_number_of_days)
 
     return random_date
+
+
+# fills higher amount of test data to all leave-related tables
+def populate_leave_tables():
+    if not settings.DEBUG:
+        log.error('settings.DEBUG is False. Aborting')
+        exit(1)
+
+    leaves = []
+    leavedates = []
+
+    # retrieving information from already populated tables we'll be using
+    users = User.objects.filter()
+
+    for usr in users:
+        for x in range(1, 100):
+            lv = Leave(
+                user=usr,
+                leave_type=LeaveType.objects.get(name='Vacation'),
+                description='vacation_test',
+            )
+            leaves.append(lv)
+            lv.save()
