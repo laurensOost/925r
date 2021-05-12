@@ -213,7 +213,7 @@ def populate_performance_tables():
 
     all_timesheets = Timesheet.objects.filter()
     no_of_timesheets = all_timesheets.count()
-    # contracts_pure = Contract.objects.filter()
+
     # Performance
     for x in range(1, 10000):
         curr_timesheet_index = x % no_of_timesheets
@@ -232,15 +232,13 @@ def populate_performance_tables():
         activityperformances.append(act_perf)
         act_perf.save()
 
-    # ActivityPerformance.objects.bulk_create(activityperformances)
-
 
 def get_random_date(start_date, end_date):
     time_between_dates = end_date - start_date
     days_between_dates = time_between_dates.days
 
     random_number_of_days = random.randrange(days_between_dates)
-    random_date = start_date+ datetime.timedelta(days=random_number_of_days)
+    random_date = start_date + datetime.timedelta(days=random_number_of_days)
 
     return random_date
 
