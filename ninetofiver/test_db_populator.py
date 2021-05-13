@@ -305,8 +305,6 @@ class TestDBPupulator:
                     # check if user already has leave planned in this date. if so, find another date
                     for pot_day_no in range(0, leave_length):
                         potential_leave_date = start_date + datetime.timedelta(days=pot_day_no)
-                        print(potential_leave_date)
-                        print(leave_dates_for_user)
                         if potential_leave_date not in leave_dates_for_user:
                             continue
                         else:
@@ -316,10 +314,6 @@ class TestDBPupulator:
                         continue
                     else:
                         break
-                print('leave_dates_for_user')
-                print(leave_dates_for_user)
-                print('start_date')
-                print(start_date)
                 for day in range(0, leave_length):
                     ld = LeaveDate(
                         leave=lv,
@@ -327,8 +321,6 @@ class TestDBPupulator:
                         starts_at=start_date.replace(hour=9, minute=00, second=00) + datetime.timedelta(days=day),
                         ends_at=start_date.replace(hour=17, minute=00, second=00) + datetime.timedelta(days=day),
                     )
-                    print('leavedate')
-                    print(ld)
                     # adding each day of user's holiday to the list so that holidays never collide
                     leave_dates_for_user.append(start_date + datetime.timedelta(days=day))
                     ld.save()
