@@ -89,6 +89,26 @@ Run the test suite:
 tox
 ```
 
+Generate dummy data for testing (only in DEBUG mode):
+
+```bash
+python manage.py create_test_data  # fills almost all tables
+```
+
+Clean all database:
+
+```bash
+python manage.py flush
+# or delete db.sqlite3 file in root directory
+```
+
+Other commands for testing:
+```bash
+python manage.py help
+# [ninetofiver]
+```
+
+
 ## License
 
 See [LICENSE](LICENSE)
