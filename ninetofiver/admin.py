@@ -224,6 +224,9 @@ class LeaveDateInline(admin.TabularInline):
 class LeaveAdmin(admin.ModelAdmin):
     """Leave admin."""
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attachments')
+
     def get_formsets_with_inlines(self, request, obj=None):
         """Cache timesheets foreign-keys in inlines"""
         cached_timesheets = [(None, "---------")]
@@ -362,6 +365,11 @@ class ContractUserInline(admin.TabularInline):
         if db_field.name == 'user':
             kwargs['queryset'] = auth_models.User.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_queryset(self, request):
+        return (super().get_queryset(request)
+                .select_related('user', 'contract_role')
+        )
 
 
 class ContractUserGroupInline(admin.TabularInline):
@@ -549,8 +557,9 @@ class ContractChildAdmin(PolymorphicChildModelAdmin):
                 .prefetch_related('contractusergroup_set',
                                   'contractusergroup_set__group', 'contractusergroup_set__contract_role',
                                   'contractuser_set', 'contractuser_set__user',
-                                  'contractuser_set__contract_role',)
-                .distinct())
+                                  'contractuser_set__contract_role',
+                                  'attachments', 'performance_types',
+                ).distinct())
 
     inlines = [
         ContractLogInline,
@@ -610,6 +619,7 @@ class ContractUserAdmin(admin.ModelAdmin):
         ('contract__customer', RelatedDropdownFilter),
         ('user', RelatedDropdownFilter),
     )
+    raw_id_fields = ('contract', )
 
 
 @admin.register(models.Timesheet)
@@ -707,6 +717,7 @@ class WhereaboutAdmin(admin.ModelAdmin):
     search_fields = ('timesheet__user__username', 'timesheet__user__first_name', 'timesheet__user__last_name',
                      'location', 'starts_at', 'ends_at', 'description')
     ordering = ('-starts_at',)
+    raw_id_fields = ('timesheet', )
 
 
 class PerformanceResource(ModelResource):
@@ -801,6 +812,11 @@ class PerformanceChildAdmin(PolymorphicChildModelAdmin):
 @admin.register(models.ActivityPerformance)
 class ActivityPerformanceChildAdmin(PerformanceChildAdmin):
     base_model = models.ActivityPerformance
+
+    def get_queryset(self, request):
+        return (super().get_queryset(request)
+                .prefetch_related('performance_type')
+        )
 
 
 @admin.register(models.StandbyPerformance)
@@ -915,6 +931,12 @@ class TrainingInline(admin.TabularInline):
 
 @admin.register(models.UserTraining)
 class UserTrainingAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        return (super().get_queryset(request)
+                .select_related('user')
+                .prefetch_related('user__userinfo'))
+
     list_display = (
         "__str__",
         "enrolled_training_types",

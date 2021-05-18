@@ -892,7 +892,7 @@ class ContractUser(BaseModel):
     """Contract user model."""
 
     user = models.ForeignKey(auth_models.User, on_delete=models.PROTECT)
-    contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, help_text="Use the magnifying glass icon to change the value!")
     contract_role = models.ForeignKey(ContractRole, on_delete=models.PROTECT)
     contract_user_group = models.ForeignKey(ContractUserGroup, on_delete=models.CASCADE, editable=False, blank=True,
                                             null=True)
@@ -1066,7 +1066,7 @@ class Whereabout(BaseModel):
 
     """Whereabout model."""
 
-    timesheet = models.ForeignKey(Timesheet, on_delete=models.PROTECT)
+    timesheet = models.ForeignKey(Timesheet, on_delete=models.PROTECT, help_text="Use the magnifying glass icon to change the value!")
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     description = models.TextField(max_length=255, blank=True, null=True)
     starts_at = models.DateTimeField()
