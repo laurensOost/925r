@@ -368,8 +368,10 @@ class ContractLogTypeAdmin(admin.ModelAdmin):
 
 class ContractUserInline(admin.TabularInline):
     model = models.ContractUser
+    autocomplete_fields = ['user']
     ordering = ("user__first_name", "user__last_name",)
     show_change_link = True
+    raw_id_fields = ('contract_role',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Form field for foreign key."""
@@ -529,6 +531,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
         return format_html('&nbsp;'.join(actions))
 
     resource_class = ContractResource
+    polymorphic_list = True
 
     base_model = models.Contract
     child_models = (

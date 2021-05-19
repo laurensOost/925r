@@ -573,8 +573,8 @@ class LeaveDate(BaseModel):
 
     """Leave date model."""
 
-    leave = models.ForeignKey(Leave, on_delete=models.CASCADE)
-    timesheet = models.ForeignKey(Timesheet, on_delete=models.PROTECT)
+    leave = models.ForeignKey(Leave, on_delete=models.CASCADE, help_text="Use the magnifying glass icon to change the value!")
+    timesheet = models.ForeignKey(Timesheet, on_delete=models.PROTECT, help_text="Use the magnifying glass icon to change the value!")
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField()
 
