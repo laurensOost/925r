@@ -46,7 +46,7 @@ class TestDBPupulator:
             exit(1)
 
         self.default_range = range(1, 101)
-
+        self.perf_tables_range = range(1, 501)
         self.activity_performances = []
         self.api_keys = []
         self.companies = []
@@ -71,14 +71,12 @@ class TestDBPupulator:
         self.whereabouts = []
         self.work_schedules = []
 
-
     def execute(self):
         ''' Order of methods is important '''
         self._populate_basic_tables()
         self._populate_performance_tables()
         self._populate_leave_tables()
         self._populate_additional_tables()
-
 
     def _populate_basic_tables(self):
         '''
@@ -164,7 +162,6 @@ class TestDBPupulator:
             self.work_schedules.append(ws)
         xprint(" - WorkSchedule:", len(self.work_schedules))
 
-
     def _populate_performance_tables(self):
         '''
         Fills higher amount of test data to all contract/performance-related tables
@@ -225,7 +222,7 @@ class TestDBPupulator:
         xprint(" - ContractGroup:", len(self.contract_groups))
 
         # populate contracts & activity performances -> higher number of records is good
-        for x in range(1, 20):
+        for x in self.perf_tables_range:
             proj_cont = ProjectContract(
                 name='test_project_contract_' + str(x),
                 description='Test project contract ' + str(x),
@@ -302,7 +299,6 @@ class TestDBPupulator:
                 self.activity_performances.append(act_perf)
         xprint(" - ActivityPerformance:", len(self.activity_performances))
 
-
     def create_timesheets(self):
         """Create a new timesheet for the current month for each user."""
         today = datetime.date.today()
@@ -326,7 +322,6 @@ class TestDBPupulator:
             self.timesheets.append(ts_this_month)
             self.timesheets.append(ts_next_month)
         xprint(" - Timesheet:", len(self.timesheets))
-
 
     def _populate_leave_tables(self):
         # Fills higher amount of test data to all leave-related tables
@@ -384,7 +379,6 @@ class TestDBPupulator:
                     self.leavedates.append(ld)
         xprint(" - Leave:", len(self.leaves))
         xprint(" - LeaveDate:", len(self.leavedates))
-
 
     def _populate_additional_tables(self):
         xprint("Populate additional tables")
