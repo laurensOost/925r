@@ -225,7 +225,10 @@ class LeaveAdmin(admin.ModelAdmin):
     """Leave admin."""
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('attachments')
+        return (super().get_queryset(request)
+                .select_related('leave_type', 'user')
+                .prefetch_related('attachments')
+                .distinct())
 
     def get_formsets_with_inlines(self, request, obj=None):
         """Cache timesheets foreign-keys in inlines"""
@@ -308,8 +311,16 @@ class LeaveAdmin(admin.ModelAdmin):
 
 @admin.register(models.LeaveDate)
 class LeaveDateAdmin(admin.ModelAdmin):
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Form field for foreign key."""
+        if db_field.name == 'user':
+            kwargs['queryset'] = auth_models.User.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     list_display = ('__str__', 'leave', 'starts_at', 'ends_at')
     ordering = ('-starts_at',)
+    raw_id_fields = ('leave', 'timesheet')
 
 
 class UserInfoForm(forms.ModelForm):
@@ -369,7 +380,7 @@ class ContractUserInline(admin.TabularInline):
     def get_queryset(self, request):
         return (super().get_queryset(request)
                 .select_related('user', 'contract_role')
-        )
+                )
 
 
 class ContractUserGroupInline(admin.TabularInline):
@@ -559,7 +570,7 @@ class ContractChildAdmin(PolymorphicChildModelAdmin):
                                   'contractuser_set', 'contractuser_set__user',
                                   'contractuser_set__contract_role',
                                   'attachments', 'performance_types',
-                ).distinct())
+                                  ).distinct())
 
     inlines = [
         ContractLogInline,
@@ -816,7 +827,7 @@ class ActivityPerformanceChildAdmin(PerformanceChildAdmin):
     def get_queryset(self, request):
         return (super().get_queryset(request)
                 .prefetch_related('performance_type')
-        )
+                )
 
 
 @admin.register(models.StandbyPerformance)
@@ -976,9 +987,11 @@ class UserTrainingAdmin(admin.ModelAdmin):
         if obj:
 
             # Fetch all training types that are already associated with user.
-            enrolled_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country, training__user_training=obj).distinct()
+            enrolled_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country,
+                                                                         training__user_training=obj).distinct()
             # Fetch remaining training types that user can possibly have (filter by country)
-            available_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country).exclude(training__user_training=obj).distinct()
+            available_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country).exclude(
+                                                                          training__user_training=obj).distinct()
 
             # For every active training, add separate and tweaked inline
             for training_type in enrolled_training_types:
@@ -996,7 +1009,8 @@ class UserTrainingAdmin(admin.ModelAdmin):
             if available_training_types:
                 general_training_inline = TrainingInline(self.model, self.admin_site)
                 general_training_inline.extra = 1
-                general_training_inline.training_types_choices = [(None, "---------")]+[(i.pk, str(i)) for i in available_training_types]
+                general_training_inline.training_types_choices = [(None, "---------")]\
+                    + [(i.pk, str(i)) for i in available_training_types]
                 inlines.append(general_training_inline)
 
         return inlines

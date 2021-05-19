@@ -225,7 +225,7 @@ class TestDBPupulator:
         xprint(" - ContractGroup:", len(self.contract_groups))
 
         # populate contracts & activity performances -> higher number of records is good
-        for x in range(1, 501):
+        for x in range(1, 20):
             proj_cont = ProjectContract(
                 name='test_project_contract_' + str(x),
                 description='Test project contract ' + str(x),
