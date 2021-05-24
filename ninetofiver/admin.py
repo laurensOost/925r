@@ -761,17 +761,40 @@ class PerformanceResource(ModelResource):
         )
 
 
+class ContractListFilter(admin.SimpleListFilter):
+
+    title = 'Contract'
+    parameter_name = "contract"
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
+
+    def lookups(self, request, model_admin):
+        query = models.Contract.objects.non_polymorphic().select_related('customer','company')
+        return [(con.pk, str(con)) for con in query]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            try:
+                value = int(self.value())
+            except TypeError:
+                value = None
+                return queryset
+
+            for choice_value, _ in self.lookup_choices:
+                if choice_value == value:
+                    return queryset.filter(contract=choice_value)
+            return queryset.filter(contract=None)
+        return queryset
+
+
 @admin.register(models.Performance)
 class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     """Performance parent admin."""
 
     resource_class = PerformanceResource
+    polymorphic_list = True
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('activityperformance',
-                                                            'activityperformance__performance_type',
-                                                            'activityperformance__contract_role',
-                                                            'contract',
+        return super().get_queryset(request).select_related('contract',
                                                             'contract__customer',
                                                             'timesheet',
                                                             'timesheet__user')
@@ -797,7 +820,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     )
     list_filter = (
         PolymorphicChildModelFilter,
-        ('contract', RelatedDropdownFilter),
+        ContractListFilter,
         ('contract__company', RelatedDropdownFilter),
         ('contract__customer', RelatedDropdownFilter),
         ('timesheet__user', RelatedDropdownFilter),
@@ -821,6 +844,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
 
 class PerformanceChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.Performance
+    raw_id_fields = ('contract',)
 
 
 @admin.register(models.ActivityPerformance)

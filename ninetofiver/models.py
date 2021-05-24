@@ -1118,7 +1118,7 @@ class Performance(BaseModel):
 
     timesheet = models.ForeignKey(Timesheet, on_delete=models.PROTECT)
     date = models.DateField()
-    contract = models.ForeignKey(Contract, on_delete=models.PROTECT, null=True)
+    contract = models.ForeignKey(Contract, on_delete=models.PROTECT, null=True, help_text="Use the magnifying glass icon to change the value!")
     redmine_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
