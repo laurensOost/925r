@@ -59,4 +59,6 @@ django-debug-toolbar = "*"
 tox = "*"
 pudb = "*"
 pylint = "*"
-v = {version = "*",editable = true}
+
+[pipenv]
+allow_prereleases = true
