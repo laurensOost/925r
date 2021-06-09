@@ -54,6 +54,7 @@ django-apptemplates = "*"
 gunicorn = "*"
 whitenoise = "*"
 django-debug-toolbar = "*"
+typing-extensions = "*"
 
 [dev-packages]
 tox = "*"
