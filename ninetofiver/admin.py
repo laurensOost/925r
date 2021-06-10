@@ -33,6 +33,8 @@ from ninetofiver.utils import IntelligentManyToManyWidget
 
 log = logging.getLogger(__name__)
 
+# Enable old-style admin view
+admin.site.enable_nav_sidebar = False
 
 class GroupForm(forms.ModelForm):
 
