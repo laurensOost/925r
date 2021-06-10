@@ -351,13 +351,13 @@ class Base(Configuration):
 class Dev(Base):
     """Dev configuration."""
 
-    INSTALLED_APPS = ['debug_toolbar'] + Base.INSTALLED_APPS
-    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + Base.MIDDLEWARE
+    # INSTALLED_APPS = ['debug_toolbar'] + Base.INSTALLED_APPS
+    # MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + Base.MIDDLEWARE
 
     # for 'debug_toolbar'
-    DEBUG_TOOLBAR_CONFIG = {
-        'RESULTS_CACHE_SIZE': 150,  # to see more SQL queries
-    }
+    # DEBUG_TOOLBAR_CONFIG = {
+    #     'RESULTS_CACHE_SIZE': 150,  # to see more SQL queries
+    # }
 
     DEBUG = True
 
