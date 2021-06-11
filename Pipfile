@@ -1,5 +1,5 @@
 [[source]]
-url = "https://pypi.python.org/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
@@ -55,6 +55,7 @@ gunicorn = "*"
 whitenoise = "*"
 django-debug-toolbar = "*"
 typing-extensions = "*"
+django-select2 = "*"
 
 [dev-packages]
 tox = "*"

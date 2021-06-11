@@ -42,7 +42,8 @@ class Base(Configuration):
 
         try:
             with open(CFG_FILE_PATH, 'r') as f:
-                data = yaml.load(f)
+                # https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
+                data = yaml.safe_load(f)
         except BaseException:
             pass
 
@@ -75,6 +76,7 @@ class Base(Configuration):
     INSTALLED_APPS = [
         'whitenoise.runserver_nostatic',
     ] + NINETOFIVER_APPS + [
+        # deprecated in django 2.0, replaced by django_select2
         # 'django_admin_select2',
         'django.contrib.admin',
         'django.contrib.auth',
@@ -97,6 +99,7 @@ class Base(Configuration):
         'silk',
         'wkhtmltopdf',
         'django_tables2',
+        'django_select2',
         'phonenumber_field',
         'import_export',
         'adminsortable',
@@ -270,7 +273,7 @@ class Base(Configuration):
     EXPLORER_PERMISSION_CHANGE = lambda env: lambda u: u.user.is_superuser
 
     # Crispy forms
-    CRISPY_TEMPLATE_PACK = 'bootstrap3'
+    CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
     # Gravatar
     GRAVATAR_DEFAULT_IMAGE = 'identicon'

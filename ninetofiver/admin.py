@@ -12,7 +12,6 @@ from django.core.cache import cache
 from django.db.models import Q, Prefetch, TextField
 from django.forms import TextInput
 from django.urls import reverse
-from functools import partial as curry
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django_admin_listfilter_dropdown.filters import DropdownFilter
@@ -35,6 +34,7 @@ log = logging.getLogger(__name__)
 
 # Enable old-style admin view
 admin.site.enable_nav_sidebar = False
+
 
 class GroupForm(forms.ModelForm):
 
@@ -145,6 +145,8 @@ class CompanyAdmin(admin.ModelAdmin):
 
     list_display = ('__str__', 'name', 'vat_identification_number', 'address', 'country', 'internal', logo)
     ordering = ('-internal', 'name')
+    # NOTE (to my future self): see similar note in ninetofiver/filters.py
+    # search_fields = ('name', )
 
 
 @admin.register(models.EmploymentContractType)
@@ -370,10 +372,11 @@ class ContractLogTypeAdmin(admin.ModelAdmin):
 
 class ContractUserInline(admin.TabularInline):
     model = models.ContractUser
-    autocomplete_fields = ['user']
-    ordering = ("user__first_name", "user__last_name",)
+    # Due to loading improvements, also user is raw_id_field
+    # autocomplete_fields = ['user']
+    # ordering = ("user__first_name", "user__last_name",)
     show_change_link = True
-    raw_id_fields = ('contract_role',)
+    raw_id_fields = ('user', 'contract_role',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Form field for foreign key."""
@@ -878,14 +881,12 @@ class InvoiceItemInline(admin.TabularInline):
             price = request.GET.get('price')
             if price:
                 data['price'] = price
-                # formset.form.base_fields['price'].initial = price
+                formset.form.base_fields['price'].initial = price
 
             amount = request.GET.get('amount')
             if amount:
                 data['amount'] = amount
-                # formset.form.base_fields['amount'].initial = amount
-
-            formset.__init__ = curry(formset.__init__, initial=[data])
+                formset.form.base_fields['amount'].initial = amount
 
         return formset
 

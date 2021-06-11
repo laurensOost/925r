@@ -1,0 +1,5 @@
+/* Bootstrap4 overrides Django >=3.0 admin colors */
+:root {
+    --primary: #79aec8 !important;
+    --secondary: #417690 !important;
+}
