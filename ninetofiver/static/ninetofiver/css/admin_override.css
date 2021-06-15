@@ -1,5 +1,26 @@
 /* Bootstrap4 overrides Django >=3.0 admin colors */
+/* Django 3.2 uses prefers-color-scheme: dark in admin, which breaks custom reports in Admin.
+    using just light-mode color scheme for reports.
+    See: https://docs.djangoproject.com/en/3.2/ref/contrib/admin/#theming-support
+ */
 :root {
     --primary: #79aec8 !important;
     --secondary: #417690 !important;
+
+    --link-fg: #447e9b;
+    --link-hover-color: #036;
+    --link-selected-fg: #5b80b2;
+    --body-fg: #333;
+    --body-bg: #fff;
+    --body-quiet-color: #666;
+    --body-loud-color: #000;
+    --darkened-bg: #f8f8f8; /* A bit darker than --body-bg */
+    --selected-bg: #e4e4e4; /* E.g. selected table cells */
+    --selected-row: #ffc;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* TODO fix proper dark theme in here */
+    }
 }

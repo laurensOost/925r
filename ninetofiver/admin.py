@@ -50,6 +50,9 @@ class GroupForm(forms.ModelForm):
     class Meta:
         model = auth_models.Group
         fields = '__all__'
+        widgets = {
+            'permissions': admin.widgets.FilteredSelectMultiple(verbose_name="Permissions", is_stacked=False),
+        }
 
 
 class GroupAdmin(BaseGroupAdmin):
