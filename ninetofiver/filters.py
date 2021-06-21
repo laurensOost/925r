@@ -106,11 +106,11 @@ class AdminReportTimesheetOverviewFilter(FilterSet):
         choices=lambda: [[x, x] for x in (
             models.Timesheet.objects.values_list('year', flat=True).order_by('year').distinct()
         )],
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
-    month = django_filters.MultipleChoiceFilter(
+    month = django_filters.ChoiceFilter(
         choices=lambda: [[x + 1, x + 1] for x in range(12)],
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
 
     class Meta:
@@ -175,7 +175,7 @@ class AdminReportUserWorkRatioByUserFilter(FilterSet):
     year = django_filters.MultipleChoiceFilter(
         choices=lambda: [[x, x] for x in (
             models.Timesheet.objects.values_list('year', flat=True).order_by('year').distinct())],
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
 
     class Meta:
@@ -190,11 +190,11 @@ class AdminReportUserWorkRatioByMonthFilter(FilterSet):
             models.Timesheet.objects.values_list('year', flat=True).order_by('year').distinct()
         )],
         initial='2019',
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
     month = django_filters.ChoiceFilter(
         choices=lambda: [[x + 1, x + 1] for x in range(12)],
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
 
     class Meta:
@@ -212,7 +212,7 @@ class AdminReportUserWorkRatioOverviewFilter(FilterSet):
         choices=lambda: [[x, x] for x in (
             models.Timesheet.objects.values_list('year', flat=True).order_by('year').distinct()
         )],
-        widget=select2_widgets.Select2MultipleWidget,
+        widget=select2_widgets.Select2Widget,
     )
 
     class Meta:
