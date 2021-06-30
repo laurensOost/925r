@@ -16,6 +16,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django_admin_listfilter_dropdown.filters import DropdownFilter
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django_countries.filters import CountryFilter
 from import_export import fields
 from import_export.admin import ExportMixin
 from import_export.resources import ModelResource
@@ -37,7 +38,6 @@ admin.site.enable_nav_sidebar = False
 
 
 class GroupForm(forms.ModelForm):
-
     """Group form."""
 
     users = forms.ModelMultipleChoiceField(
@@ -56,7 +56,6 @@ class GroupForm(forms.ModelForm):
 
 
 class GroupAdmin(BaseGroupAdmin):
-
     """Group admin."""
 
     form = GroupForm
@@ -88,7 +87,6 @@ class ApiKeyAdmin(admin.ModelAdmin):
 
 
 class EmploymentContractStatusFilter(admin.SimpleListFilter):
-
     """Employment contract status filter."""
 
     title = 'Status'
@@ -114,7 +112,6 @@ class EmploymentContractStatusFilter(admin.SimpleListFilter):
 
 
 class ContractStatusFilter(admin.SimpleListFilter):
-
     """Contract status filter."""
 
     title = 'Status'
@@ -143,6 +140,7 @@ class ContractStatusFilter(admin.SimpleListFilter):
 @admin.register(models.Company)
 class CompanyAdmin(admin.ModelAdmin):
     """Company admin."""
+
     def logo(obj):
         return format_html('<a href="%s">%s</a>' % (obj.get_logo_url(), _('Link')))
 
@@ -183,7 +181,7 @@ class WorkScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserRelative)
 class UserRelativeAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'name', 'user', 'relation', 'gender', 'birth_date', )
+    list_display = ('__str__', 'name', 'user', 'relation', 'gender', 'birth_date',)
     ordering = ('name',)
 
 
@@ -191,6 +189,7 @@ class UserRelativeAdmin(admin.ModelAdmin):
 class AttachmentAdmin(admin.ModelAdmin):
     def link(self, obj):
         return format_html('<a href="%s">%s</a>' % (obj.get_file_url(), str(obj)))
+
     list_display = ('__str__', 'user', 'name', 'description', 'file', 'slug', 'link')
 
 
@@ -255,6 +254,7 @@ class LeaveAdmin(admin.ModelAdmin):
         for leave in queryset:
             leave.status = models.STATUS_APPROVED
             leave.save(validate=False)
+
     make_approved.short_description = _('Approve selected leaves')
 
     def make_rejected(self, request, queryset):
@@ -262,6 +262,7 @@ class LeaveAdmin(admin.ModelAdmin):
         for leave in queryset:
             leave.status = models.STATUS_REJECTED
             leave.save(validate=False)
+
     make_rejected.short_description = _('Reject selected leaves')
 
     def date(self, obj):
@@ -271,7 +272,7 @@ class LeaveAdmin(admin.ModelAdmin):
     def attachment(self, obj):
         """Attachment URLs."""
         return format_html('<br>'.join('<a href="%s">%s</a>'
-                           % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
+                                       % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
 
     def item_actions(self, obj):
         """Actions."""
@@ -352,6 +353,8 @@ class UserInfoAdmin(admin.ModelAdmin):
         return format_html('<br>'.join(str(x) for x in list(obj.user.groups.all())))
 
     list_display = ('__str__', 'user', 'gender', 'birth_date', 'user_groups', 'country', 'join_date')
+    list_filter = ('gender', 'user__groups', ('country', CountryFilter))
+    search_fields = ('user',)
     ordering = ('user',)
     form = UserInfoForm
 
@@ -363,7 +366,7 @@ class PerformanceTypeAdmin(admin.ModelAdmin):
 
 @admin.register(models.ContractGroup)
 class ContractGroupAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'name', )
+    list_display = ('__str__', 'name',)
 
 
 @admin.register(models.ContractLogType)
@@ -503,7 +506,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
 
     def attachments(obj):
         return format_html('<br>'.join('<a href="%s">%s</a>'
-                           % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
+                                       % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
 
     def fixed_fee(obj):
         real_obj = obj.get_real_instance()
@@ -641,7 +644,7 @@ class ContractUserAdmin(admin.ModelAdmin):
         ('contract__customer', RelatedDropdownFilter),
         ('user', RelatedDropdownFilter),
     )
-    raw_id_fields = ('contract', )
+    raw_id_fields = ('contract',)
 
 
 @admin.register(models.Timesheet)
@@ -654,24 +657,27 @@ class TimesheetAdmin(admin.ModelAdmin):
 
     def attachments(obj):
         return format_html('<br>'.join('<a href="%s">%s</a>'
-                           % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
+                                       % (x.get_file_url(), str(x)) for x in list(obj.attachments.all())))
 
     def make_closed(self, request, queryset):
         for timesheet in queryset:
             timesheet.status = models.STATUS_CLOSED
             timesheet.save(validate=False)
+
     make_closed.short_description = _('Close selected timesheets')
 
     def make_active(self, request, queryset):
         for timesheet in queryset:
             timesheet.status = models.STATUS_ACTIVE
             timesheet.save(validate=False)
+
     make_active.short_description = _('Activate selected timesheets')
 
     def make_pending(self, request, queryset):
         for timesheet in queryset:
             timesheet.status = models.STATUS_PENDING
             timesheet.save(validate=False)
+
     make_pending.short_description = _('Set selected timesheets to pending')
 
     def item_actions(self, obj):
@@ -739,7 +745,7 @@ class WhereaboutAdmin(admin.ModelAdmin):
     search_fields = ('timesheet__user__username', 'timesheet__user__first_name', 'timesheet__user__last_name',
                      'location', 'starts_at', 'ends_at', 'description')
     ordering = ('-starts_at',)
-    raw_id_fields = ('timesheet', )
+    raw_id_fields = ('timesheet',)
 
 
 class PerformanceResource(ModelResource):
@@ -770,13 +776,12 @@ class PerformanceResource(ModelResource):
 
 
 class ContractListFilter(admin.SimpleListFilter):
-
     title = 'Contract'
     parameter_name = "contract"
     template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
-        query = models.Contract.objects.non_polymorphic().select_related('customer','company')
+        query = models.Contract.objects.non_polymorphic().select_related('customer', 'company')
         return [(con.pk, str(con)) for con in query]
 
     def queryset(self, request, queryset):
@@ -1010,7 +1015,7 @@ class UserTrainingAdmin(admin.ModelAdmin):
     def missing_mandatory_training(self, obj):
         return format_html('<br>'.join(str(x) for x in list(
             models.TrainingType.objects.filter(country=obj.user.userinfo.country, mandatory=True).exclude(
-                                               training__user_training=obj).distinct())))
+                training__user_training=obj).distinct())))
 
     def get_inline_instances(self, request, obj=None):
         """This method will create few dynamic inlines grouped on TrainingType."""
@@ -1024,7 +1029,7 @@ class UserTrainingAdmin(admin.ModelAdmin):
                                                                          training__user_training=obj).distinct()
             # Fetch remaining training types that user can possibly have (filter by country)
             available_training_types = models.TrainingType.objects.filter(country=obj.user.userinfo.country).exclude(
-                                                                          training__user_training=obj).distinct()
+                training__user_training=obj).distinct()
 
             # For every active training, add separate and tweaked inline
             for training_type in enrolled_training_types:
@@ -1042,8 +1047,8 @@ class UserTrainingAdmin(admin.ModelAdmin):
             if available_training_types:
                 general_training_inline = TrainingInline(self.model, self.admin_site)
                 general_training_inline.extra = 1
-                general_training_inline.training_types_choices = [(None, "---------")]\
-                    + [(i.pk, str(i)) for i in available_training_types]
+                general_training_inline.training_types_choices = [(None, "---------")] \
+                                                                 + [(i.pk, str(i)) for i in available_training_types]
                 inlines.append(general_training_inline)
 
         return inlines
