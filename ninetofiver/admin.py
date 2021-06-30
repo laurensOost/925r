@@ -354,7 +354,7 @@ class UserInfoAdmin(admin.ModelAdmin):
 
     list_display = ('__str__', 'user', 'gender', 'birth_date', 'user_groups', 'country', 'join_date')
     list_filter = ('gender', 'user__groups', ('country', CountryFilter))
-    search_fields = ('user',)
+    search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name',)
     ordering = ('user',)
     form = UserInfoForm
 
