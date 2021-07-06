@@ -456,17 +456,17 @@ class UserRangeInfoTable(BaseTable):
             buttons.append(('<a class="button" href="%(url)s?' +
                             'user__id__exact=%(user)s&' +
                             'status__exact=%(status)s&' +
-                            'leavedate__starts_at__gte_0=%(leavedate__starts_at__gte_0)s&' +
-                            'leavedate__starts_at__gte_1=%(leavedate__starts_at__gte_1)s&' +
-                            'leavedate__starts_at__lte_0=%(leavedate__starts_at__lte_0)s&' +
-                            'leavedate__starts_at__lte_1=%(leavedate__starts_at__lte_1)s">Leave</a>') % {
+                            'leavedate__starts_at__range__gte_0=%(leavedate__starts_at__range__gte_0)s&' +
+                            'leavedate__starts_at__range__gte_1=%(leavedate__starts_at__range__gte_1)s&' +
+                            'leavedate__starts_at__range__lte_0=%(leavedate__starts_at__range__lte_0)s&' +
+                            'leavedate__starts_at__range__lte_1=%(leavedate__starts_at__range__lte_1)s">Leave</a>') % {
                 'url': reverse('admin:ninetofiver_leave_changelist'),
                 'user': record['user'].id,
                 'status': models.STATUS_APPROVED,
-                'leavedate__starts_at__gte_0': record['date'].strftime('%Y-%m-%d'),
-                'leavedate__starts_at__gte_1': '00:00:00',
-                'leavedate__starts_at__lte_0': record['date'].strftime('%Y-%m-%d'),
-                'leavedate__starts_at__lte_1': '23:59:59',
+                'leavedate__starts_at__range__gte_0': record['date'].strftime('%Y-%m-%d'),
+                'leavedate__starts_at__range__gte_1': '00:00:00',
+                'leavedate__starts_at__range__lte_0': record['date'].strftime('%Y-%m-%d'),
+                'leavedate__starts_at__range__lte_1': '23:59:59',
             })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
