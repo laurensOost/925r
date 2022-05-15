@@ -108,6 +108,22 @@ python manage.py help
 # [ninetofiver]
 ```
 
+## Local Development (with Docker)
+
+To build, run and test and more ... use magic of make help to play with this project.
+Make sure you have installed docker and docker compose.
+```shell
+make help
+```
+and you receive below list:
+```text
+build                Build project with docker compose
+clean                Clean Reset project containers with docker compose
+down                 Reset project containers with docker compose
+help                 Show this help
+test                 Run project tests and coverage with tox runner
+up                   Run project with docker compose
+```
 
 ## License
 
