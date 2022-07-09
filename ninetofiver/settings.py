@@ -78,6 +78,8 @@ class Base(Configuration):
     ] + NINETOFIVER_APPS + [
         # deprecated in django 2.0, replaced by django_select2
         # 'django_admin_select2',
+        'dal',
+        'dal_select2',
         'django.contrib.admin',
         'django.contrib.auth',
         'django.contrib.contenttypes',
@@ -96,6 +98,7 @@ class Base(Configuration):
         'django_countries',
         'rangefilter',
         'django_admin_listfilter_dropdown',
+        'admin_auto_filters',
         'silk',
         'wkhtmltopdf',
         'django_tables2',
