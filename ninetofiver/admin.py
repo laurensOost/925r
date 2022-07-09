@@ -564,10 +564,10 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     list_filter = (
         PolymorphicChildModelFilter,
         ContractStatusFilter,
-        ('company', RelatedDropdownFilter),
-        ('customer', RelatedDropdownFilter),
-        ('contract_groups', RelatedDropdownFilter),
-        ('contractuser__user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('company', 'company'),
+        AutocompleteFilterFactory('customer', 'customer'),
+        AutocompleteFilterFactory('contract groups', 'contract_groups'),
+        AutocompleteFilterFactory('user', 'contractuser__user'),
         ('contractusergroup__group', RelatedDropdownFilter),
         ('performance_types', RelatedDropdownFilter),
         ('starts_at', DateRangeFilter),
@@ -578,6 +578,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                      'contractuser__user__last_name', 'contractuser__user__username', 'contractusergroup__group__name',
                      'performance_types__name')
     ordering = ('name', 'company', 'starts_at', 'ends_at', '-customer',)
+    autocomplete_fields = ('company', 'customer')
 
 
 class ContractChildAdmin(PolymorphicChildModelAdmin):
@@ -612,6 +613,7 @@ class ConsultancyContractAdmin(ContractChildAdmin):
     """Consultancy contract admin."""
 
     base_model = models.ConsultancyContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.SupportContract)
@@ -619,6 +621,7 @@ class SupportContractAdmin(ContractChildAdmin):
     """Support contract admin."""
 
     base_model = models.SupportContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.ProjectContract)
@@ -626,6 +629,7 @@ class ProjectContractAdmin(ContractChildAdmin):
     """Project contract admin."""
 
     base_model = models.ProjectContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.ContractRole)
