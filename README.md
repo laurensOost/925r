@@ -36,9 +36,8 @@ Once your pipenv is set up, you can use `pipenv shell` to get a shell, or
 just prefix additional commands with `pipenv run`.
 
 ## Usage
-
+**For usage with Docker, see latter section named _Local Development (with Docker)_.**
 1. Run `python manage.py migrate` to create the models.
-
 2. Run `python manage.py createsuperuser` to create an admin user
 
 ### Running (development)
@@ -50,7 +49,7 @@ Running the command below starts a development server at
 python manage.py runserver
 ```
 
-## Running (production)
+### Running (production)
 
 Running the command below starts a server using the production configuration
 at `http://127.0.0.1:8000`.
@@ -59,6 +58,59 @@ Note: The `insecure` flag is used to allow the server to serve static files.
 
 ```bash
 python manage.py runserver --configuration=Prod --insecure
+```
+
+## Local Development (with Docker)
+
+To build, run and test and more ... use magic of make help to play with this project.
+Make sure you have installed docker and docker compose.
+```shell
+make help
+```
+and you receive below list:
+```text
+build                Build project with docker compose
+clean                Clean Reset project containers with docker compose
+down                 Reset project containers with docker compose
+help                 Show this help
+test                 Run project tests and coverage with tox runner
+up                   Run project with docker compose
+```
+### How to run local environment with test data.
+Build and run docker containers.
+```shell
+make build
+make up
+```
+Exec initial migration. After _exec_ should be your 925r container name.
+```shell
+docker exec 925r_web_1 python manage.py migrate
+```
+Interactively create a new superuser.
+```shell
+docker exec -it 925r_web_1 python manage.py createsuperuser
+```
+
+If you are running YaYata too (in debug mode), then you could need to change 925r port from 
+8888 to something else, because YaYata runs webpack on the port 8888.
+
+### Next steps
+If you want to work with YaYata you need to set up an application. 
+1. Log in.
+2. In the right top corner, navigate to **Your Account -> Your applications -> New application**.
+3. Fill **Name** and **Client id**.
+4. Set **Client type = Public**.
+5. Set **Authorization grant type = Resource owner password-based**.
+
+Now you can log in YaYata with root account, or you can create a new test user.
+You are all set to work with Admin interface, if you want some test data filled, see next section.
+
+## Example/Test data
+You can use django command `create_test_data` to fill database with test data.
+It can run a few minutes depending on resources. For this reason there is a `-t` option, so you 
+can see what is happening at the moment. 
+```shell
+docker exec -t 925r_web_1 python manage.py create_test_data
 ```
 
 ## Configuration
@@ -106,23 +158,6 @@ Other commands for testing:
 ```bash
 python manage.py help
 # [ninetofiver]
-```
-
-## Local Development (with Docker)
-
-To build, run and test and more ... use magic of make help to play with this project.
-Make sure you have installed docker and docker compose.
-```shell
-make help
-```
-and you receive below list:
-```text
-build                Build project with docker compose
-clean                Clean Reset project containers with docker compose
-down                 Reset project containers with docker compose
-help                 Show this help
-test                 Run project tests and coverage with tox runner
-up                   Run project with docker compose
 ```
 
 ## License
