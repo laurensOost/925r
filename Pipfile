@@ -54,6 +54,8 @@ whitenoise = "*"
 django-debug-toolbar = "*"
 typing-extensions = "*"
 django-select2 = "*"
+django-autocomplete-light = "3.9.4"
+django-admin-autocomplete-filter = "0.7.1"
 
 [dev-packages]
 tox = "*"

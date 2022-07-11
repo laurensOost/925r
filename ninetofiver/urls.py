@@ -129,6 +129,8 @@ urlpatterns += [
     path('admin/ninetofiver/report/internal_availability_overview/', views.admin_report_internal_availability_overview_view, name='admin_report_internal_availability_overview_view'),  # noqa
     # Admin
     path('admin/', admin.site.urls),
+
+    path("select2/", include("django_select2.urls")),
 ]
 
 

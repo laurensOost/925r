@@ -2,9 +2,11 @@
 import logging
 from datetime import date
 
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from adminsortable.admin import SortableAdmin
 from django import forms
 from django.contrib import admin
+from django.contrib.admin import widgets
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.models import User
@@ -13,7 +15,7 @@ from django.db.models import Q, Prefetch, TextField
 from django.forms import TextInput
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django_admin_listfilter_dropdown.filters import DropdownFilter
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django_countries.filters import CountryFilter
@@ -147,7 +149,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', 'vat_identification_number', 'address', 'country', 'internal', logo)
     ordering = ('-internal', 'name')
     # NOTE (to my future self): see similar note in ninetofiver/filters.py
-    # search_fields = ('name', )
+    search_fields = ('name', )
 
 
 @admin.register(models.EmploymentContractType)
@@ -171,6 +173,7 @@ class EmploymentContractAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'employment_contract_type__name',
                      'started_at', 'ended_at')
     ordering = ('user__first_name', 'user__last_name')
+    autocomplete_fields = ('user', 'company', 'employment_contract_type',)
 
 
 @admin.register(models.WorkSchedule)
@@ -183,6 +186,7 @@ class WorkScheduleAdmin(admin.ModelAdmin):
 class UserRelativeAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', 'user', 'relation', 'gender', 'birth_date',)
     ordering = ('name',)
+    autocomplete_fields = ('user',)
 
 
 @admin.register(models.Attachment)
@@ -300,7 +304,7 @@ class LeaveAdmin(admin.ModelAdmin):
     list_filter = (
         'status',
         ('leave_type', RelatedDropdownFilter),
-        ('user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('User', 'user'),
         ('user__groups', RelatedDropdownFilter),
         ('leavedate__starts_at', DateTimeRangeFilter),
         ('leavedate__ends_at', DateTimeRangeFilter)
@@ -315,6 +319,7 @@ class LeaveAdmin(admin.ModelAdmin):
         'make_rejected',
     ]
     ordering = ('-status',)
+    autocomplete_fields = ('user',)
 
 
 @admin.register(models.LeaveDate)
@@ -329,6 +334,7 @@ class LeaveDateAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'leave', 'starts_at', 'ends_at')
     ordering = ('-starts_at',)
     raw_id_fields = ('leave', 'timesheet')
+    autocomplete_fields = ('timesheet',)
 
 
 class UserInfoForm(forms.ModelForm):
@@ -356,6 +362,7 @@ class UserInfoAdmin(admin.ModelAdmin):
     list_filter = ('gender', 'user__groups', ('country', CountryFilter))
     search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name',)
     ordering = ('user',)
+    autocomplete_fields = ('user',)
     form = UserInfoForm
 
 
@@ -557,10 +564,10 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     list_filter = (
         PolymorphicChildModelFilter,
         ContractStatusFilter,
-        ('company', RelatedDropdownFilter),
-        ('customer', RelatedDropdownFilter),
-        ('contract_groups', RelatedDropdownFilter),
-        ('contractuser__user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('company', 'company'),
+        AutocompleteFilterFactory('customer', 'customer'),
+        AutocompleteFilterFactory('contract groups', 'contract_groups'),
+        AutocompleteFilterFactory('user', 'contractuser__user'),
         ('contractusergroup__group', RelatedDropdownFilter),
         ('performance_types', RelatedDropdownFilter),
         ('starts_at', DateRangeFilter),
@@ -571,6 +578,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                      'contractuser__user__last_name', 'contractuser__user__username', 'contractusergroup__group__name',
                      'performance_types__name')
     ordering = ('name', 'company', 'starts_at', 'ends_at', '-customer',)
+    autocomplete_fields = ('company', 'customer')
 
 
 class ContractChildAdmin(PolymorphicChildModelAdmin):
@@ -605,6 +613,7 @@ class ConsultancyContractAdmin(ContractChildAdmin):
     """Consultancy contract admin."""
 
     base_model = models.ConsultancyContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.SupportContract)
@@ -612,6 +621,7 @@ class SupportContractAdmin(ContractChildAdmin):
     """Support contract admin."""
 
     base_model = models.SupportContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.ProjectContract)
@@ -619,6 +629,7 @@ class ProjectContractAdmin(ContractChildAdmin):
     """Project contract admin."""
 
     base_model = models.ProjectContract
+    autocomplete_fields = ('company', 'customer')
 
 
 @admin.register(models.ContractRole)
@@ -626,6 +637,7 @@ class ContractRoleAdmin(admin.ModelAdmin):
     """Contract role admin."""
     list_display = ('__str__', 'name', 'description')
     ordering = ('name',)
+    search_fields = ('name',)
 
 
 class ContractUserWorkScheduleInline(admin.TabularInline):
@@ -640,11 +652,12 @@ class ContractUserAdmin(admin.ModelAdmin):
         ContractUserWorkScheduleInline,
     ]
     list_filter = (
-        ('contract_role', RelatedDropdownFilter),
-        ('contract__customer', RelatedDropdownFilter),
-        ('user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('Contract', 'contract'),
+        AutocompleteFilterFactory('User', 'user'),
+        AutocompleteFilterFactory('Contract role', 'contract_role'),
     )
     raw_id_fields = ('contract',)
+    autocomplete_fields = ('user', 'contract_role',)
 
 
 @admin.register(models.Timesheet)
@@ -695,7 +708,7 @@ class TimesheetAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'user', 'month', 'year', 'status', attachments, 'item_actions')
     list_filter = (
         'status',
-        ('user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('user', 'user'),
         'year',
         'month',
     )
@@ -711,6 +724,7 @@ class TimesheetAdmin(admin.ModelAdmin):
         'status',
     )
     ordering = ('-year', 'month', 'user__first_name', 'user__last_name')
+    autocomplete_fields = ('user',)
 
 
 @admin.register(models.Location)
@@ -738,7 +752,7 @@ class WhereaboutAdmin(admin.ModelAdmin):
     )
     list_filter = (
         ('location', RelatedDropdownFilter),
-        ('timesheet__user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('user', 'timesheet__user'),
         ('starts_at', DateTimeRangeFilter),
         ('ends_at', DateTimeRangeFilter)
     )
@@ -834,13 +848,13 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     list_filter = (
         PolymorphicChildModelFilter,
         ContractListFilter,
-        ('contract__company', RelatedDropdownFilter),
-        ('contract__customer', RelatedDropdownFilter),
-        ('timesheet__user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('company', 'contract__company'),
+        AutocompleteFilterFactory('customer', 'contract__customer'),
+        AutocompleteFilterFactory('user', 'timesheet__user'),
         ('timesheet__year', DropdownFilter),
         ('timesheet__month', DropdownFilter),
         ('date', DateRangeFilter),
-        ('activityperformance__contract_role', RelatedDropdownFilter),
+        AutocompleteFilterFactory('contract role', 'activityperformance__contract_role'),
         ('activityperformance__performance_type', RelatedDropdownFilter),
     )
     list_display = (
@@ -868,6 +882,7 @@ class ActivityPerformanceChildAdmin(PerformanceChildAdmin):
         return (super().get_queryset(request)
                 .prefetch_related('performance_type')
                 )
+    autocomplete_fields = ('timesheet', 'contract_role')
 
 
 @admin.register(models.StandbyPerformance)
@@ -924,19 +939,20 @@ class InvoiceAdmin(admin.ModelAdmin):
         'description',
     )
     list_filter = (
-        ('contract', RelatedDropdownFilter),
-        ('contract__company', RelatedDropdownFilter),
-        ('contract__customer', RelatedDropdownFilter),
+        AutocompleteFilterFactory('Contract', 'contract'),
+        AutocompleteFilterFactory('Company', 'contract__company'),
+        AutocompleteFilterFactory('Customer', 'contract__customer'),
         ('date', DateTimeRangeFilter),
         ('period_starts_at', DateTimeRangeFilter),
         ('period_ends_at', DateTimeRangeFilter),
     )
-    search_fields = ('reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
+    search_fields = ('contract', 'reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
                      'description', 'date')
     inlines = [
         InvoiceItemInline,
     ]
     ordering = ('-reference',)
+    autocomplete_fields = ('contract',)
 
 
 @admin.register(models.TrainingType)
@@ -992,10 +1008,11 @@ class UserTrainingAdmin(admin.ModelAdmin):
         "missing_mandatory_training",
     )
     list_filter = (
-        ('user', RelatedDropdownFilter),
+        AutocompleteFilterFactory('user', 'user'),
         ('user__userinfo__country', DropdownFilter),
         'training__training_type'
     )
+    autocomplete_fields = ('user',)
 
     def add_view(self, *args, **kwargs):
         self.inlines = []
