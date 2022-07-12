@@ -893,6 +893,7 @@ class InvoiceItemInline(admin.TabularInline):
     """Invoice item inline."""
 
     model = models.InvoiceItem
+    extra = 1
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
