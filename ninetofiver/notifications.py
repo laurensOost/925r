@@ -1,5 +1,5 @@
 """Notifications."""
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from ninetofiver import models
 from ninetofiver.utils import get_users_with_permission, send_mail
 

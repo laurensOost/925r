@@ -3,7 +3,7 @@ import logging
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from django.contrib.auth import models as auth_models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from ninetofiver import models
 from ninetofiver.utils import send_mail, get_users_with_permission
 

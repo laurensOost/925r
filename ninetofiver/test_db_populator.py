@@ -1,7 +1,9 @@
+from calendar import monthrange
 import datetime
+from itertools import product
 import logging
 import random
-from calendar import monthrange
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -174,8 +176,8 @@ class TestDBPupulator:
                 name="Contract role " + str(i),
                 description="Description for contract role",
             )
-            cr.save()
             self.contract_roles.append(cr)
+        ContractRole.objects.bulk_create(self.contract_roles)
         xprint(" - ContractRole:", len(self.contract_roles))
 
         # Its ok to have smaller no. of records for these tables
@@ -217,9 +219,15 @@ class TestDBPupulator:
             cg.save()
             self.contract_groups.append(cg)
 
+        User.objects.bulk_create(self.users)
+        # Company.objects.bulk_create(self.companies)
+        # Company.objects.bulk_create(self.companies_customers)
         xprint(" - User:", len(self.users))
         xprint(" - Company:", len(self.companies))
         xprint(" - ContractGroup:", len(self.contract_groups))
+        print(self.users)
+        self.users = User.objects.all()
+        print(self.users)
 
         # populate contracts & activity performances -> higher number of records is good
         for x in self.perf_tables_range:
@@ -267,15 +275,15 @@ class TestDBPupulator:
         xprint(" - Contract:", len(self.contracts))
 
         # add contract users
-        for usr in self.users:
-            for ctr in self.contracts:
-                cu = ContractUser(
-                    user=usr,
-                    contract=ctr,
-                    contract_role=self.contract_roles[0],
-                )
-                cu.save()
-                self.contract_users.append(cu)
+        self.contract_roles = ContractRole.objects.all()
+        for item in product(self.users, self.contracts):
+            cu = ContractUser(
+                user=item[0],
+                contract=item[1],
+                contract_role=self.contract_roles[0],
+            )
+            self.contract_users.append(cu)
+        ContractUser.objects.bulk_create(self.contract_users)
         xprint(" - ContractUser:", len(self.contract_users))
 
         self.create_timesheets()
@@ -335,7 +343,6 @@ class TestDBPupulator:
                     leave_type=LeaveType.objects.get(name='Vacation'),
                     description='vacation_test',
                 )
-                lv.save()
                 self.leaves.append(lv)
 
                 # leave length in days
@@ -375,8 +382,9 @@ class TestDBPupulator:
                     )
                     # adding each day of user's holiday to the list so that holidays never collide
                     leave_dates_for_user.append(start_date + datetime.timedelta(days=day))
-                    ld.save()
                     self.leavedates.append(ld)
+        Leave.objects.bulk_create(self.leaves)
+        LeaveDate.objects.bulk_create(self.leavedates)
         xprint(" - Leave:", len(self.leaves))
         xprint(" - LeaveDate:", len(self.leavedates))
 
