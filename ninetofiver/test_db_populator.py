@@ -177,6 +177,8 @@ class TestDBPupulator:
                 description="Description for contract role",
             )
             self.contract_roles.append(cr)
+        # For more information about when and how to use bulk_create method follow the link:
+        # https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
         ContractRole.objects.bulk_create(self.contract_roles)
         xprint(" - ContractRole:", len(self.contract_roles))
 
@@ -219,15 +221,9 @@ class TestDBPupulator:
             cg.save()
             self.contract_groups.append(cg)
 
-        User.objects.bulk_create(self.users)
-        # Company.objects.bulk_create(self.companies)
-        # Company.objects.bulk_create(self.companies_customers)
         xprint(" - User:", len(self.users))
         xprint(" - Company:", len(self.companies))
         xprint(" - ContractGroup:", len(self.contract_groups))
-        print(self.users)
-        self.users = User.objects.all()
-        print(self.users)
 
         # populate contracts & activity performances -> higher number of records is good
         for x in self.perf_tables_range:
@@ -343,6 +339,7 @@ class TestDBPupulator:
                     leave_type=LeaveType.objects.get(name='Vacation'),
                     description='vacation_test',
                 )
+                lv.save()
                 self.leaves.append(lv)
 
                 # leave length in days
@@ -382,9 +379,8 @@ class TestDBPupulator:
                     )
                     # adding each day of user's holiday to the list so that holidays never collide
                     leave_dates_for_user.append(start_date + datetime.timedelta(days=day))
+                    ld.save()
                     self.leavedates.append(ld)
-        Leave.objects.bulk_create(self.leaves)
-        LeaveDate.objects.bulk_create(self.leavedates)
         xprint(" - Leave:", len(self.leaves))
         xprint(" - LeaveDate:", len(self.leavedates))
 

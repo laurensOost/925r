@@ -1,5 +1,5 @@
 # Pull base image
-FROM python:3.6-slim-buster as builder
+FROM python:3.8-slim-buster as builder
 
 # install python project dependencies pre-requisites
 RUN apt-get update && \
