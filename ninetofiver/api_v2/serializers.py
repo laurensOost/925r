@@ -1,7 +1,7 @@
 """925r API v2 serializers."""
 from django.contrib.auth import models as auth_models
 from django_countries.serializers import CountryFieldMixin
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone

@@ -9,7 +9,7 @@ from django.template import Context, Template
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.html import format_html, strip_tags
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_tables2.export.export import TableExport
 from django_tables2.utils import A
 

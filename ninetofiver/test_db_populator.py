@@ -1,7 +1,9 @@
+from calendar import monthrange
 import datetime
+from itertools import product
 import logging
 import random
-from calendar import monthrange
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -174,8 +176,10 @@ class TestDBPupulator:
                 name="Contract role " + str(i),
                 description="Description for contract role",
             )
-            cr.save()
             self.contract_roles.append(cr)
+        # For more information about when and how to use bulk_create method follow the link:
+        # https://docs.djangoproject.com/en/4.0/ref/models/querysets/#bulk-create
+        ContractRole.objects.bulk_create(self.contract_roles)
         xprint(" - ContractRole:", len(self.contract_roles))
 
         # Its ok to have smaller no. of records for these tables
@@ -267,15 +271,15 @@ class TestDBPupulator:
         xprint(" - Contract:", len(self.contracts))
 
         # add contract users
-        for usr in self.users:
-            for ctr in self.contracts:
-                cu = ContractUser(
-                    user=usr,
-                    contract=ctr,
-                    contract_role=self.contract_roles[0],
-                )
-                cu.save()
-                self.contract_users.append(cu)
+        self.contract_roles = ContractRole.objects.all()
+        for item in product(self.users, self.contracts):
+            cu = ContractUser(
+                user=item[0],
+                contract=item[1],
+                contract_role=self.contract_roles[0],
+            )
+            self.contract_users.append(cu)
+        ContractUser.objects.bulk_create(self.contract_users)
         xprint(" - ContractUser:", len(self.contract_users))
 
         self.create_timesheets()

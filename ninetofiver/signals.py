@@ -3,7 +3,7 @@ from django_auth_ldap.backend import populate_user
 from django.contrib.auth import models as auth_models
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_save, m2m_changed, pre_delete
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from ninetofiver import models, notifications
 from ninetofiver.utils import send_mail, get_users_with_permission
 

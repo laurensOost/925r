@@ -61,7 +61,7 @@ urlpatterns += [
     path('auth/logout/', auth_views.LogoutView.as_view(template_name='ninetofiver/authentication/logout.pug'), name='logout'),
     path('auth/password/reset/', auth_views.PasswordResetView.as_view(template_name='ninetofiver/authentication/password_reset.pug'), name='password_reset'),
     path('auth/password/reset/done', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_done.pug'), name='password_reset_done'),
-    re_path(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView, {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
+    re_path(r'^auth/password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView.as_view(), {'template_name': 'ninetofiver/authentication/password_reset_confirm.pug'}, name='password_reset_confirm'),
     path('auth/password/reset/complete/', auth_views.PasswordResetDoneView.as_view(template_name='ninetofiver/authentication/password_reset_complete.pug'), name='password_reset_complete'),
 
     # Registration

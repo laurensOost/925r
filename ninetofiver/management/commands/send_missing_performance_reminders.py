@@ -2,7 +2,7 @@
 import logging
 from django.core.management.base import BaseCommand
 from django.contrib.auth import models as auth_models
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.db.models import Q
 import calendar
 import datetime

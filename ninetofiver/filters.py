@@ -5,7 +5,7 @@ import django_filters
 from django.contrib.admin import widgets as admin_widgets
 from django.contrib.auth import models as auth_models
 from django_select2 import forms as select2_widgets
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import FilterSet
 
 from ninetofiver import models

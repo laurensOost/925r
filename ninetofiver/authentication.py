@@ -1,5 +1,5 @@
 """"Authentication."""
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 from rest_framework.authentication import TokenAuthentication as BaseTokenAuthentication, get_authorization_header
 from ninetofiver import models
