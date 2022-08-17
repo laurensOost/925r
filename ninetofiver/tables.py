@@ -142,7 +142,7 @@ class HoursColumn(tables.Column):
 class EuroColumn(tables.Column):
     """Euro column."""
 
-    attrs = { 'td': {'align': 'right', 'class': 'text-nowrap'} }
+    attrs = {'td': {'align': 'right', 'class': 'text-nowrap'}}
 
     def render(self, value):
         if value:
@@ -179,7 +179,7 @@ class InvoiceColoredEuroColumn(TemplateMixin, EuroColumn):
         else:
             return 'font-weight: normal'
 
-    attrs = { 'td': {'align': 'right', 'class': determine_invoiced_cell_color, 'style': determine_invoiced_style}}
+    attrs = {'td': {'align': 'right', 'class': determine_invoiced_cell_color, 'style': determine_invoiced_style}}
 
 
 class BarChartComparisonColumn(tables.TemplateColumn):
@@ -204,7 +204,7 @@ class BarChartComparisonColumn(tables.TemplateColumn):
 
         self.extra_context['title'] = '%s vs. %s: %s' % (self.extra_context['dataset'][0]['label'],
                                                          self.extra_context['dataset'][1]['label'],
-                                                         ('%s%%' % round((self.extra_context['dataset'][0]['value'] / self.extra_context['dataset'][1]['value']) * 100, 2) \
+                                                         ('%s%%' % round((self.extra_context['dataset'][0]['value'] / self.extra_context['dataset'][1]['value']) * 100, 2)
                                                           if self.extra_context['dataset'][1]['value'] else 'n/a'))
 
         return super().render(record, table, value, bound_column, **kwargs)
@@ -220,9 +220,9 @@ class BarChartComparisonColumn(tables.TemplateColumn):
                 item['value'] = sum([item['accessor'].resolve(record) for record in table.data])
 
         self.extra_context['title'] = 'Total: %s vs. %s: %s' % (self.extra_context['dataset'][0]['label'],
-                                                         self.extra_context['dataset'][1]['label'],
-                                                         ('%s%%' % round((self.extra_context['dataset'][0]['value'] / self.extra_context['dataset'][1]['value']) * 100, 2) \
-                                                          if self.extra_context['dataset'][1]['value'] else 'n/a'))
+                                                                self.extra_context['dataset'][1]['label'],
+                                                                ('%s%%' % round((self.extra_context['dataset'][0]['value'] / self.extra_context['dataset'][1]['value']) * 100, 2)
+                                                                 if self.extra_context['dataset'][1]['value'] else 'n/a'))
 
         return super().render(None, table, None, bound_column, bound_row=tables.rows.BoundRow(None, table))
 
@@ -435,8 +435,8 @@ class UserRangeInfoTable(BaseTable):
                             'timesheet__user__id__exact=%(user)s&' +
                             'timesheet__year=%(year)s&' +
                             'timesheet__month=%(month)s&' +
-                            'date__lte=%(date)s&' +
-                            'date__gte=%(date)s">Performance</a>') % {
+                            'date__range__lte=%(date)s&' +
+                            'date__range__gte=%(date)s">Performance</a>') % {
                 'url': reverse('admin:ninetofiver_performance_changelist'),
                 'user': record['user'].id,
                 'year': record['date'].year,
@@ -446,8 +446,8 @@ class UserRangeInfoTable(BaseTable):
 
         if record['day_detail']['holiday_hours']:
             buttons.append(('<a class="button" href="%(url)s?' +
-                            'date__gte=%(date)s&' +
-                            'date__lte=%(date)s">Holidays</a>') % {
+                            'date__range__gte=%(date)s&' +
+                            'date__range__lte=%(date)s">Holidays</a>') % {
                 'url': reverse('admin:ninetofiver_holiday_changelist'),
                 'date': record['date'].strftime('%Y-%m-%d'),
             })
@@ -528,7 +528,7 @@ class UserWorkRatioByUserTable(BaseTable):
     month = tables.Column()
     work_hours = SummedHoursColumn()
     customer_hours = SummedHoursColumn()
-    internal_hours= SummedHoursColumn()
+    internal_hours = SummedHoursColumn()
     leaves = SummedHoursColumn()
     ratio = tables.Column(empty_values=())
 
@@ -537,10 +537,13 @@ class UserWorkRatioByUserTable(BaseTable):
         customer_hours_pct = round((record['customer_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
         internal_hours_pct = round((record['internal_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
         leaves_pct = round((record['leaves'] / (total_hours if total_hours else 1.0)) * 100, 2)
-        res  = '<div class="progress" style="min-width: 300px;">'
-        res += '<div class="progress-bar bg-success" role="progressbar" style="width: {}%">{}%</div>'.format(customer_hours_pct, customer_hours_pct)
-        res += '<div class="progress-bar bg-warning" role="progressbar" style="width: {}%">{}%</div>'.format(internal_hours_pct, internal_hours_pct)
-        res += '<div class="progress-bar bg-secondary" role="progressbar" style="width: {}%">{}%</div>'.format(leaves_pct, leaves_pct)
+        res = '<div class="progress" style="min-width: 300px;">'
+        res += '<div class="progress-bar bg-success" role="progressbar" style="width: {}%">{}%</div>'.format(
+            customer_hours_pct, customer_hours_pct)
+        res += '<div class="progress-bar bg-warning" role="progressbar" style="width: {}%">{}%</div>'.format(
+            internal_hours_pct, internal_hours_pct)
+        res += '<div class="progress-bar bg-secondary" role="progressbar" style="width: {}%">{}%</div>'.format(
+            leaves_pct, leaves_pct)
         res += '</div>'
         return format_html(res)
 
@@ -559,7 +562,7 @@ class UserWorkRatioByMonthTable(BaseTable):
     )
     work_hours = SummedHoursColumn()
     customer_hours = SummedHoursColumn()
-    internal_hours= SummedHoursColumn()
+    internal_hours = SummedHoursColumn()
     leaves = SummedHoursColumn()
     ratio = tables.Column(empty_values=())
 
@@ -568,10 +571,13 @@ class UserWorkRatioByMonthTable(BaseTable):
         customer_hours_pct = round((record['customer_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
         internal_hours_pct = round((record['internal_hours'] / (total_hours if total_hours else 1.0)) * 100, 2)
         leaves_pct = round((record['leaves'] / (total_hours if total_hours else 1.0)) * 100, 2)
-        res  = '<div class="progress" style="min-width: 300px;">'
-        res += '<div class="progress-bar bg-success" role="progressbar" style="width: {}%">{}%</div>'.format(customer_hours_pct, customer_hours_pct)
-        res += '<div class="progress-bar bg-warning" role="progressbar" style="width: {}%">{}%</div>'.format(internal_hours_pct, internal_hours_pct)
-        res += '<div class="progress-bar bg-secondary" role="progressbar" style="width: {}%">{}%</div>'.format(leaves_pct, leaves_pct)
+        res = '<div class="progress" style="min-width: 300px;">'
+        res += '<div class="progress-bar bg-success" role="progressbar" style="width: {}%">{}%</div>'.format(
+            customer_hours_pct, customer_hours_pct)
+        res += '<div class="progress-bar bg-warning" role="progressbar" style="width: {}%">{}%</div>'.format(
+            internal_hours_pct, internal_hours_pct)
+        res += '<div class="progress-bar bg-secondary" role="progressbar" style="width: {}%">{}%</div>'.format(
+            leaves_pct, leaves_pct)
         res += '</div>'
         return format_html(res)
 
@@ -841,9 +847,9 @@ class ExpiringConsultancyContractOverviewTable(BaseTable):
 
         buttons.append(('<a class="button" href="%(url)s?' +
                         'performance__contract=%(contract)s">Performances</a>') % {
-                        'url': reverse('admin_report_timesheet_contract_overview'),
-                        'contract': record['contract'].id,
-                        })
+            'url': reverse('admin_report_timesheet_contract_overview'),
+            'contract': record['contract'].id,
+        })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
 
@@ -891,9 +897,9 @@ class InvoicedConsultancyContractOverviewTable(BaseTable):
                         'performance__contract=%(contract)s&' +
                         'sort=-timesheet' +
                         '">Performances</a>') % {
-                        'url': reverse('admin_report_timesheet_contract_overview'),
-                        'contract': record['contract'].id,
-                        })
+            'url': reverse('admin_report_timesheet_contract_overview'),
+            'contract': record['contract'].id,
+        })
 
         buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
                        'contract__id__exact={contract_id}'
@@ -936,7 +942,8 @@ class ProjectContractOverviewTable(BaseTable):
                                      'style': 'width: 15%; min-width: 150px;'
                                  }
                              })
-    data = tables.TemplateColumn(template_name='ninetofiver/admin/reports/project_data.pug', accessor='', orderable=False)
+    data = tables.TemplateColumn(template_name='ninetofiver/admin/reports/project_data.pug',
+                                 accessor='', orderable=False)
 
     # actions = tables.Column(accessor='user', orderable=False, exclude_from_export=True)
 
@@ -945,17 +952,16 @@ class ProjectContractOverviewTable(BaseTable):
 
         buttons.append(('<a href="%(url)s' +
                         '%(contract_id)s">%(contract)s</a>') % {
-                        'url': reverse('admin:ninetofiver_contract_changelist'),
-                        'contract_id': record['contract'].id,
-                        'contract': record['contract'],
+            'url': reverse('admin:ninetofiver_contract_changelist'),
+            'contract_id': record['contract'].id,
+            'contract': record['contract'],
         })
 
         buttons.append(('<a class="button" href="%(url)s?' +
                         'performance__contract=%(contract)s">Performances</a>') % {
-                        'url': reverse('admin_report_timesheet_contract_overview'),
-                        'contract': record['contract'].id,
+            'url': reverse('admin_report_timesheet_contract_overview'),
+            'contract': record['contract'].id,
         })
-
 
         buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
                        'contract__id__exact={contract_id}'
@@ -970,20 +976,21 @@ class ProjectContractOverviewTable(BaseTable):
                                               contract_id=record['contract'].id)
                        )
 
-
         attachment_list = ""
         for attachment in record['attachments']:
-            attachment_list = attachment_list + '<a class="dropdown-item" href="{url}">{name}</a>'.format(url=record['attachments'][attachment]['url'], name=attachment)
+            attachment_list = attachment_list + \
+                '<a class="dropdown-item" href="{url}">{name}</a>'.format(
+                    url=record['attachments'][attachment]['url'], name=attachment)
         if attachment_list:
-             buttons.append('<div class="dropdown">'
-                       '<a class="button dropdown-toggle" href="#" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Attachments</a>'
-                       '<div class="dropdown-menu" aria-labelledby="dropdownMenuLink">' +
-                       attachment_list +
-                       '</div></div>')
+            buttons.append('<div class="dropdown">'
+                           '<a class="button dropdown-toggle" href="#" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Attachments</a>'
+                           '<div class="dropdown-menu" aria-labelledby="dropdownMenuLink">' +
+                           attachment_list +
+                           '</div></div>')
         else:
             buttons.append('<div class="dropdown">'
-                    '<a disabled class="button dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-disabled="true" aria-haspopup="true" aria-expanded="false">Attachments</a>'
-                    '</div>')
+                           '<a disabled class="button dropdown-toggle" type="button" id="dropdownMenuLink" data-toggle="dropdown" aria-disabled="true" aria-haspopup="true" aria-expanded="false">Attachments</a>'
+                           '</div>')
 
         return format_html('%s' % ('</br></br>'.join(buttons)))
 
@@ -1050,9 +1057,9 @@ class ExpiringSupportContractOverviewTable(BaseTable):
 
         buttons.append(('<a class="button" href="%(url)s?' +
                         'performance__contract=%(contract)s">Performances</a>') % {
-                        'url': reverse('admin_report_timesheet_contract_overview'),
-                        'contract': record['contract'].id,
-                        })
+            'url': reverse('admin_report_timesheet_contract_overview'),
+            'contract': record['contract'].id,
+        })
 
         buttons.append('<a class="button" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; padding-right: 0px;" href="{url}?'
                        'contract__id__exact={contract_id}'
@@ -1127,7 +1134,8 @@ class ExpiringUserTrainingOverviewTable(BaseTable):
         viewname='admin:auth_user_change',
         args=[A('training.user_training.user.id')],
         accessor='training.user_training.user',
-        order_by=['training.user_training.user.first_name', 'training.user_training.user.last_name', 'training.user_training.user.username']
+        order_by=['training.user_training.user.first_name',
+                  'training.user_training.user.last_name', 'training.user_training.user.username']
     )
 
     training_type = tables.Column(
