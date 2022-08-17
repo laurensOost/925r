@@ -11,7 +11,7 @@ from django.contrib.auth import models as auth_models
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.db.models import Q, Prefetch, TextField
+from django.db.models import Q, Prefetch, TextField, Min
 from django.forms import TextInput
 from django.urls import reverse
 from django.utils.html import format_html
@@ -236,9 +236,13 @@ class LeaveAdmin(admin.ModelAdmin):
     """Leave admin."""
 
     def get_queryset(self, request):
-        return (super().get_queryset(request)
-                .select_related('leave_type', 'user')
-                .prefetch_related('attachments'))
+        return (
+            super().get_queryset(request)
+            .select_related('leave_type', 'user')
+            .prefetch_related('attachments')
+            .annotate(_first_day=Min("leavedate__starts_at"))
+            .order_by('_first_day')
+        )
 
     def get_formsets_with_inlines(self, request, obj=None):
         """Cache timesheets foreign-keys in inlines"""
@@ -272,6 +276,8 @@ class LeaveAdmin(admin.ModelAdmin):
     def date(self, obj):
         """List leave dates."""
         return format_html('<br>'.join(x.html_label() for x in list(obj.leavedate_set.all())))
+
+    date.admin_order_field = "_first_day"
 
     def attachment(self, obj):
         """Attachment URLs."""
@@ -1081,7 +1087,7 @@ class UserTrainingAdmin(admin.ModelAdmin):
                 general_training_inline = TrainingInline(self.model, self.admin_site)
                 general_training_inline.extra = 1
                 general_training_inline.training_types_choices = [(None, "---------")] \
-                                                                 + [(i.pk, str(i)) for i in available_training_types]
+                    + [(i.pk, str(i)) for i in available_training_types]
                 inlines.append(general_training_inline)
 
         return inlines
