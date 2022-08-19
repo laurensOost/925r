@@ -42,13 +42,13 @@ def xprint(*args, **kwargs):
 
 
 class TestDBPupulator:
-    def __init__(self):
+    def __init__(self, default_size, perf_tables_size):
         if not settings.DEBUG:
             log.error('settings.DEBUG is False. Aborting')
             exit(1)
 
-        self.default_range = range(1, 101)
-        self.perf_tables_range = range(1, 501)
+        self.default_range = range(1, default_size + 1)
+        self.perf_tables_range = range(1, perf_tables_size + 1)
         self.activity_performances = []
         self.api_keys = []
         self.companies = []
@@ -298,7 +298,7 @@ class TestDBPupulator:
                     contract_role=self.contract_roles[0],
                     description='test_activity_performance_' + str(x),
                     duration=1,
-                    )
+                )
                 act_perf.save()
                 self.activity_performances.append(act_perf)
         xprint(" - ActivityPerformance:", len(self.activity_performances))
@@ -424,11 +424,11 @@ class TestDBPupulator:
                 timesheet=tsheet,
                 location=self.locations[i % len(self.locations)],
                 starts_at=get_random_datetime(
-                        datetime.datetime(tsheet.year, tsheet.month, 1, 0, 0),
-                        datetime.datetime(tsheet.year, tsheet.month, 1, 11, 59)),
+                    datetime.datetime(tsheet.year, tsheet.month, 1, 0, 0),
+                    datetime.datetime(tsheet.year, tsheet.month, 1, 11, 59)),
                 ends_at=get_random_datetime(
-                        datetime.datetime(tsheet.year, tsheet.month, 1, 12, 0),
-                        datetime.datetime(tsheet.year, tsheet.month, 1, 23, 59)),
+                    datetime.datetime(tsheet.year, tsheet.month, 1, 12, 0),
+                    datetime.datetime(tsheet.year, tsheet.month, 1, 23, 59)),
             )
             wa.save()
             self.whereabouts.append(wa)

@@ -107,10 +107,12 @@ You are all set to work with Admin interface, if you want some test data filled,
 
 ## Example/Test data
 You can use django command `create_test_data` to fill database with test data.
+You can specify the ammount of data to be created by one optional argument
+(`small`, `normal` or `extensive`) with `normal` being the default ammount when not specified.
 It can run a few minutes depending on resources. For this reason there is a `-t` option, so you 
-can see what is happening at the moment. 
+can see what is happening at the moment.
 ```shell
-docker exec -t 925r_web_1 python manage.py create_test_data
+docker exec -t 925r_web_1 python manage.py create_test_data extensive
 ```
 
 ## Configuration
