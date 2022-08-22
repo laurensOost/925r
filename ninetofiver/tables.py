@@ -1,6 +1,6 @@
 """Tables."""
 import uuid
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 
 import django_tables2 as tables
 import humanize
@@ -425,7 +425,6 @@ class UserRangeInfoTable(BaseTable):
     holiday_hours = SummedHoursColumn(accessor='day_detail.holiday_hours')
     remaining_hours = SummedHoursColumn(accessor='day_detail.remaining_hours')
     overtime_hours = SummedHoursColumn(accessor='day_detail.overtime_hours')
-    actions = tables.Column(accessor='date', orderable=False, exclude_from_export=True)
 
     def render_actions(self, record):
         buttons = []
@@ -470,6 +469,33 @@ class UserRangeInfoTable(BaseTable):
             })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
+
+    def render_actions_footer(table, column, bound_column):
+
+        users = []
+        dates = []
+        for record in table.data:
+            if record['date'] not in dates:
+                dates.append(record['date'])
+            if record['user'].id not in users:
+                users.append(record['user'].id)
+
+        return format_html(('<a class="button" href="%(url)s?' +
+                            'timesheet__user__id__exact=%(user)s&' +
+                            'timesheet__year=%(year)s&' +
+                            'timesheet__month=%(month)s&' +
+                            'date__range__lte=%(end_date)s&' +
+                            'date__range__gte=%(start_date)s">All performances</a>') % {
+            'url': reverse('admin:ninetofiver_performance_changelist'),
+            'user': users[0],
+            'year': dates[0].year,
+            'month': dates[0].month,
+            'start_date': min(dates).strftime('%Y-%m-%d'),
+            'end_date': max(dates).strftime('%Y-%m-%d'),
+        })
+
+    actions = tables.Column(accessor='date', orderable=False, exclude_from_export=True,
+                            footer=render_actions_footer)
 
 
 class UserLeaveOverviewTable(BaseTable):
