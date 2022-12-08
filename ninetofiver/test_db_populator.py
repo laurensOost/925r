@@ -355,7 +355,8 @@ class TestDBPupulator:
                     # find a leave date in selected timesheet
                     start_date = get_random_date(datetime.datetime(ts.year, ts.month, 1),
                                                  # potential end date
-                                                 datetime.datetime(ts.year, ts.month+1, 1)
+                                                 datetime.datetime(ts.year, ts.month, 1)
+                                                 + relativedelta(months=1)
                                                  - datetime.timedelta(days=leave_length))  # unknown no. of days in mth
                     # check if user already has leave planned in this date. if so, find another date
                     for pot_day_no in range(0, leave_length):
