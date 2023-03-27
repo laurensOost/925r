@@ -151,7 +151,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', 'vat_identification_number', 'address', 'country', 'internal', logo)
     ordering = ('-internal', 'name')
     # NOTE (to my future self): see similar note in ninetofiver/filters.py
-    search_fields = ('name', )
+    search_fields = ('name',)
 
 
 @admin.register(models.EmploymentContractType)
@@ -792,7 +792,18 @@ class InuitsKrkPerformanceResource(ModelResource):
     class Meta:
         """Performance resource meta class."""
         model = models.PerformanceInuitsKrk
-        fields = ('date', 'full_name',)
+        fields = (
+            'date',
+            'full_name',
+            'timesheet__user__username',
+            'timesheet__year',
+            'timesheet__month',
+            'timesheet__status',
+            'activityperformance__duration',
+            'activityperformance__description',
+            'activityperformance__contract_role__id',
+            'activityperformance__contract_role__name'
+        )
 
 
 class PerformanceResource(ModelResource):
@@ -906,15 +917,14 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
 
 @admin.register(models.PerformanceInuitsKrk)
 class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
-
     resource_class = InuitsKrkPerformanceResource
     polymorphic_list = True
 
     def get_queryset(self, request):
         return models.Performance.objects.select_related('contract',
-                                                            'contract__customer',
-                                                            'timesheet',
-                                                            'timesheet__user')
+                                                         'contract__customer',
+                                                         'timesheet',
+                                                         'timesheet__user')
 
     def duration(self, obj):
         return obj.activityperformance.duration
@@ -959,12 +969,9 @@ class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     )
 
 
-
 class PerformanceChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.Performance
     raw_id_fields = ('contract',)
-
-
 
 
 @admin.register(models.ActivityPerformance)
@@ -975,6 +982,7 @@ class ActivityPerformanceChildAdmin(PerformanceChildAdmin):
         return (super().get_queryset(request)
                 .prefetch_related('performance_type')
                 )
+
     autocomplete_fields = ('timesheet', 'contract_role')
 
 
@@ -1159,7 +1167,7 @@ class UserTrainingAdmin(admin.ModelAdmin):
                 general_training_inline = TrainingInline(self.model, self.admin_site)
                 general_training_inline.extra = 1
                 general_training_inline.training_types_choices = [(None, "---------")] \
-                    + [(i.pk, str(i)) for i in available_training_types]
+                                                                 + [(i.pk, str(i)) for i in available_training_types]
                 inlines.append(general_training_inline)
 
         return inlines
