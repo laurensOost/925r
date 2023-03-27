@@ -112,7 +112,7 @@ You can specify the ammount of data to be created by one optional argument
 It can run a few minutes depending on resources. For this reason there is a `-t` option, so you 
 can see what is happening at the moment.
 ```shell
-docker exec -t 925r_web_1 python manage.py create_test_data extensive
+docker exec -t 925r-web python manage.py create_test_data extensive
 ```
 
 ## Configuration

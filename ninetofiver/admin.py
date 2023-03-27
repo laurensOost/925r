@@ -786,11 +786,13 @@ class WhereaboutAdmin(admin.ModelAdmin):
 
 class InuitsKrkPerformanceResource(ModelResource):
     """Performance resource."""
-    first_name = Field(attribute='timesheet__user__get_full_name', column_name='full_name')
+    date = Field(attribute='date', column_name='date')
+    full_name = Field(attribute='timesheet__user__get_full_name', column_name='full_name')
 
     class Meta:
         """Performance resource meta class."""
         model = models.PerformanceInuitsKrk
+        fields = ('date', 'full_name',)
 
 
 class PerformanceResource(ModelResource):
