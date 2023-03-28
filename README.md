@@ -84,11 +84,11 @@ make up
 ```
 Exec initial migration. After _exec_ should be your 925r container name.
 ```shell
-docker exec 925r_web_1 python manage.py migrate
+docker exec 925r-web python manage.py migrate
 ```
 Interactively create a new superuser.
 ```shell
-docker exec -it 925r_web_1 python manage.py createsuperuser
+docker exec -it 925r-web python manage.py createsuperuser
 ```
 
 If you are running YaYata too (in debug mode), then you could need to change 925r port from 
@@ -112,7 +112,7 @@ You can specify the ammount of data to be created by one optional argument
 It can run a few minutes depending on resources. For this reason there is a `-t` option, so you 
 can see what is happening at the moment.
 ```shell
-docker exec -t 925r_web_1 python manage.py create_test_data extensive
+docker exec -t 925r-web python manage.py create_test_data extensive
 ```
 
 ## Configuration

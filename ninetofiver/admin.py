@@ -21,6 +21,7 @@ from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django_countries.filters import CountryFilter
 from import_export import fields
 from import_export.admin import ExportMixin
+from import_export.fields import Field
 from import_export.resources import ModelResource
 from polymorphic.admin import PolymorphicChildModelAdmin
 from polymorphic.admin import PolymorphicChildModelFilter
@@ -150,7 +151,7 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name', 'vat_identification_number', 'address', 'country', 'internal', logo)
     ordering = ('-internal', 'name')
     # NOTE (to my future self): see similar note in ninetofiver/filters.py
-    search_fields = ('name', )
+    search_fields = ('name',)
 
 
 @admin.register(models.EmploymentContractType)
@@ -783,6 +784,28 @@ class WhereaboutAdmin(admin.ModelAdmin):
     raw_id_fields = ('timesheet',)
 
 
+class InuitsKrkPerformanceResource(ModelResource):
+    """Performance resource."""
+    date = Field(attribute='date', column_name='date')
+    full_name = Field(attribute='timesheet__user__get_full_name', column_name='full_name')
+
+    class Meta:
+        """Performance resource meta class."""
+        model = models.PerformanceInuitsKrk
+        fields = (
+            'date',
+            'full_name',
+            'timesheet__user__username',
+            'timesheet__year',
+            'timesheet__month',
+            'timesheet__status',
+            'activityperformance__duration',
+            'activityperformance__description',
+            'activityperformance__contract_role__id',
+            'activityperformance__contract_role__name'
+        )
+
+
 class PerformanceResource(ModelResource):
     """Performance resource."""
 
@@ -794,6 +817,8 @@ class PerformanceResource(ModelResource):
             'id',
             'timesheet__user__id',
             'timesheet__user__username',
+            'timesheet__user__first_name',
+            'timesheet__user__last_name',
             'timesheet__year',
             'timesheet__month',
             'timesheet__status',
@@ -890,6 +915,60 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     )
 
 
+@admin.register(models.PerformanceInuitsKrk)
+class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
+    resource_class = InuitsKrkPerformanceResource
+    polymorphic_list = True
+
+    def get_queryset(self, request):
+        return models.Performance.objects.select_related('contract',
+                                                         'contract__customer',
+                                                         'timesheet',
+                                                         'timesheet__user')
+
+    def duration(self, obj):
+        return obj.activityperformance.duration
+
+    def performance_type(self, obj):
+        return obj.activityperformance.performance_type
+
+    def description(self, obj):
+        value = obj.activityperformance.description
+        value = markdown(value) if value else value
+        return value
+
+    def contract_role(self, obj):
+        return obj.activityperformance.contract_role
+
+    base_model = models.Performance
+    child_models = (
+        models.ActivityPerformance,
+        models.StandbyPerformance,
+    )
+    list_filter = (
+        PolymorphicChildModelFilter,
+        ContractListFilter,
+        AutocompleteFilterFactory('company', 'contract__company'),
+        AutocompleteFilterFactory('customer', 'contract__customer'),
+        AutocompleteFilterFactory('user', 'timesheet__user'),
+        ('timesheet__year', DropdownFilter),
+        ('timesheet__month', DropdownFilter),
+        ('date', DateRangeFilter),
+        AutocompleteFilterFactory('contract role', 'activityperformance__contract_role'),
+        ('activityperformance__performance_type', RelatedDropdownFilter),
+    )
+    list_display = (
+        '__str__',
+        'timesheet',
+        'date',
+        'contract',
+        'performance_type',
+        'duration',
+        'description',
+        'contract_role',
+    )
+
+
 class PerformanceChildAdmin(PolymorphicChildModelAdmin):
     base_model = models.Performance
     raw_id_fields = ('contract',)
@@ -903,6 +982,7 @@ class ActivityPerformanceChildAdmin(PerformanceChildAdmin):
         return (super().get_queryset(request)
                 .prefetch_related('performance_type')
                 )
+
     autocomplete_fields = ('timesheet', 'contract_role')
 
 
@@ -1087,7 +1167,7 @@ class UserTrainingAdmin(admin.ModelAdmin):
                 general_training_inline = TrainingInline(self.model, self.admin_site)
                 general_training_inline.extra = 1
                 general_training_inline.training_types_choices = [(None, "---------")] \
-                    + [(i.pk, str(i)) for i in available_training_types]
+                                                                 + [(i.pk, str(i)) for i in available_training_types]
                 inlines.append(general_training_inline)
 
         return inlines

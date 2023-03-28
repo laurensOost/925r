@@ -1141,6 +1141,13 @@ class Performance(BaseModel):
         return super().get_absolute_url_view_name(Performance)
 
 
+class PerformanceInuitsKrk(Performance):
+    class Meta:
+        proxy = True
+        verbose_name = "Performance Dashboard Inuits KRK"
+        verbose_name_plural = verbose_name
+
+
 class ActivityPerformance(Performance):
 
     """Activity performance model."""
