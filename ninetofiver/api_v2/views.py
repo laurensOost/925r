@@ -31,7 +31,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.UserSerializer
-    filter_class = filters.UserFilter
+    filterset_class = filters.UserFilter
     queryset = (auth_models.User.objects
                 .exclude(is_active=False)
                 .order_by('-date_joined')
@@ -75,7 +75,7 @@ class HolidayViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.HolidaySerializer
-    filter_class = filters.HolidayFilter
+    filterset_class = filters.HolidayFilter
     queryset = models.Holiday.objects.all()
 
 
@@ -84,7 +84,7 @@ class ContractViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.ContractSerializer
-    filter_class = filters.ContractFilter
+    filterset_class = filters.ContractFilter
     queryset = (models.Contract.objects.all()
                 .select_related('company', 'customer')
                 .prefetch_related(
@@ -105,7 +105,7 @@ class ContractUserViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.ContractUserSerializer
-    filter_class = filters.ContractUserFilter
+    filterset_class = filters.ContractUserFilter
     queryset = (models.ContractUser.objects.all()
                 .select_related('contract', 'contract__customer', 'contract_role', 'user')
                 .distinct())
@@ -119,7 +119,7 @@ class TimesheetViewSet(viewsets.ModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.TimesheetSerializer
-    filter_class = filters.TimesheetFilter
+    filterset_class = filters.TimesheetFilter
     queryset = models.Timesheet.objects.all()
 
     def get_queryset(self):
@@ -136,7 +136,7 @@ class LeaveViewSet(viewsets.ModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.LeaveSerializer
-    filter_class = filters.LeaveFilter
+    filterset_class = filters.LeaveFilter
     queryset = (models.Leave.objects.all()
                 .select_related('leave_type')
                 .prefetch_related('leavedate_set'))
@@ -155,7 +155,7 @@ class WhereaboutViewSet(viewsets.ModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.WhereaboutSerializer
-    filter_class = filters.WhereaboutFilter
+    filterset_class = filters.WhereaboutFilter
     queryset = (models.Whereabout.objects.all()
                 .select_related('location'))
 
@@ -168,7 +168,7 @@ class PerformanceViewSet(viewsets.ModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.PerformanceSerializer
-    filter_class = filters.PerformanceFilter
+    filterset_class = filters.PerformanceFilter
     queryset = (models.Performance.objects.all()
                 .select_related('contract', 'contract__customer'))
 
@@ -181,7 +181,7 @@ class AttachmentViewSet(viewsets.ModelViewSet):
 
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = serializers.AttachmentSerializer
-    filter_class = filters.AttachmentFilter
+    filterset_class = filters.AttachmentFilter
     queryset = (models.Attachment.objects.all())
 
     def get_queryset(self):
