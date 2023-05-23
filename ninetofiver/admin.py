@@ -342,6 +342,7 @@ WHERE ninetofiver_leave.user_id == {obj.user_id};
     ]
     ordering = ('-status',)
     autocomplete_fields = ('user',)
+    filter_horizontal = ('attachments',)
 
 
 @admin.register(models.LeaveDate)
@@ -628,6 +629,7 @@ class ContractChildAdmin(PolymorphicChildModelAdmin):
     list_filter = ContractParentAdmin.list_filter[1:]
     search_fields = ContractParentAdmin.search_fields
     ordering = ContractParentAdmin.ordering
+    filter_horizontal = ('attachments', "contract_groups", "performance_types", )
 
 
 @admin.register(models.ConsultancyContract)
@@ -747,6 +749,7 @@ class TimesheetAdmin(admin.ModelAdmin):
     )
     ordering = ('-year', 'month', 'user__first_name', 'user__last_name')
     autocomplete_fields = ('user',)
+    filter_horizontal= ('attachments',)
 
 
 @admin.register(models.Location)
