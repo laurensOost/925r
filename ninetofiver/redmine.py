@@ -210,12 +210,24 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
             )
             invalid_reason = "Contract with ID %s isn't active" % contract_id
 
+        issue_link = ""
+        subject_text = ""
+        comment_text = ""
+        
         if getattr(entry, 'issue', None):
-            description = '_See [#%s](%s/issues/%s)._' % (entry.issue.id, url, entry.issue.id)
+            issue_link = '_See [#%s](%s/issues/%s)._' % (entry.issue.id, url, entry.issue.id)
+            
+            if getattr(entry.issue, 'subject', None):
+                subject_text = entry.issue.subject
+                
         else:
-            description = '_No issue linked._'
+            issue_link = '_No issue linked._'
+        
         if entry.comments:
-            description = '%s\n%s' % (entry.comments, description)
+            comment_text = entry.comments
+        
+        description = '%s\n%s\n%s' % (subject_text, comment_text, issue_link)
+        
 
         # Check whether there are differences if performance already imported
         updated = False

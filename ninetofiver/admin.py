@@ -881,7 +881,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     def performance_type(self, obj):
         return obj.activityperformance.performance_type
 
-    def description(self, obj):
+    def a_description(self, obj):
         value = obj.activityperformance.description
         value = markdown(value) if value else value
         return value
@@ -913,7 +913,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
         'contract',
         'performance_type',
         'duration',
-        'description',
+        'a_description',
         'contract_role',
     )
 
