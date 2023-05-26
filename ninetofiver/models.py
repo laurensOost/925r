@@ -61,6 +61,7 @@ PERIOD_YEARLY = 'yearly'
 # Permissions
 PERMISSION_RECEIVE_PENDING_LEAVE_REMINDER = 'receive_pending_leave_reminder'
 PERMISSION_RECEIVE_MODIFIED_ATTACHMENT_NOTIFICATION = 'receive_modified_attachment_notification'
+PERMISSION_RECEIVE_BDAY_ANNIVERSARY_REMINDER = 'receive_bday_anniversary_reminder'
 
 
 class BaseManager(PolymorphicManager):
@@ -411,6 +412,9 @@ class UserInfo(BaseModel):
 
     class Meta(BaseModel.Meta):
         verbose_name_plural = 'user info'
+        permissions = (
+            (PERMISSION_RECEIVE_BDAY_ANNIVERSARY_REMINDER, "Can receive birthday and anniversary reminders"),
+        )
 
 
 class Timesheet(BaseModel):

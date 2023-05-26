@@ -1,0 +1,11 @@
+extends ninetofiver/emails/mail_generic.pug
+
+block content
+    p Dear {{ recipient }},
+    p There is a list of colleagues who have birthdays this month:
+    
+    include ninetofiver/emails/partials/bday_horizontal.pug
+
+    p And there is a list of colleagues who have work anniversary this month:
+
+    include ninetofiver/emails/partials/work_anniversary_horizontal.pug

@@ -1,0 +1,54 @@
+table(style="
+    border-collapse: collapse;
+")
+    thead
+        tr
+            th(style="
+                color: #666;
+                background: #f6f6f6;
+                text-transform: uppercase;
+                border-top: 1px solid #eee;
+                border-bottom: 1px solid #eee;
+                padding: 5px 10px;
+                text-align: left;
+            ") Colleague
+            th(style="
+                color: #666;
+                background: #f6f6f6;
+                text-transform: uppercase;
+                border-top: 1px solid #eee;
+                border-bottom: 1px solid #eee;
+                padding: 5px 10px;
+                text-align: left;
+            ") Join date
+            th(style="
+                color: #666;
+                background: #f6f6f6;
+                text-transform: uppercase;
+                border-top: 1px solid #eee;
+                border-bottom: 1px solid #eee;
+                padding: 5px 10px;
+                text-align: left;
+            ") Years with us   
+
+    tbody
+        for years, users, _ in users_work_anniversary.items
+            for user in users
+                tr(style="
+                    background: {% cycle '#ffffff' '#f9f9f9' %};
+                ")
+                    td(style="
+                        border-bottom: 1px solid #eee;
+                        padding: 8px;
+                        vertical-align: top;
+                    ") {{ user.last_name }} {{ user.first_name }} ({{ user.username }})
+                    td(style="
+                        border-bottom: 1px solid #eee;
+                        padding: 8px;
+                        vertical-align: top;
+                    ") {{ user.date_joined.date }}
+                    td(style="
+                        border-bottom: 1px solid #eee;
+                        padding: 8px;
+                        vertical-align: top;
+                    ") {{ years }}
