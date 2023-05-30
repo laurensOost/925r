@@ -5,7 +5,7 @@ from datetime import date
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from adminsortable.admin import SortableAdmin
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import widgets
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
@@ -28,12 +28,15 @@ from polymorphic.admin import PolymorphicChildModelFilter
 from polymorphic.admin import PolymorphicParentModelAdmin
 from rangefilter.filter import DateRangeFilter
 from rangefilter.filter import DateTimeRangeFilter
+from django.shortcuts import render
 
 from ninetofiver import models, redmine
 from ninetofiver.filters import CompanyFilter
-from ninetofiver.models import Timesheet
+from ninetofiver.models import Timesheet, Contract
 from ninetofiver.templatetags.markdown import markdown
 from ninetofiver.utils import IntelligentManyToManyWidget
+
+from .forms import PerformanceContractForm
 
 log = logging.getLogger(__name__)
 
@@ -888,6 +891,43 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
 
     def contract_role(self, obj):
         return obj.activityperformance.contract_role
+    
+    @admin.action(description="Contract bulk change")
+    def contract_bulk_change(self, request, queryset):
+        if request.POST.get("do_action"):
+            form = PerformanceContractForm(request.POST)
+            if form.is_valid():
+                return render(
+                    request,
+                    "admin/actions/action_bulk_contract_to_performance_confirm.html",
+                    {
+                        "title": "Confirm the change",
+                        "render": False,
+                        "contract": form.cleaned_data["contract"],
+                        "objects": queryset,
+                        "form": form,
+                    },
+                )
+        elif request.POST.get("confirm"):
+            form = PerformanceContractForm(request.POST)
+            if form.is_valid():
+                contract = form.cleaned_data["contract"]
+                updated = queryset.update(contract=contract)
+                messages.success(request, "{0} contracts were updated".format(updated))
+                return
+        else:
+            form = PerformanceContractForm()
+        return render(
+            request,
+            "admin/actions/action_bulk_contract_to_performance.html",
+            {
+                "title": "Choose contract",
+                "render": True,
+                "objects": queryset,
+                "form": form,
+            },
+        )
+
 
     base_model = models.Performance
     child_models = (
@@ -916,6 +956,9 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
         'a_description',
         'contract_role',
     )
+    actions = [
+        'contract_bulk_change',
+    ]
 
 
 @admin.register(models.PerformanceInuitsKrk)

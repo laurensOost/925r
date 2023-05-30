@@ -1,0 +1,44 @@
+{% extends "../base.html" %}
+
+
+{% block content %}
+    <form action="" method="post">
+
+        {% csrf_token %}
+        <input type="hidden" name="action" value="contract_bulk_change">
+        <input type="hidden" name="confirm" value="yes">
+
+        <ul>
+            {% for object in objects %}
+                <li>
+                    <h3>Performance {{ object.id }}</h3> 
+                    {{ object }} - {{ object.contract}}
+                    <br>
+                    {% if object.timesheet.status == 'closed' %}
+                        <strong> ! Warning - performance's timesheet is closed </strong>
+                    {% endif %}
+                    <input type="hidden" name="_selected_action" value="{{ object.id }}">
+                </li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <br>
+        <div>
+            {% if render %}
+                {{ form.contract }}
+            {% else%}
+                <h3> Change contract to: <h3>
+                <strong> - {{ contract }} </strong>
+                {{ form.contract.as_hidden }}
+            {% endif %}
+            <br>
+            <br>
+            <input type="submit" class="default" style="float: none" value="Confirm">
+            <br>
+            <br>
+            <a href="."> Cancel </a>
+            {{ form.contract.errors }}
+        </div>
+
+    </form>
+{% endblock %}
