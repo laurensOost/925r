@@ -215,10 +215,9 @@ def get_user_redmine_performances(user, from_date=None, to_date=None):
         comment_text = ""
         
         if getattr(entry, 'issue', None):
-            issue_link = '_See [#%s](%s/issues/%s)._' % (entry.issue.id, url, entry.issue.id)
-            #subject to asi není
-            # if getattr(entry.issue, 'subject', None):
-            subject_text = entry.issue.subject
+            issue_link = '_See [#%s](%s/issues/%s)._' % (entry.issue.id, url, entry.issue.id)            
+            fetch_issue = redmine.issue.get(entry.issue.id)
+            subject_text = fetch_issue.subject            
                 
         else:
             issue_link = '_No issue linked._'
