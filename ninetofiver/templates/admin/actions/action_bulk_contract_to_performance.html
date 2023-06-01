@@ -1,4 +1,4 @@
-{% extends "../base.html" %} {% block content %}
+{% extends "../base.html" %} {% load markdown %} {% block content %}
 <form action="" method="post">
   {% csrf_token %}
   <input type="hidden" name="action" value="contract_bulk_change" />
@@ -15,8 +15,8 @@
   <ul>
     {% for object in objects %}
     <li>
-      <h3>Performance {{ object.id }}</h3>
-      {{ object }} - {{ object.contract}}
+      <h3>{{ object.description | markdown }}</h3> 
+        ID {{ object.id }} - {{ object }} - <i>{{ object.timesheet }}</i> - {{ object.contract }}
       <br />
       {% if object.timesheet.status == 'closed' %}
       <strong> ! Warning - performance's timesheet is closed </strong>

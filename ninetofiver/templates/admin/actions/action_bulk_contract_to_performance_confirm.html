@@ -1,4 +1,5 @@
 {% extends "../base.html" %}
+{% load markdown %}
 
 
 {% block content %}
@@ -11,8 +12,8 @@
         <ul>
             {% for object in objects %}
                 <li>
-                    <h3>Performance {{ object.id }}</h3> 
-                    {{ object }} - {{ object.contract}}
+                    <h3>{{ object.description | markdown }}</h3> 
+                    ID {{ object.id }} - {{ object }} - <i>{{ object.timesheet }}</i> - {{ object.contract }}
                     <br>
                     {% if object.timesheet.status == 'closed' %}
                         <strong> ! Warning - performance's timesheet is closed </strong>
