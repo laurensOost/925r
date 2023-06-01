@@ -45,7 +45,6 @@ django-rest-swagger==2.2.0
 django-select2==7.10.0
 django-settings-export==1.2.1
 django-silk==5.0.1
-django-sql-explorer==2.4.1
 django-tables2==2.4.1
 django-wkhtmltopdf==3.4.0
 djangorestframework==3.13.1
