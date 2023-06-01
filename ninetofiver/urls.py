@@ -131,6 +131,9 @@ urlpatterns += [
     path('admin/', admin.site.urls),
 
     path("select2/", include("django_select2.urls")),
+    re_path(r'^contract-autocomplete/$',
+        views.ContractAutocomplete.as_view(),
+        name='contract-autocomplete',),
 ]
 
 
