@@ -25,13 +25,9 @@
         <hr>
         <br>
         <div>
-            {% if render %}
-                {{ form.contract }}
-            {% else%}
-                <h3> Change contract to: <h3>
-                <strong> - {{ contract }} </strong>
-                {{ form.contract.as_hidden }}
-            {% endif %}
+            <h3> Change contract to: <h3>
+            <strong> - {{ contract }} </strong>
+            {{ form.contract.as_hidden }}
             <br>
             <br>
             <input type="submit" class="default" style="float: none" value="Confirm">

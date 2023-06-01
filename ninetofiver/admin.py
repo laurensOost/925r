@@ -902,7 +902,6 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                     "admin/actions/action_bulk_contract_to_performance_confirm.html",
                     {
                         "title": "Confirm the change",
-                        "render": False,
                         "contract": form.cleaned_data["contract"],
                         "objects": queryset,
                         "form": form,
@@ -922,7 +921,6 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
             "admin/actions/action_bulk_contract_to_performance.html",
             {
                 "title": "Choose contract",
-                "render": True,
                 "objects": queryset,
                 "form": form,
             },
