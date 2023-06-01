@@ -100,9 +100,6 @@ urlpatterns += [
     # Silk (profiling)
     path('admin/silk/', include('silk.urls', namespace='silk')),
 
-    # Django SQL explorer
-    path('admin/sqlexplorer/', include('explorer.urls')),
-
     # Custom admin routes
     re_path(r'^admin/ninetofiver/leave/approve/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_approve_view, name='admin_leave_approve'),  # noqa
     re_path(r'^admin/ninetofiver/leave/reject/(?P<leave_pk>[0-9,]+)/$', views.admin_leave_reject_view, name='admin_leave_reject'),  # noqa
