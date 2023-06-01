@@ -1,4 +1,4 @@
-{% extends "../base.html" %} {% load markdown %} {% block content %}
+{% extends "../base.html" %} {% load markdown static %} {% block content %}
 <form action="" method="post">
   {% csrf_token %}
   <input type="hidden" name="action" value="contract_bulk_change" />
@@ -7,7 +7,6 @@
   <div>
     {{ form }}
     <input type="submit" class="default" style="float: none" value="Change" />
-    {{ form.contract.errors }}
   </div>
 
   <h2>Change contract in:</h2>
@@ -26,4 +25,8 @@
     {% endfor %}
   </ul>
 </form>
+
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
+{{ form.media }}
 {% endblock %}

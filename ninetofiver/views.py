@@ -24,12 +24,13 @@ from django_tables2.export.export import TableExport
 from rest_framework import generics
 from rest_framework import permissions
 from wkhtmltopdf.views import PDFTemplateView
+from dal import autocomplete
 
 from ninetofiver import filters
 from ninetofiver import models
 from ninetofiver import tables, calculation, pagination
 from ninetofiver import redmine
-from ninetofiver.models import ContractLog
+from ninetofiver.models import ContractLog, Contract
 from ninetofiver.utils import month_date_range, dates_in_range, hours_to_days
 
 logger = logging.getLogger(__name__)
@@ -164,6 +165,18 @@ class ApiKeyDeleteView(auth_mixins.LoginRequiredMixin, generic_views.DeleteView)
     def get_queryset(self):
         return models.ApiKey.objects.filter(user=self.request.user)
 
+
+class ContractAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Contract.objects.none()
+
+        qs = Contract.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+
+        return qs
 
 # Admin-only
 @staff_member_required
