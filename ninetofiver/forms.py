@@ -5,8 +5,8 @@ from dal import autocomplete
 # from django_select2 import forms as s2forms
 
 
-# class PerformanceContractForm(forms.Form):
-#     contract = forms.ModelChoiceField(queryset=Contract.objects.all(), widget=autocomplete.ModelSelect2(url='contract-autocomplete'))
+class PerformanceContractForm(forms.Form):
+    contract = forms.ModelChoiceField(queryset=Contract.objects.all(), widget=autocomplete.ModelSelect2(url='contract-autocomplete'))
   
   
   
@@ -24,8 +24,8 @@ from dal import autocomplete
 #         "name__icontains",
 #     ]
 
-class PerformanceContractForm(forms.ModelForm):
-    class Meta:
-        model = Performance
-        fields = ("contract",)
-        widgets = { "contract": autocomplete.ModelSelect2(url='contract-autocomplete')}    
+# class PerformanceContractForm(forms.ModelForm):
+#     class Meta:
+#         model = Performance
+#         fields = ("contract",)
+#         widgets = { "contract": autocomplete.ModelSelect2(url='contract-autocomplete')}    
