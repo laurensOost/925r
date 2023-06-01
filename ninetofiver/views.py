@@ -174,7 +174,7 @@ class ContractAutocomplete(autocomplete.Select2QuerySetView):
         qs = Contract.objects.all()
 
         if self.q:
-            qs = qs.filter(name__istartswith=self.q)
+            qs = qs.filter(name__icontains=self.q)
 
         return qs
 

@@ -27,5 +27,5 @@ from dal import autocomplete
 class PerformanceContractForm(forms.ModelForm):
     class Meta:
         model = Performance
-        fields = "__all__"
+        fields = ("contract",)
         widgets = { "contract": autocomplete.ModelSelect2(url='contract-autocomplete')}    
