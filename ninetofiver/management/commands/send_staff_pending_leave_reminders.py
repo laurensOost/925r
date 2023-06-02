@@ -24,20 +24,26 @@ class Command(BaseCommand):
         log.info('%s pending leave(s) found' % pending_leave_count)
 
         if pending_leave_count:
-            users = get_users_with_permission(models.PERMISSION_RECEIVE_PENDING_LEAVE_REMINDER)
+            recipients = get_users_with_permission(models.PERMISSION_RECEIVE_PENDING_LEAVE_REMINDER)
 
-            for user in users:
-                if user.email:
-                    log.info('Sending reminder to %s' % user.email)
+            for recipient in recipients:
+                recipient_pending_leaves = []
+                recipient_company = models.EmploymentContract.objects.get(user=recipient).company
+                for leave in pending_leaves:
+                    user_company = models.EmploymentContract.objects.get(user=leave.user).company
+                    if user_company == recipient_company:
+                        recipient_pending_leaves.append(leave)
+                if recipient.email:
+                    log.info('Sending reminder to %s' % recipient.email)
 
                     send_mail(
-                        user.email,
+                        recipient.email,
                         _('Pending leave awaiting your approval'),
                         'ninetofiver/emails/pending_leave_reminder.pug',
                         context={
-                            'user': user,
-                            'leaves': pending_leaves,
+                            'user': recipient,
+                            'leaves': recipient_pending_leaves,
                             'leave_ids': ','.join([str(x.id) for x in pending_leaves]),
-                            'leave_count': pending_leave_count,
+                            'leave_count': len(recipient_pending_leaves),
                         }
                     )
