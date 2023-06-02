@@ -68,7 +68,7 @@
     integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
   <script>
     const asc = [false,false,false,false]
-    $("th").click(() => {
+    $("th").click((e) => {
       const index = parseInt(e.currentTarget.attributes["i"].value)
       let rows = $("#results").find("tr:gt(0)").toArray().sort(comparer(index))
       asc[index] = !asc[index]

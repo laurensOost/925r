@@ -62,7 +62,7 @@ def send_request(s:requests.Session,url:str) -> requests.Response:
     print(f"[I] Request to {url} successful")
     
     # move to other URLs found
-    links = re.findall(r'<th.+?><a href="(.+?)">',r.text,flags=re.MULTILINE)
+    links = re.findall(r'<th.*?><a href="(.+?)">',r.text,flags=re.MULTILINE)
     for l in links:
         send_request(s,f"{base_url}{l}")
 
