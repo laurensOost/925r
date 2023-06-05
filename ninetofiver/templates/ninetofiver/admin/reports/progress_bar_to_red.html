@@ -1,6 +1,9 @@
 <div
     class="progress"
     style="min-width: 150px;"
+    {% if value is not None %}
+    data-toggle="tooltip" data-placement="top" title="{{ value }}%"
+    {% endif %}
 >
     {% if value is not None %}
         <div
@@ -14,11 +17,20 @@
                 {% endif %}
             "
             role="progressbar"
-            style="width: {{ value }}%;"
+            style="width: {% if value is 0.00 %}100{% else  %}{{value}}{% endif %}%;"
         >
             {{ value }}%
         </div>
     {% else %}
+    <div
+    class="progress-bar"
+    role="progressbar"
+    aria-valuenow="0"
+    aria-valuemin="0" 
+    aria-valuemax="100"
+    style="width: 100%; background-color: #e9ecef; color:black;"
+    >
         None
+        </div>
     {% endif %}
 </div>
