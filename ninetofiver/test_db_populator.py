@@ -12,7 +12,7 @@ from django_countries import countries
 from ninetofiver.models import Timesheet, WorkSchedule, Leave, LeaveType, LeaveDate, Company, ContractGroup,\
     ContractRole, ContractUser, ProjectContract, SupportContract, PerformanceType, ActivityPerformance, Location,\
     ConsultancyContract, ApiKey, ContractLogType, EmploymentContractType, EmploymentContract, Holiday, Whereabout, \
-    TrainingType, Invoice
+    TrainingType, Invoice, UserTraining, Training
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +69,8 @@ class TestDBPupulator:
         self.perf_types = []
         self.timesheets = []
         self.training_types = []
+        self.user_trainings = []
+        self.trainings = []
         self.users = []
         self.whereabouts = []
         self.work_schedules = []
@@ -189,6 +191,7 @@ class TestDBPupulator:
                 email='test_' + str(i) + '@mail.com',
                 first_name="User" + str(i),
                 last_name="Inuit",
+                is_active=random.choice([True, True, True, False]),
             )
             usr.save()
             self.users.append(usr)
@@ -478,3 +481,26 @@ class TestDBPupulator:
             tt.save()
             self.training_types.append(tt)
         xprint(" - TrainingType:", len(self.training_types))
+
+        for user in self.users:
+            ut = UserTraining(
+                user = user
+            )
+            ut.save()
+            self.user_trainings.append(ut)
+        xprint(" - UserTraining:", len(self.user_trainings))
+
+        for i in range(1, 20):
+            training = Training(
+                user_training = random.choice(self.user_trainings),
+                training_type = random.choice(self.training_types)
+            )
+            training.save()
+            self.trainings.append(training)
+        xprint(" - Training:", len(self.trainings))
+        
+        # add birth_date to users in user_info table
+        for user in self.users:
+            user.userinfo.birth_date = get_random_date(datetime.date(1970, 1, 1), datetime.date(2005, 1, 1))
+            user.userinfo.save()
+        xprint(" - Userinfo: birth_dates added")
