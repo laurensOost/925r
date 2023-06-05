@@ -369,10 +369,12 @@ def admin_report_timesheet_overview_view(request):
     if company and year:
         period_start, period_end = month_date_range(year, month) if month else (date(year, 1, 1), date(year, 12, 31))
         timesheets = timesheets.filter(Q(user__employmentcontract__ended_at__isnull=True,
-                                         user__employmentcontract__started_at__lte=period_end) |
+                                         user__employmentcontract__started_at__lte=period_end,
+                                         user__employmentcontract__company__id=company) |
                                        Q(user__employmentcontract__ended_at__isnull=False,
                                          user__employmentcontract__ended_at__gte=period_start,
-                                         user__employmentcontract__started_at__lte=period_end))
+                                         user__employmentcontract__started_at__lte=period_end,
+                                         user__employmentcontract__company__id=company))
 
     data = []
     for timesheet in timesheets:
