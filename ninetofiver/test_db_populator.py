@@ -443,20 +443,36 @@ class TestDBPupulator:
         xprint(" - Whereabout:", len(self.whereabouts))
 
         for i, user in enumerate(self.users):
-            company = self.companies[i % len(self.companies)]
+            company_index = i % len(self.companies)
+            company = self.companies[company_index]
+            prev_company = self.companies[company_index - 1 if company_index > 0 else len(self.companies)-1] # grab another company so we can create an expired contract
+            
             if not company.internal:
                 continue
-
+            while not prev_company.internal:
+                company_index = company_index - 1 if company_index > 0 else len(self.companies)-1
+                prev_company = self.companies[company_index]
             ec = EmploymentContract(
                 user=user,
                 company=company,
                 employment_contract_type=self.employment_contract_type[i % len(self.employment_contract_type)],
                 work_schedule=self.work_schedules[i % len(self.work_schedules)],
-                started_at=get_random_date(datetime.date(2017, 1, 1), datetime.date(2021, 1, 1)),
-                ended_at=get_random_date(datetime.date(2021, 2, 2), datetime.date(2030, 1, 1)),
+                started_at=get_random_date(datetime.date(2021, 1, 2), datetime.date(2024, 1, 1)),
+                ended_at=get_random_date(datetime.date(2024, 2, 2), datetime.date(2030, 1, 1)),
             )
             ec.save()
+
+            ec_exp = EmploymentContract(
+                user=user,
+                company=prev_company,
+                employment_contract_type=self.employment_contract_type[i % len(self.employment_contract_type)],
+                work_schedule=self.work_schedules[i % len(self.work_schedules)],
+                started_at=get_random_date(datetime.date(2012, 1, 1), datetime.date(2018, 1, 1)),
+                ended_at=get_random_date(datetime.date(2018, 2, 2), datetime.date(2021, 1, 1)),
+            )
+            ec_exp.save() # save an expired contract
             self.employment_contract.append(ec)
+            self.employment_contract.append(ec_exp)
         xprint(" - EmploymentContract:", len(self.employment_contract))
 
         for contract in self.contracts:
