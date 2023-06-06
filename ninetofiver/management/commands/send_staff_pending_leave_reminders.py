@@ -30,26 +30,23 @@ class Command(BaseCommand):
             )
             for recipient in recipients:
                 recipient_pending_leaves = []
-                recipient_company = (
+                recipient_employment_contract = (
                     models.EmploymentContract.objects.filter(
                         Q(user=recipient)
                         & Q(started_at__lte=date.today())
                         & (Q(ended_at__gte=date.today()) | Q(ended_at__isnull=True))
                     )
-                    .first()
-                    .company
                 )
+                if recipient_employment_contract.exists():
+                    recipient_company = recipient_employment_contract.first().company
                 for leave in pending_leaves:
-                    user_company = (
-                        models.EmploymentContract.objects.filter(
-                            Q(user=leave.user)
-                            & Q(started_at__lte=date.today())
-                            & (Q(ended_at__gte=date.today()) | Q(ended_at__isnull=True))
-                        )
-                        .first()
-                        .company
+                    user_employment_contract = models.EmploymentContract.objects.filter(
+                        Q(user=leave.user)
+                        & Q(started_at__lte=date.today())
+                        & (Q(ended_at__gte=date.today()) | Q(ended_at__isnull=True))
                     )
-
+                    if user_employment_contract.exists():
+                        user_company = user_employment_contract.first().company
                     if user_company == recipient_company:
                         recipient_pending_leaves.append(leave)
                 if recipient.email:
