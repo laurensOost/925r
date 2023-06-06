@@ -463,7 +463,7 @@ def admin_report_user_leave_group_overview_view(request):
     if from_date and until_date and (until_date >= from_date): # todo: NO AND        
         leave_types = models.LeaveType.objects.all()
         
-        # Grab ALL leave dates, sort them in a dict per user, then by leave type while summing them
+        # Grab leave dates, sort them in a dict per user, then by leave type while summing them
         leave_dates = models.LeaveDate.objects.filter(leave__status=models.STATUS_APPROVED,starts_at__gte=from_date,ends_at__lte=until_date.replace(day=until_date.day+1))
         leave_date_data = {}
         for leave_date in leave_dates: # for each leavedate:
@@ -479,7 +479,8 @@ def admin_report_user_leave_group_overview_view(request):
                     continue
                 skip_user = False
                 for contract in ec:
-                    skip_user = contract.started_at >= from_date and (contract.ended_at is None or contract.ended_at <= until_date) # should handle situations where user is looking up a period where user should be under another company (expired contracts)
+                    logger.debug(contract.started_at >= from_date)
+                    skip_user = contract.started_at > until_date or contract.ended_at <= from_date # should handle situations where user is looking up a period where user should be under another company (expired contracts)
                 if skip_user:
                     logger.debug(f"Skipping entry for user {user.id} because of no valid contract in specified period with selected company {company.id}")
                     continue
