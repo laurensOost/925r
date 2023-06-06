@@ -460,7 +460,7 @@ def admin_report_user_leave_group_overview_view(request):
     until_date = parser.parse(request.GET.get('until_date', None)).date() if request.GET.get('until_date') else None
     data = []
 
-    if from_date and until_date and (until_date >= from_date): # todo: NO AND        
+    if from_date and until_date and (until_date >= from_date):    
         leave_types = models.LeaveType.objects.all()
         
         # Grab leave dates, sort them in a dict per user, then by leave type while summing them
