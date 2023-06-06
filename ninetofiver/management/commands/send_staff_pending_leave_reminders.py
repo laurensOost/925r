@@ -51,7 +51,7 @@ class Command(BaseCommand):
                         user_company = user_employment_contract.first().company
                         if user_company == recipient_company:
                             recipient_pending_leaves.append(leave)
-                if recipient.email:
+                if recipient.email and recipient_pending_leaves:
                     log.info("Sending reminder to %s" % recipient.email)
 
                     send_mail(
