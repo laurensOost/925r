@@ -460,23 +460,38 @@ def admin_report_user_leave_group_overview_view(request):
     until_date = parser.parse(request.GET.get('until_date', None)).date() if request.GET.get('until_date') else None
     data = []
 
-    if group and company and from_date and until_date and (until_date >= from_date): # todo: NO AND        
+    if from_date and until_date and (until_date >= from_date): # todo: NO AND        
         leave_types = models.LeaveType.objects.all()
         
         # Grab ALL leave dates, sort them in a dict per user, then by leave type while summing them
-        leave_dates = models.LeaveDate.objects.filter(leave__status=models.STATUS_APPROVED)
+        leave_dates = models.LeaveDate.objects.filter(leave__status=models.STATUS_APPROVED,starts_at__gte=from_date,ends_at__lte=until_date.replace(day=until_date.day+1))
         leave_date_data = {}
-        for leave_date in leave_dates:
-            user_id = leave_date.leave.user.id
+        for leave_date in leave_dates: # for each leavedate:
+            user = leave_date.leave.user
+            user_id = user.id
+            if(group and not leave_date.leave.user.groups.filter(name=group.name).exists()): # if group is defined and user is not in it, skip
+                logger.debug(f"Skipping entry for user {user.id}, because it is not in group {group.id}")
+                continue
+            if(company): # if company is defined
+                ec = models.EmploymentContract.objects.filter(user=user,company=company) # get all employment contracts which contain the user and the company
+                if(not ec.exists()): # if no contract is found, skip
+                    logger.debug(f"User {user.id} has no contract with company {company.id}")
+                    continue
+                skip_user = False
+                for contract in ec:
+                    skip_user = contract.started_at >= from_date and (contract.ended_at is None or contract.ended_at <= until_date) # should handle situations where user is looking up a period where user should be under another company (expired contracts)
+                if skip_user:
+                    logger.debug(f"Skipping entry for user {user.id} because of no valid contract in specified period with selected company {company.id}")
+                    continue
+
             if(not user_id in leave_date_data):
-                leave_date_data.setdefault(user_id,{"leave_type_hours":{}, "user":leave_date.leave.user})
+                leave_date_data.setdefault(user_id,{"leave_type_hours":{}, "user":leave_date.leave.user,"from_date":from_date,"until_date":until_date})
             for leave_type in leave_types: # create entry for every leave type
                 if(not leave_type.name in leave_date_data[user_id]["leave_type_hours"]):
                     leave_date_data[user_id]["leave_type_hours"].setdefault(leave_type.name,0)
             leave_date_data[user_id]["leave_type_hours"][leave_date.leave.leave_type.name] += sum([Decimal(round((leave_date.ends_at - leave_date.starts_at).total_seconds() / 3600, 2))])
-        for user in leave_date_data.keys():
-            logger.debug(user)
-            data.append(leave_date_data[user])
+        for u in leave_date_data.keys():
+            data.append(leave_date_data[u])
         logger.debug(len(leave_date_data.keys()))
             
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})

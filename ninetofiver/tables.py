@@ -522,9 +522,11 @@ class UserGroupLeaveOverviewTable(BaseTable):
         buttons = []
 
         buttons.append(('<a class="button" href="%(url)s?' +
-                        'user=%(user)s">Leave</a>') % {
+                        'user=%(user)s&from_date=%(from_date)s&until_date=%(until_date)s">Leave</a>') % {
             'url': reverse('admin_report_user_leave_overview'),
             'user': record['user'].id,
+            'from_date':record["from_date"].strftime('%Y-%m-%d'),
+            'until_date':record['until_date'].strftime('%Y-%m-%d')
         })
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
