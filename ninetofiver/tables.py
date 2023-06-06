@@ -498,6 +498,38 @@ class UserRangeInfoTable(BaseTable):
                             footer=render_actions_footer)
 
 
+class UserGroupLeaveOverviewTable(BaseTable):
+    """User leave overview table per group/company."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    user = tables.Column()
+    actions = tables.Column(accessor='user', orderable=False, exclude_from_export=True)
+
+    def __init__(self, *args, **kwargs):
+        """Constructor."""
+        # Create an additional column for every leave type
+        extra_columns = []
+        for leave_type in models.LeaveType.objects.order_by('name'):
+            column = SummedHoursColumn(accessor=A('leave_type_hours.%s' % leave_type.name))
+            extra_columns.append([leave_type.name, column])
+        kwargs['extra_columns'] = extra_columns
+        kwargs['sequence'] = ('user', '...', 'actions')
+        super().__init__(*args, **kwargs)
+
+    def render_actions(self, record):
+        buttons = []
+
+        buttons.append(('<a class="button" href="%(url)s?' +
+                        'user=%(user)s">Leave</a>') % {
+            'url': reverse('admin_report_user_leave_overview'),
+            'user': record['user'].id,
+        })
+
+        return format_html('%s' % ('&nbsp;'.join(buttons)))
+
+
 class UserLeaveOverviewTable(BaseTable):
     """User leave overview table."""
 
