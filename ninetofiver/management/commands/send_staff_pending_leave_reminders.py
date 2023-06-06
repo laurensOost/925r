@@ -39,6 +39,8 @@ class Command(BaseCommand):
                 )
                 if recipient_employment_contract.exists():
                     recipient_company = recipient_employment_contract.first().company
+                else: 
+                    continue
                 for leave in pending_leaves:
                     user_employment_contract = models.EmploymentContract.objects.filter(
                         Q(user=leave.user)
@@ -47,8 +49,8 @@ class Command(BaseCommand):
                     )
                     if user_employment_contract.exists():
                         user_company = user_employment_contract.first().company
-                    if user_company == recipient_company:
-                        recipient_pending_leaves.append(leave)
+                        if user_company == recipient_company:
+                            recipient_pending_leaves.append(leave)
                 if recipient.email:
                     log.info("Sending reminder to %s" % recipient.email)
 
