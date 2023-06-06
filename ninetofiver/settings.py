@@ -366,27 +366,27 @@ class Dev(Base):
 
     # Database
     # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-    # DATABASES = {
-    #     'default': {
-    #         'ENGINE': 'django.db.backends.mysql',
-    #         'HOST': 'localhost',
-    #         'PORT': os.getenv('MYSQL_PORT', '3306'),
-    #         'NAME': os.getenv('MYSQL_DB', 'ninetofiver'),
-    #         'USER': os.getenv('MYSQL_USER', 'ninetofiver'),
-    #         'PASSWORD': os.getenv('MYSQL_PASSWORD', 'ninetofiver'),
-    #         'OPTIONS': {
-    #             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-    #         },
-    #         'CONN_MAX_AGE': 600,
-    #     },
-    # }
-
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': 'mysql',
+            'PORT': os.getenv('MYSQL_PORT', '3306'),
+            'NAME': os.getenv('MYSQL_DB', 'ninetofiver'),
+            'USER': os.getenv('MYSQL_USER', 'ninetofiver'),
+            'PASSWORD': os.getenv('MYSQL_PASSWORD', 'ninetofiver'),
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+            'CONN_MAX_AGE': 600,
+        },
     }
+
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.sqlite3',
+    #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #     }
+    # }
 
     # Logging
     LOGGING = {
@@ -440,6 +440,8 @@ class Dev(Base):
     SILKY_INTERCEPT_PERCENT = 100
 
     REGISTRATION_OPEN = True
+    
+    # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 class Prod(Base):
