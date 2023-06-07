@@ -53,6 +53,14 @@ div
                             data-toggle="tooltip"
                             title="Working"
                         ) W
+    if 'whereabout_home' in value.availability
+        h5(class='my-0')
+            span(
+                style="background:#1693A5;opacity:0.75;"
+                class="badge"
+                data-toggle="tooltip"
+                title="Working"
+            ) W
     if not value.availability
         h5(class='my-0')
             span(
@@ -61,3 +69,4 @@ div
                 data-toggle="tooltip"
                 title="Working"
             ) W
+    
