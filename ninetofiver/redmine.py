@@ -47,7 +47,13 @@ def get_redmine_project_choices():
 
     if redmine:
         res = redmine.project.all()
-        choices += sorted([[x.id, x.name] for x in res], key=lambda x: x[1].lower())
+        projects = []
+        for x in res:
+            n = ""
+            if("parent" in dir(x)): # show parent project in name
+                n = f"[{x.parent}] "
+            projects.append([x.id,f"{n}{x.name}"])
+        choices += sorted(projects, key=lambda x: x[1].lower())
 
     return choices
 
