@@ -18,3 +18,4 @@ docs/_build/
 .env
 .coverage
 /scripts/docker/mysql-init/
+test_results.html
