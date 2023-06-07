@@ -29,6 +29,7 @@ from polymorphic.admin import PolymorphicParentModelAdmin
 from rangefilter.filter import DateRangeFilter
 from rangefilter.filter import DateTimeRangeFilter
 from django.shortcuts import render
+from django_select2 import forms as select2_widgets
 
 from ninetofiver import models, redmine
 from ninetofiver.filters import CompanyFilter
@@ -455,7 +456,7 @@ class ContractForm(forms.ModelForm):
         self.fields['redmine_id'].label = 'Redmine project'
         redmine_project_choices = cache.get_or_set('contract_admin_redmine_id_choices',
                                                    redmine.get_redmine_project_choices)
-        self.fields['redmine_id'].widget = forms.Select(choices=redmine_project_choices)
+        self.fields['redmine_id'].widget = select2_widgets.Select2Widget(choices=redmine_project_choices)
 
 
 class ContractResource(ModelResource):
