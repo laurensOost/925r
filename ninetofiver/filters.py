@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class CompanyFilter(SimpleListFilter):
     title = 'company'
     parameter_name = 'company'
+    template = 'django_admin_listfilter_dropdown/dropdown_filter.html'
 
     def lookups(self, request, model_admin):
         companies = model_admin.model.objects.raw(f"""
