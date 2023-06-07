@@ -526,8 +526,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                                   Prefetch('performance_types', queryset=(models.PerformanceType.objects
                                                                           .non_polymorphic())),
                                   Prefetch('attachments', queryset=(models.Attachment.objects
-                                                                    .non_polymorphic())))
-                .distinct())
+                                                                    .non_polymorphic()))))
 
     def contract_users(obj):
         return format_html('<br>'.join(str(x) for x in list(obj.contractuser_set.all())))
