@@ -1,4 +1,6 @@
 - load format_duration
+- load split
+- load startswith
 
 div(class='row')
     div(class='col-4')
@@ -74,7 +76,14 @@ div(class='row')
             tbody
                 for month_data in record.months
                     tr
-                        td {{ month_data.month }}
+                        {% with month_data.month|split:"-" as date %}
+                        td
+                            {% if date.1|startswith:"0" %}
+                            a(href="{% url 'admin_report_timesheet_contract_overview' %}?year={{ date.0 }}&month={{ date.1|slice:'1:' }}") {{ date.0 }}-{{ date.1 }}
+                            {% else %}
+                            a(href="{% url 'admin_report_timesheet_contract_overview' %}?year={{ date.0 }}&month={{ date.1 }}") {{ date.0 }}-{{ date.1 }}
+                            {% endif %}
+                        {% endwith %}
                         td(class='text-nowrap') {{ month_data.performed_hours | format_duration }}
                         td
                             - include 'ninetofiver/admin/reports/progress_bar.html' with value=month_data.performed_pct
