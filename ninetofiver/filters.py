@@ -522,3 +522,23 @@ class AdminReportExpiringUserTrainingOverviewFilter(FilterSet):
     class Meta:
         model = models.Training
         fields = {}
+        
+class AdminReportContractLogsOverviewFilter(FilterSet):
+
+    contract = (django_filters.ModelChoiceFilter(
+        label='Contract',
+        queryset=models.Contract.objects.filter(active=True),
+        distinct=True,
+        widget=select2_widgets.Select2Widget,
+    ))
+    
+    logtypes = (django_filters.ModelChoiceFilter(
+        label='Log Type',
+        queryset=models.ContractLogType.objects.all(),
+        distinct=True,
+        widget=select2_widgets.Select2Widget,
+    ))
+
+    class Meta:
+        model = models.ContractLog
+        fields = {}

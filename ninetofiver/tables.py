@@ -1035,6 +1035,11 @@ class ProjectContractOverviewTable(BaseTable):
                                               label="+",
                                               contract_id=record['contract'].id)
                        )
+        buttons.append(('<a class="button" target="_blank" href="%(url)s?' +
+                        'contract=%(contract)s">Logs</a>') % {
+            'url': reverse('admin_report_contract_logs_overview_view'),
+            'contract': record['contract'].id,
+        })
 
         attachment_list = ""
         for attachment in record['attachments']:
@@ -1222,3 +1227,18 @@ class ExpiringUserTrainingOverviewTable(BaseTable):
         ))
 
         return format_html('%s' % ('&nbsp;'.join(buttons)))
+
+class ContractLogOverviewTable(BaseTable):
+    """Timesheet contract overview table."""
+
+    class Meta(BaseTable.Meta):
+        pass
+
+    contract = tables.LinkColumn(
+        viewname="admin:ninetofiver_contract_change",
+        args=[A("contract.id")],
+        order_by=["contract.name"],
+    )
+    date = tables.Column()
+    log = tables.Column()
+    log_type = tables.Column()

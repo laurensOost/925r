@@ -354,7 +354,60 @@ def admin_report_timesheet_contract_overview_view(request):
 
     return render(request, 'ninetofiver/admin/reports/timesheet_contract_overview.pug', context)
 
+@staff_member_required
+def admin_report_contract_logs_overview_view(request):
+    """Contract logs overview report."""
+    fltr = filters.AdminReportContractLogsOverviewFilter(
+        request.GET, models.ContractLog.objects
+    )
+    contract = (
+        get_object_or_404(models.Contract.objects, pk=request.GET.get("contract", None))
+        if request.GET.get("contract")
+        else None
+    )
+    logtypes = (
+        get_object_or_404(
+            models.ContractLogType.objects, pk=request.GET.get("logtypes", None)
+        )
+        if request.GET.get("logtypes")
+        else None
+    )
+    data = []
+    if contract:
+        logs = fltr.qs.filter(contract=contract)
+        if logtypes:
+            logs = logs.filter(logtype=logtypes)
+        for log in logs:
+            data.append(
+                {
+                    "log": log.description,
+                    "contract": contract,
+                    "log_type": log.contract_log_type,
+                    "date": log.date,
+                }
+            )
+    config = RequestConfig(
+        request,
+        paginate={"per_page": pagination.CustomizablePageNumberPagination.page_size},
+    )
+    table = tables.ContractLogOverviewTable(data)
+    config.configure(table)
 
+    export_format = request.GET.get("_export", None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response("table.{}".format(export_format))
+
+    context = {
+        "title": _("Contract logs overview"),
+        "table": table,
+        "filter": fltr,
+    }
+
+    return render(
+        request, "ninetofiver/admin/reports/timesheet_contract_overview.pug", context
+    )
+    
 @staff_member_required
 def admin_report_timesheet_overview_view(request):
     """Timesheet overview report."""
