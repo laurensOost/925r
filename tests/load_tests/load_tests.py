@@ -34,7 +34,7 @@ def main():
     if(len(csrfReg) == 0):
         print("Couldn't find a CSRF token, exitting...")
         exit(1)
-    login = s.post(f"{base_url}/admin/login/?next=/admin/",{"csrfmiddlewaretoken":csrfReg[0],"username":su_name,"password":su_pass,"next":"/admin/"}) # ? Try logging in; will the cookie survive 'till the end?
+    login = s.post(f"{base_url}/admin/login/?next=/admin/",{"csrfmiddlewaretoken":csrfReg[0],"username":su_name,"password":su_pass,"next":"/admin/"},headers={"Referer":f"{base_url}/admin/"}) # ? Try logging in; will the cookie survive 'till the end?
     results.append({"availability":{"failed":login.status_code > 399,"code":login.status_code}, "speed":{"response_time":login.elapsed.total_seconds()}, "url":base_url+"/login"})
     if(login.status_code>399):
         print(f"[I] Request to login failed with code {login.status_code}")
