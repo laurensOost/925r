@@ -462,14 +462,6 @@
             "index": "pypi",
             "version": "==5.0.1"
         },
-        "django-sql-explorer": {
-            "hashes": [
-                "sha256:d9a36461c70184fa1f54d038b20d6b08b40bb1709448a827123ecee5cc6dbbab",
-                "sha256:fd3b92b5fdbcb4ecda27454eb70510a44f29176ca43c04dee704503e53b90cf3"
-            ],
-            "index": "pypi",
-            "version": "==2.4.1"
-        },
         "django-tables2": {
             "hashes": [
                 "sha256:50762bf3d7c61a4eb70e763c3e278650d7266bb78d0497fc8fafcf4e507c9a64",
