@@ -1,0 +1,14 @@
+- load format_duration
+
+table(class='table table-sm table-striped my-0 mt-1')
+    thead
+        tr
+            th Fixed fee
+            th Invoiced amount
+            th Invoiced ratio
+    tbody
+        tr
+            td {{ record.contract.fixed_fee }}
+            td {{ record.invoiced_amount }}
+            td
+                - include 'ninetofiver/admin/reports/progress_bar_to_green.html' with value=record.invoiced_pct

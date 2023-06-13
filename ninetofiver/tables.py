@@ -1151,42 +1151,52 @@ class ProjectContractBudgetOverviewTable(BaseTable):
         pass
 
     contract = tables.LinkColumn(
-        viewname='admin:ninetofiver_contract_change',
-        args=[A('contract.id')],
-        accessor='contract',
-        order_by=['contract.name'],
-        attrs={
-            'th': {
-                'style': 'width: 15%; min-width: 150px;'
-            }
-        }
+        viewname="admin:ninetofiver_contract_change",
+        args=[A("contract.id")],
+        accessor="contract",
+        order_by=["contract.name"],
+        attrs={"th": {"style": "width: 15%; min-width: 150px;"}},
     )
-    performed = BarChartComparisonColumn(yLabel='Hours', accessor='estimated_pct', dataset=[{
-        'label': 'Performed hours',
-        'accessor': A('performed_hours')
-    }, {
-        'label': 'Estimated hours',
-        'accessor': A('estimated_hours')
-    }])
-    invoiced = BarChartComparisonColumn(yLabel='Cost (€)', accessor='invoiced_pct', dataset=[{
-        'label': 'Invoiced amount',
-        'accessor': A('invoiced_amount')
-    }, {
-        'label': 'Fixed fee',
-        'accessor': A('contract.fixed_fee')
-    }])
-    actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
+    invoiced = tables.TemplateColumn(
+        template_name="ninetofiver/admin/reports/project_budget_invoiced.pug",
+        accessor="",
+        order_by=["-invoiced_pct"],
+    )
+    performed = tables.TemplateColumn(
+        template_name="ninetofiver/admin/reports/project_budget_performed.pug",
+        accessor="",
+        order_by=["-estimated_pct"],
+    )
+    last_change = tables.DateColumn(
+        "d/m/Y",
+        accessor="contract.last_performance.date",
+        order_by=["contract.last_performance.date"]
+    )
+    # actions = tables.Column(accessor='contract', orderable=False, exclude_from_export=True)
 
-    def render_actions(self, record):
+    def render_contract(self, record):
         buttons = []
 
-        buttons.append(('<a class="button" href="%(url)s?' +
-                        'contract=%(contract)s">Details</a>') % {
-            'url': reverse('admin_report_project_contract_overview'),
-            'contract': record['contract'].id,
-        })
+        buttons.append(
+            ('<a href="%(url)s' + '%(contract_id)s">%(contract)s</a><br><br>')
+            % {
+                "url": reverse("admin:ninetofiver_contract_changelist"),
+                "contract_id": record["contract"].id,
+                "contract": record["contract"],
+            }
+        )
+        buttons.append(
+            (
+                '<a class="button" href="%(url)s?'
+                + 'contract_ptr=%(contract)s">Details</a>'
+            )
+            % {
+                "url": reverse("admin_report_project_contract_overview"),
+                "contract": record["contract"].id,
+            }
+        )
 
-        return format_html('%s' % ('&nbsp;'.join(buttons)))
+        return format_html("%s" % ("&nbsp;".join(buttons)))
 
 
 class ExpiringUserTrainingOverviewTable(BaseTable):

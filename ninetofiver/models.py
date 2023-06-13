@@ -789,6 +789,11 @@ class Contract(BaseModel):
     def get_absolute_url_view_name(self):
         """Get the view name used for generating an absolute URL."""
         return super().get_absolute_url_view_name(Contract)
+    
+    @property
+    def last_performance(self):
+        """Return the last performance of the contract."""
+        return Performance.objects.filter(contract=self).order_by('-date').first()
 
 
 class ProjectContract(Contract):

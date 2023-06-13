@@ -1,0 +1,16 @@
+- load format_duration
+- load split
+- load startswith
+
+table(class='table table-sm table-striped my-0 mt-1')
+    thead
+        tr
+            th Estimated
+            th Performed
+            th Ratio
+    tbody
+        tr
+            td(class='text-nowrap') {{ record.estimated_hours | format_duration }}
+            td(class='text-nowrap') {{ record.performed_hours | format_duration }}
+            td
+                - include 'ninetofiver/admin/reports/progress_bar_to_red.html' with value=record.estimated_pct
