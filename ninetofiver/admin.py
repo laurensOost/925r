@@ -336,7 +336,7 @@ WHERE ninetofiver_leave.user_id = {obj.user_id};
         ('leavedate__ends_at', DateTimeRangeFilter)
     )
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'leave_type__name', 'status',
-                     'leavedate__starts_at', 'leavedate__ends_at', 'description', 'company')
+                     'leavedate__starts_at', 'leavedate__ends_at', 'description',)
     inlines = [
         LeaveDateInline,
     ]
