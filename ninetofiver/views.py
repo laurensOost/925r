@@ -1862,8 +1862,8 @@ def admin_report_internal_availability_overview_view(request):
                 for issue in user_data['issues']['results']:
                     issue['internal_status'] = []
                     if date == datetime.today().date():
-                        if(
-                           (issue.start_date <= date)
+                        if(issue.start_date
+                           and (issue.start_date <= date)
                            and (issue.updated_on >= datetime.now() - timedelta(days=1))
                            # issue.status.id 2 for IP, 9 for RFUT
                            ):
