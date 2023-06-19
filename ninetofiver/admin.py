@@ -785,7 +785,7 @@ class WhereaboutAdmin(admin.ModelAdmin):
         ('ends_at', DateTimeRangeFilter)
     )
     search_fields = ('timesheet__user__username', 'timesheet__user__first_name', 'timesheet__user__last_name',
-                     'location', 'starts_at', 'ends_at', 'description')
+                     'location__name', 'starts_at', 'ends_at', 'description')
     ordering = ('-starts_at',)
     raw_id_fields = ('timesheet',)
 
@@ -1092,7 +1092,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         ('period_starts_at', DateTimeRangeFilter),
         ('period_ends_at', DateTimeRangeFilter),
     )
-    search_fields = ('contract', 'reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
+    search_fields = ('contract__name', 'reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
                      'description', 'date')
     inlines = [
         InvoiceItemInline,
