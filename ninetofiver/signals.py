@@ -48,8 +48,12 @@ def on_leave_pre_save(sender, instance, created=False, **kwargs):
         old_status = dirty.get('status', None)
         new_status = instance.status
         statuses = [models.STATUS_APPROVED, models.STATUS_REJECTED]
-
-        if (old_status != new_status) and (new_status in statuses):
+        
+        description_text = instance.description.split()
+        
+        if "#test" in description_text:
+            pass
+        elif (old_status != new_status) and (new_status in statuses):
             if instance.user.email:
                 send_mail(
                     instance.user.email,
