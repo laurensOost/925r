@@ -1860,14 +1860,16 @@ def admin_report_internal_availability_overview_view(request):
 
             if 'results' in user_data['issues']:
                 for issue in user_data['issues']['results']:
+                    redmine_con = redmine.get_redmine_connector()
+                    fetch_issue = redmine_con.issue.get(issue.id)
                     issue['internal_status'] = []
                     if date == datetime.today().date():
-                        if(issue.start_date
-                           and (issue.start_date <= date)
-                           and (issue.updated_on >= datetime.now() - timedelta(days=1))
+                        if (fetch_issue.start_date
+                           and (fetch_issue.start_date <= date)
+                           and (fetch_issue.updated_on >= datetime.now() - timedelta(days=1))
                            # issue.status.id 2 for IP, 9 for RFUT
                            ):
-                            if issue.status.id in [2, 9]:
+                            if fetch_issue.status.id in [2, 9]:
                                 user_day_data['availability'].append('green')
                                 issue['internal_status'] = 'green'
                             else:
@@ -1880,8 +1882,8 @@ def admin_report_internal_availability_overview_view(request):
                         if(
                            # no expected_ready atm but is that for our estimates (we can use est hours) or client's
                            # what is 'on hold'?
-                           ('due_date' in issue and issue.due_date >= date)
-                           and (issue.updated_on >= date - timedelta(days=1))
+                           ('due_date' in fetch_issue and fetch_issue.due_date >= date)
+                           and (fetch_issue.updated_on >= date - timedelta(days=1))
                            ):
                             user_day_data['availability'].append('green')
                             issue['internal_status'] = 'green'
