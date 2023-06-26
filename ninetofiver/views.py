@@ -1864,7 +1864,7 @@ def admin_report_internal_availability_overview_view(request):
                     fetch_issue = redmine_con.issue.get(issue.id)
                     issue['internal_status'] = []
                     if date == datetime.today().date():
-                        if ("start_date" in fetch_issue
+                        if (getattr(fetch_issue, "start_date", None)
                             and fetch_issue.start_date
                             and (fetch_issue.start_date <= date)
                             and (fetch_issue.updated_on >= datetime.now() - timedelta(days=1))
