@@ -1864,11 +1864,12 @@ def admin_report_internal_availability_overview_view(request):
                     fetch_issue = redmine_con.issue.get(issue.id)
                     issue['internal_status'] = []
                     if date == datetime.today().date():
-                        if (fetch_issue.start_date
-                           and (fetch_issue.start_date <= date)
-                           and (fetch_issue.updated_on >= datetime.now() - timedelta(days=1))
-                           # issue.status.id 2 for IP, 9 for RFUT
-                           ):
+                        if ("start_date" in fetch_issue
+                            and fetch_issue.start_date
+                            and (fetch_issue.start_date <= date)
+                            and (fetch_issue.updated_on >= datetime.now() - timedelta(days=1))
+                            # issue.status.id 2 for IP, 9 for RFUT
+                            ):
                             if fetch_issue.status.id in [2, 9]:
                                 user_day_data['availability'].append('green')
                                 issue['internal_status'] = 'green'
