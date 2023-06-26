@@ -940,7 +940,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     )
     list_filter = (
         PolymorphicChildModelFilter,
-        ContractListFilter,
+        AutocompleteFilterFactory("contract", "contract"),
         AutocompleteFilterFactory('company', 'contract__company'),
         AutocompleteFilterFactory('customer', 'contract__customer'),
         AutocompleteFilterFactory('user', 'timesheet__user'),
