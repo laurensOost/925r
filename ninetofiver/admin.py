@@ -371,11 +371,12 @@ class UserInfoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Constructor."""
         super().__init__(*args, **kwargs)
-
-        self.fields['redmine_id'].label = 'Redmine user'
-        redmine_user_choices = cache.get_or_set('user_info_admin_redmine_id_choices',
-                                                redmine.get_redmine_user_choices)
-        self.fields['redmine_id'].widget = forms.Select(choices=redmine_user_choices)
+        
+        if "redmine_id" in self.fields:
+            self.fields['redmine_id'].label = 'Redmine user'
+            redmine_user_choices = cache.get_or_set('user_info_admin_redmine_id_choices',
+                                                    redmine.get_redmine_user_choices)
+            self.fields['redmine_id'].widget = forms.Select(choices=redmine_user_choices)
 
 
 @admin.register(models.UserInfo)
@@ -402,6 +403,7 @@ class PerformanceTypeAdmin(admin.ModelAdmin):
 @admin.register(models.ContractGroup)
 class ContractGroupAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'name',)
+    search_fields = ('name',)
 
 
 @admin.register(models.ContractLogType)
@@ -453,12 +455,13 @@ class ContractForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Constructor."""
         super().__init__(*args, **kwargs)
-
-        self.fields['redmine_id'].label = 'Redmine project'
-        redmine_project_choices = cache.get_or_set('contract_admin_redmine_id_choices',
-                                                   redmine.get_redmine_project_choices)
-        self.fields['redmine_id'].widget = select2_widgets.Select2Widget(choices=redmine_project_choices)
-
+        
+        if "redmine_id" in self.fields:
+            self.fields['redmine_id'].label = 'Redmine project'
+            redmine_project_choices = cache.get_or_set('contract_admin_redmine_id_choices',
+                                                    redmine.get_redmine_project_choices)
+            self.fields['redmine_id'].widget = select2_widgets.Select2Widget(choices=redmine_project_choices)
+        
 
 class ContractResource(ModelResource):
     """Contract resource."""
