@@ -2,6 +2,7 @@
 import logging
 from datetime import date
 
+from django.conf import settings
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from adminsortable.admin import SortableAdmin
 from django import forms
@@ -30,6 +31,7 @@ from rangefilter.filter import DateRangeFilter
 from rangefilter.filter import DateTimeRangeFilter
 from django.shortcuts import render
 from django_select2 import forms as select2_widgets
+from django.utils.safestring import mark_safe
 
 from ninetofiver import models, redmine
 from ninetofiver.filters import CompanyFilter
@@ -975,7 +977,11 @@ class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                                                          'contract__customer',
                                                          'timesheet',
                                                          'timesheet__user')
-
+    def link(self, obj):
+        return mark_safe(f'<a href="{settings.BASE_URL}/admin/ninetofiver/performance/{obj.id}/change/">{obj}</a>')        
+    link.allow_tags = True
+    link.short_description = "Performance"
+    
     def duration(self, obj):
         return obj.activityperformance.duration
 
@@ -997,7 +1003,7 @@ class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
     )
     list_filter = (
         PolymorphicChildModelFilter,
-        ContractListFilter,
+        AutocompleteFilterFactory("contract", "contract"),
         AutocompleteFilterFactory('company', 'contract__company'),
         AutocompleteFilterFactory('customer', 'contract__customer'),
         AutocompleteFilterFactory('user', 'timesheet__user'),
@@ -1008,7 +1014,7 @@ class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
         ('activityperformance__performance_type', RelatedDropdownFilter),
     )
     list_display = (
-        '__str__',
+        'link',
         'timesheet',
         'date',
         'contract',
