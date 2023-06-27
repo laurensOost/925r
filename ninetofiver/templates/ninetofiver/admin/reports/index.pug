@@ -82,4 +82,4 @@ block content
             a(href="{% url 'admin_report_resource_availability_overview' %}?from_date={{ today|date:'Y-m-d' }}&until_date={{ next_month|date:'Y-m-d' }}") Resource availability overview
         tr(scope="row")
           th
-            a(href="{% url 'admin_report_internal_availability_overview_view' %}?date={{ today|date:'Y-m-d' }}") Internal availability overview
+            a(href="{% url 'admin_report_internal_availability_overview_view' %}?date={{ today|date:'Y-m-d' }}&user={{ user }}") Internal availability overview

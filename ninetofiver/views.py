@@ -270,12 +270,15 @@ def admin_timesheet_activate_view(request, timesheet_pk):
 @staff_member_required
 def admin_report_index_view(request):
     """Report index."""
+
+    user = request.user.id
     context = {
         'title': _('Reports'),
         'today': date.today(),
         'last_week': date.today() - relativedelta(weeks=1),
         'next_month': date.today() + relativedelta(months=1),
         'two_months_from_now': date.today() + relativedelta(months=2),
+        'user': user,
     }
 
     return render(request, 'ninetofiver/admin/reports/index.pug', context)
