@@ -306,7 +306,8 @@ WHERE ninetofiver_leave.user_id = {obj.user_id};
 
     def item_actions(self, obj):
         """Actions."""
-        actions = []
+        actions = ['<a class="button" href="%s">%s</a>' %
+                           (reverse('admin_leave_bulk_edit_dates', kwargs={'leave_pk': obj.id}), _('Dates'))]
 
         if obj.status == models.STATUS_PENDING:
             actions.append('<a class="button" href="%s?return=true">%s</a>' %
