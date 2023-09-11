@@ -606,7 +606,7 @@ class ContractParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
         ('ends_at', DateRangeFilter),
         'active'
     )
-    search_fields = ('name', 'description', 'company__name', 'customer__name', 'contractuser__user__first_name',
+    search_fields = ('id', 'name', 'description', 'company__name', 'customer__name', 'contractuser__user__first_name',
                      'contractuser__user__last_name', 'contractuser__user__username', 'contractusergroup__group__name',
                      'performance_types__name')
     ordering = ('name', 'company', 'starts_at', 'ends_at', '-customer',)
