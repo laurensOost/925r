@@ -2,6 +2,7 @@
 <form action="" method="post">
   {% csrf_token %}
   <input type="hidden" name="action" value="admin_leave_bulk_edit_dates" />
+  <input type="hidden" name="do_action" value="yes" />
   <p>This form will overwrite <strong>all</strong> LeaveDates for a specified Leave with the date range specified in this form.</p>
   <div>
     {{ form }}

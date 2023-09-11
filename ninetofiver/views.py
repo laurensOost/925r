@@ -205,7 +205,21 @@ def admin_leave_approve_view(request, leave_pk):
 @staff_member_required
 def admin_leave_bulk_edit_dates(request, leave_pk):
     leave = models.Leave.objects.get(pk=leave_pk)
-    if request.method == "POST":
+    if request.POST.get("do_action"):
+        form = LeaveDatePrefillForm(data=request.POST, user=leave.user)
+        if form.is_valid():
+            leavedates = models.LeaveDate.objects.filter(leave=leave)
+            return render(
+                request,
+                "admin/actions/action_bulkchange_leaves_confirm.html",
+                {
+                    "title": "Confirm the change",
+                    "leavedates": leavedates,
+                    "leave":leave,
+                    "form": form,
+                },
+            )
+    elif request.POST.get("confirm"):
         form = LeaveDatePrefillForm(data=request.POST, user=leave.user)
         if form.is_valid():
             #* delete all previous leavedates
