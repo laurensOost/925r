@@ -15,8 +15,8 @@ from django_tables2.utils import A
 
 from ninetofiver import models
 from ninetofiver.utils import month_date_range, format_duration, dates_in_range
-import logging
 from math import floor
+
 class TemplateMixin(object):
     """
     Inspired by TemplateColumn, this can be used to add wrapping template to any column as mixin.
