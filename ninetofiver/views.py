@@ -527,10 +527,13 @@ def admin_report_timesheet_overview_view(request):
         date_range = timesheet.get_date_range()
         range_info = calculation.get_range_info([timesheet.user], date_range[0], date_range[1])
         range_info = range_info[timesheet.user.id]
+        range_info_to_day = calculation.get_range_info([timesheet.user], date_range[0], datetime.now().date())
+        range_info_to_day = range_info_to_day[timesheet.user.id]
 
         data.append({
             'timesheet': timesheet,
             'range_info': range_info,
+            'range_info_to_day': range_info_to_day,
         })
 
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size * 4})
