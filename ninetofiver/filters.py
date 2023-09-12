@@ -407,7 +407,7 @@ class AdminReportProjectContractOverviewFilter(FilterSet):
     contract_ptr = (django_filters.ModelMultipleChoiceFilter(
         label='Contract',
         field_name='contract_ptr',
-        queryset=models.ProjectContract.objects.filter(active=True),
+        queryset=models.ProjectContract.objects.all(),
         distinct=True,
         widget=select2_widgets.Select2MultipleWidget,
     ))
