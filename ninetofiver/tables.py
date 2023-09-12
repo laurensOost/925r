@@ -389,16 +389,24 @@ class TimesheetOverviewTable(BaseTable):
         # next_month = date.today().replace(day=28) + timedelta(days=4)
         # last = next_month - timedelta(days=next_month.day)
         # contract = models.EmploymentContract.objects.get(started_at__lte=f"{today.year}-{f'0{today.month}' if today.month < 10 else today.month}-01",ended_at__gte=f"{today.year}-{f'0{today.month}' if today.month < 10 else today.month}-{last.day}",user=record["timesheet"].user.id)
-        perc = floor((100 - (record["range_info_to_day"]["remaining_hours"] / record["range_info_to_day"]["work_hours"] * 100))*10)/10
+        try:
+            perc = floor((100 - (record["range_info_to_day"]["remaining_hours"] / record["range_info_to_day"]["work_hours"] * 100))*10)/10
+        except:
+            perc = -1
         c = "244,85,85" if perc < 25 else "244,154,85" if perc < 50 else "244,231,85" if perc<75 else "165,244,85" if perc<90 else "67,232,55"
-        column.attrs = {'td':{'style':f"background-color: rgb({c});"}}
-        return format_html(f'<p>{perc} %</p>')
+        if perc != -1:
+            column.attrs = {'td':{'style':f"background-color: rgb({c});"}}
+        return format_html(f'<p>{perc} %</p>' if perc != -1 else "<p></p>")
     
     def render_percentage_complete(self, record,value,column):
-        perc = floor((100 - (record["range_info"]["remaining_hours"] / record["range_info"]["work_hours"] * 100))*10)/10
+        try:
+            perc = floor((100 - (record["range_info"]["remaining_hours"] / record["range_info"]["work_hours"] * 100))*10)/10
+        except:
+            perc = -1
         c = "244,85,85" if perc < 25 else "244,154,85" if perc < 50 else "244,231,85" if perc<75 else "165,244,85" if perc<90 else "67,232,55"
-        column.attrs = {'td':{'style':f"background-color: rgb({c});"}}
-        return format_html(f'<p>{perc} %</p>')
+        if perc != -1:
+            column.attrs = {'td':{'style':f"background-color: rgb({c});"}}
+        return format_html(f'<p>{perc} %</p>' if perc != -1 else "<p></p>")
 
     def render_attachments(self, record):
         return format_html('<br>'.join('<a href="%s">%s</a>'
