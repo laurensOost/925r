@@ -381,7 +381,7 @@ class TimesheetOverviewTable(BaseTable):
     actions = tables.Column(accessor='timesheet', orderable=False, exclude_from_export=True)
     
     def before_render(self,request):
-        if int(self.request.GET.get("month")) != date.today().month and int(self.request.GET.get("year")) != date.today().year:
+        if int(self.request.GET.get("month")) != date.today().month or int(self.request.GET.get("year")) != date.today().year:
             self.columns.hide("percentage_complete_currmonth")
         
     def render_percentage_complete_currmonth(self,record,value,column):
