@@ -241,6 +241,7 @@ class LeaveDateInline(admin.TabularInline):
 @admin.register(models.Leave)
 class LeaveAdmin(admin.ModelAdmin):
     """Leave admin."""
+    change_form_template = "ninetofiver/admin/leave_changeform.html"
 
     def get_queryset(self, request):
         return (
@@ -306,8 +307,7 @@ WHERE ninetofiver_leave.user_id = {obj.user_id};
 
     def item_actions(self, obj):
         """Actions."""
-        actions = ['<a class="button" href="%s">%s</a>' %
-                           (reverse('admin_leave_bulk_edit_dates', kwargs={'leave_pk': obj.id}), _('Dates'))]
+        actions = []
 
         if obj.status == models.STATUS_PENDING:
             actions.append('<a class="button" href="%s?return=true">%s</a>' %
