@@ -300,7 +300,8 @@ class LeaveAdmin(admin.ModelAdmin):
 from (((ninetofiver_leave INNER JOIN auth_user ON ninetofiver_leave.user_id = auth_user.id)
 INNER JOIN ninetofiver_employmentcontract ON ninetofiver_employmentcontract.user_id = auth_user.id)
 INNER JOIN ninetofiver_company on ninetofiver_employmentcontract.company_id = ninetofiver_company.id)
-WHERE ninetofiver_leave.user_id = {obj.user_id};
+WHERE ninetofiver_leave.user_id = {obj.user_id} AND ninetofiver_employmentcontract.started_at < CURRENT_DATE() 
+AND (ninetofiver_employmentcontract.ended_at IS NULL OR ninetofiver_employmentcontract.ended_at > CURRENT_DATE());
                 """)
         company = "None" if len(company) == 0 else company[0].company
         return company
