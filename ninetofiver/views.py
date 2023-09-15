@@ -1274,11 +1274,11 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
     data = []
 
 
-    performances = models.ActivityPerformance.objects
-    performances = performances.filter(
-            Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
-            Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__lte=until_date.year)
-            )
+    pks = []
+    for p in models.ActivityPerformance.objects.all():
+        if p.timesheet.get_date_range()[0] >= from_date and p.timesheet.get_date_range()[1] <= until_date:
+            pks.append(p.pk)
+    performances = models.ActivityPerformance.objects.filter(pk__in=pks)
     performances = performances.filter(Q(contract__polymorphic_ctype__model='consultancycontract'))
 
     try:
