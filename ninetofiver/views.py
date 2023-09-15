@@ -15,7 +15,7 @@ from django.db.models import Q, F, Sum, Max, DecimalField
 from django.forms.models import modelform_factory
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views import View
@@ -279,6 +279,7 @@ def admin_leave_bulk_edit_dates(request, leave_pk):
                 models.LeaveDate.objects.create(leave=leave, timesheet=timesheet, starts_at=pair[0],
                                                 ends_at=pair[1])
             messages.success(request, "Successfully changed LeaveDates")
+            return redirect(reverse("admin:ninetofiver_leave_change", args=[leave_pk]))
     else:
         form = LeaveDatePrefillForm(user=leave.user)
     return render(
@@ -500,7 +501,7 @@ def admin_report_contract_logs_overview_view(request):
     return render(
         request, "ninetofiver/admin/reports/timesheet_contract_overview.pug", context
     )
-    
+
 @staff_member_required
 def admin_report_timesheet_overview_view(request):
     """Timesheet overview report."""
@@ -609,9 +610,9 @@ def admin_report_user_leave_group_overview_view(request):
     until_date = parser.parse(request.GET.get('until_date', None)).date() if request.GET.get('until_date') else None
     data = []
 
-    if from_date and until_date and (until_date >= from_date):    
+    if from_date and until_date and (until_date >= from_date):
         leave_types = models.LeaveType.objects.all()
-        
+
         # Grab leave dates, sort them in a dict per user, then by leave type while summing them
         leave_dates = models.LeaveDate.objects.filter(leave__status=models.STATUS_APPROVED,starts_at__gte=from_date,ends_at__lte=until_date.replace(day=until_date.day+1))
         leave_date_data = {}
@@ -643,7 +644,7 @@ def admin_report_user_leave_group_overview_view(request):
         for u in leave_date_data.keys():
             data.append(leave_date_data[u])
         logger.debug(len(leave_date_data.keys()))
-            
+
     config = RequestConfig(request, paginate={'per_page': pagination.CustomizablePageNumberPagination.page_size})
     table = tables.UserGroupLeaveOverviewTable(data)
     config.configure(table)
@@ -1274,11 +1275,11 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
     data = []
 
 
-    performances = models.ActivityPerformance.objects
-    performances = performances.filter(
-            Q(timesheet__month__gte=from_date.month) & Q(timesheet__year__gte=from_date.year) &
-            Q(timesheet__month__lte=until_date.month) & Q(timesheet__year__lte=until_date.year)
-            )
+    pks = []
+    for p in models.ActivityPerformance.objects.all():
+        if p.timesheet.get_date_range()[0] >= from_date and p.timesheet.get_date_range()[1] <= until_date:
+            pks.append(p.pk)
+    performances = models.ActivityPerformance.objects.filter(pk__in=pks)
     performances = performances.filter(Q(contract__polymorphic_ctype__model='consultancycontract'))
 
     try:
@@ -1316,7 +1317,7 @@ def admin_report_invoiced_consultancy_contract_overview_view(request):
         for performed_hour in performed_hours:
             if performed_hour['contract'].id == performance.contract.id:
                 performed_hour['duration'] = performed_hour['duration'] + ( performance.duration * performance.performance_type.multiplier )
-                performed_hour['users'].add(performance.timesheet.user) 
+                performed_hour['users'].add(performance.timesheet.user)
                 contract_already_added = True
 
         if not contract_already_added:
