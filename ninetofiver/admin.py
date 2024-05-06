@@ -375,7 +375,7 @@ class UserInfoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Constructor."""
         super().__init__(*args, **kwargs)
-        
+
         if "redmine_id" in self.fields:
             self.fields['redmine_id'].label = 'Redmine user'
             redmine_user_choices = cache.get_or_set('user_info_admin_redmine_id_choices',
@@ -459,13 +459,13 @@ class ContractForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Constructor."""
         super().__init__(*args, **kwargs)
-        
+
         if "redmine_id" in self.fields:
             self.fields['redmine_id'].label = 'Redmine project'
             redmine_project_choices = cache.get_or_set('contract_admin_redmine_id_choices',
-                                                    redmine.get_redmine_project_choices)
+                                                       redmine.get_redmine_project_choices)
             self.fields['redmine_id'].widget = select2_widgets.Select2Widget(choices=redmine_project_choices)
-        
+
 
 class ContractResource(ModelResource):
     """Contract resource."""
@@ -640,7 +640,7 @@ class ContractChildAdmin(PolymorphicChildModelAdmin):
     list_filter = ContractParentAdmin.list_filter[1:]
     search_fields = ContractParentAdmin.search_fields
     ordering = ContractParentAdmin.ordering
-    filter_horizontal = ('attachments', "contract_groups", "performance_types", )
+    filter_horizontal = ('attachments', "contract_groups", "performance_types",)
     raw_id_fields = ("attachments",)
 
 
@@ -761,7 +761,7 @@ class TimesheetAdmin(admin.ModelAdmin):
     )
     ordering = ('-year', 'month', 'user__first_name', 'user__last_name')
     autocomplete_fields = ('user',)
-    filter_horizontal= ('attachments',)
+    filter_horizontal = ('attachments',)
     raw_id_fields = ("attachments",)
 
 
@@ -901,7 +901,7 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
 
     def contract_role(self, obj):
         return obj.activityperformance.contract_role
-    
+
     @admin.action(description="Contract bulk change")
     def contract_bulk_change(self, request, queryset):
         if request.POST.get("do_action"):
@@ -935,7 +935,6 @@ class PerformanceParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                 "form": form,
             },
         )
-
 
     base_model = models.Performance
     child_models = (
@@ -979,11 +978,13 @@ class PerformanceInuitsKrkParentAdmin(ExportMixin, PolymorphicParentModelAdmin):
                                                          'contract__customer',
                                                          'timesheet',
                                                          'timesheet__user')
+
     def link(self, obj):
-        return mark_safe(f'<a href="{settings.BASE_URL}/admin/ninetofiver/performance/{obj.id}/change/">{obj}</a>')        
+        return mark_safe(f'<a href="{settings.BASE_URL}/admin/ninetofiver/performance/{obj.id}/change/">{obj}</a>')
+
     link.allow_tags = True
     link.short_description = "Performance"
-    
+
     def duration(self, obj):
         return obj.activityperformance.duration
 
@@ -1106,8 +1107,9 @@ class InvoiceAdmin(admin.ModelAdmin):
         ('period_starts_at', DateTimeRangeFilter),
         ('period_ends_at', DateTimeRangeFilter),
     )
-    search_fields = ('contract__name', 'reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
-                     'description', 'date')
+    search_fields = (
+    'contract__name', 'reference', 'contract__name', 'contract__customer__name', 'contract__company__name',
+    'description', 'date')
     inlines = [
         InvoiceItemInline,
     ]
@@ -1229,3 +1231,41 @@ class UserTrainingAdmin(admin.ModelAdmin):
                 inlines.append(general_training_inline)
 
         return inlines
+
+
+@admin.register(models.Event)
+class EventAdmin(admin.ModelAdmin):
+    """Event admin"""
+
+    list_display = (
+        'name',
+        'location',
+        'starts_at',
+        'ends_at',
+    )
+
+    list_filter = (
+        AutocompleteFilterFactory('Location', 'location'),
+        ('starts_at', DateRangeFilter),
+        ('ends_at', DateRangeFilter),
+    )
+
+
+@admin.register(models.Quote)
+class QuoteAdmin(admin.ModelAdmin):
+    """Quote admin"""
+
+    list_display = (
+        'quote',
+        'author',
+    )
+
+    list_filter = (
+        'quote',
+        'author',
+    )
+
+    def add_view(self, *args, **kwargs):
+        self.inlines = []
+        self.readonly_fields = []
+        return super(QuoteAdmin, self).add_view(*args, **kwargs)

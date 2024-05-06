@@ -107,6 +107,7 @@ class Base(Configuration):
         'import_export',
         'adminsortable',
         'logentry_admin',
+        'recurrence'
     ]
 
     MIDDLEWARE = [
