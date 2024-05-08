@@ -667,7 +667,6 @@ class AttachmentSerializer(BasicSerializer):
 class EventSerializer(BaseSerializer):
     """Event serializer."""
 
-    location = MinimalLocationSerializer()
     is_running = serializers.SerializerMethodField()
 
     class Meta(BaseSerializer.Meta):

@@ -1366,7 +1366,7 @@ class Training(BaseModel):
 
 class Event(BaseModel):
     name = models.CharField(max_length=255)
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     starts_at = models.DateField(default=datetime.date.today)
     ends_at = models.DateField(default=datetime.date.today)

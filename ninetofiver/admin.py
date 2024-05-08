@@ -1244,11 +1244,11 @@ class EventAdmin(admin.ModelAdmin):
         'ends_at',
     )
 
-    list_filter = (
-        AutocompleteFilterFactory('Location', 'location'),
+    list_filter = [
+        'location',
         ('starts_at', DateRangeFilter),
         ('ends_at', DateRangeFilter),
-    )
+    ]
 
 
 @admin.register(models.Quote)
