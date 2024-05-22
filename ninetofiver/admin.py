@@ -21,7 +21,7 @@ from django_admin_listfilter_dropdown.filters import DropdownFilter
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from django_countries.filters import CountryFilter
 from import_export import fields
-from import_export.admin import ExportMixin
+from import_export.admin import ExportMixin, ImportMixin
 from import_export.fields import Field
 from import_export.resources import ModelResource
 from polymorphic.admin import PolymorphicChildModelAdmin
@@ -1252,7 +1252,7 @@ class EventAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Quote)
-class QuoteAdmin(admin.ModelAdmin):
+class QuoteAdmin(ImportMixin, admin.ModelAdmin):
     """Quote admin"""
 
     list_display = (
