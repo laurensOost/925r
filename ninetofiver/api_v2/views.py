@@ -332,14 +332,15 @@ class EventsAPIView(APIView):
 
     def get(self, request, format=None):
         """Defines the entrypoint of the retrieval."""
-        from_date = dateutil.parser.parse(request.query_params.get('from', None)).date()
-        until_date = dateutil.parser.parse(request.query_params.get('until', None)).date()
+        from_date = dateutil.parser.parse(request.query_params.get('from', None))
+        until_date = dateutil.parser.parse(request.query_params.get('until', None))
 
         events = (
             models.Event.objects.all()
             .filter(
-                (Q(starts_at__gte=from_date) & Q(starts_at__lte=until_date)) &
-                (Q(ends_at__gte=from_date) & Q(ends_at__lte=until_date))
+                (Q(starts_at__range=(from_date, until_date)) | Q(ends_at__range=(from_date, until_date))) |
+                (Q(starts_at__lte=from_date) & Q(ends_at__gte=until_date)) |
+                (Q(starts_at__gte=from_date) & Q(ends_at__lte=until_date))
             )
             .order_by('starts_at')
         )

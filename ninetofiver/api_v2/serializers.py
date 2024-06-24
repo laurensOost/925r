@@ -676,6 +676,7 @@ class EventSerializer(BaseSerializer):
             'link',
             'location',
             'is_running',
+            'help_text',
             'starts_at',
             'ends_at',
         )

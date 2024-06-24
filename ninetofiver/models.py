@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils import timezone
 from django_countries.fields import CountryField
 from model_utils import Choices
 from phonenumber_field.modelfields import PhoneNumberField
@@ -1368,8 +1369,9 @@ class Event(BaseModel):
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255, blank=True, null=True)
     link = models.URLField(blank=True, null=True)
-    starts_at = models.DateField(default=datetime.date.today)
-    ends_at = models.DateField(default=datetime.date.today)
+    help_text = models.CharField(max_length=255, blank=True, null=True)
+    starts_at = models.DateTimeField(default=datetime.datetime.now)
+    ends_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         """Return a string representation."""
@@ -1377,7 +1379,7 @@ class Event(BaseModel):
 
     @property
     def is_running(self):
-        if self.starts_at <= datetime.date.today() <= self.ends_at:
+        if self.starts_at <= timezone.now() <= self.ends_at:
             return True
         else:
             return False
@@ -1401,7 +1403,7 @@ class Quote(BaseModel):
 
     quote = models.TextField()
     author = models.CharField(max_length=255)
-    recurrences = RecurrenceField(blank=True, null=True, include_dtstart=True)
+    recurrences = RecurrenceField(blank=True, null=True, include_dtstart=True, help_text='RDATE:YYYYMMDDTHHMMSSZ\nhttps://jkbrzt.github.io/rrule/')
 
     def __str__(self):
         """Return a string representation."""

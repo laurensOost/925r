@@ -1246,9 +1246,16 @@ class EventAdmin(admin.ModelAdmin):
 
     list_filter = [
         'location',
-        ('starts_at', DateRangeFilter),
-        ('ends_at', DateRangeFilter),
+        ('starts_at', DateTimeRangeFilter),
+        ('ends_at', DateTimeRangeFilter),
     ]
+
+    search_fields = (
+        'name',
+        'location',
+        'starts_at',
+        'ends_at',
+    )
 
 
 @admin.register(models.Quote)
@@ -1260,9 +1267,8 @@ class QuoteAdmin(ImportMixin, admin.ModelAdmin):
         'author',
     )
 
-    list_filter = (
+    search_fields = (
         'quote',
-        'author',
     )
 
     def add_view(self, *args, **kwargs):
