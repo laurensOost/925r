@@ -157,7 +157,7 @@ class Base(Configuration):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': 'mysql.{env}.925r.local'.format(env=ENVIRONMENT),
+            'HOST': os.getenv('MYSQL_HOST', 'mysql.{env}.925r.local'.format(env=ENVIRONMENT)),
             'PORT': os.getenv('MYSQL_PORT', '3306'),
             'NAME': os.getenv('MYSQL_DB', 'ninetofiver'),
             'USER': os.getenv('MYSQL_USER', 'ninetofiver'),
@@ -370,7 +370,7 @@ class Dev(Base):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'HOST': 'mysql',
+            'HOST': os.getenv('MYSQL_HOST', 'mysql'),
             'PORT': os.getenv('MYSQL_PORT', '3306'),
             'NAME': os.getenv('MYSQL_DB', 'ninetofiver'),
             'USER': os.getenv('MYSQL_USER', 'ninetofiver'),
