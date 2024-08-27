@@ -1,6 +1,17 @@
 services:
 
+  ldap:
+    image: osixia/openldap:1.1.7
+    networks:
+      ninetofiver:
+
   mysql:
+    image: mysql:${MYSQL_VERSION?}
+    environment:
+      - MYSQL_ROOT_PASSWORD=random-password
+      - MYSQL_DATABASE=${MYSQL_DATABASE?}
+      - MYSQL_USER=${MYSQL_USER?}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD?}
     command:
       [
         'mysqld',
@@ -9,8 +20,23 @@ services:
         '--wait_timeout=28800', # needed to be able to add test data
         '--max_allowed_packet=128M', # needed to be able to add test data
       ]
+    networks:
+      ninetofiver:
+    ports:
+      - "3306"
+    volumes:
+      - "mysql-data:/var/lib/mysql"
+    healthcheck:
+      test: [ "CMD-SHELL", "MYSQL_PWD=$${MYSQL_PASSWORD} mysqladmin --host=127.0.0.1 --user=$${MYSQL_USER} ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+      start_period: 0s
 
   ninetofiver:
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
     command: |
       bash -c "
         python manage.py migrate
@@ -20,8 +46,16 @@ services:
       "
     volumes:
       - ninetofiver-files:/code
+    depends_on:
+      ldap:
+        condition: service_started
+      mysql:
+        condition: service_healthy
 
 volumes:
+
+  mysql-data:
+    name: "mysql-${MYSQL_VERSION?}-data"
 
   ninetofiver-files:
     driver: local
@@ -29,3 +63,7 @@ volumes:
       o: bind
       type: none
       device: ${PWD?}
+
+networks:
+
+  ninetofiver:
