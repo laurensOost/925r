@@ -55,40 +55,12 @@ tasks:
       - |
         {{.COMPOSE}} exec --interactive --tty "{{.SERVICE}}" {{.COMMAND}} && exit 0
 
-  app:migrate:
-    desc: Execute the initial migration
+  app:manage:
+    desc: Run a command against manage.py
     deps: [prepare]
     cmds:
       - |
-        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py migrate
-
-  app:create-superuser:
-    desc: Create a new superuser (interactively)
-    deps: [prepare]
-    cmds:
-      - |
-        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py createsuperuser
-
-  app:generate-data:
-    desc: Generate new data (only in DEBUG mode)
-    deps: [prepare]
-    cmds:
-      - |
-        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py create_test_data {{.AMOUNT}} {{.CLI_ARGS}}
-
-  app:flush-database:
-    desc: Clean the complete database
-    deps: [prepare]
-    cmds:
-      - |
-        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py flush
-
-  app:help:
-    desc: Check the help from manage.py
-    deps: [prepare]
-    cmds:
-      - |
-        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py help
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py {{.CLI_ARGS}}
 
   test:
     desc: Run the test suite

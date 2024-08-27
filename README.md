@@ -20,9 +20,9 @@ If you want to walk the manual path, check the files `.env.dist`, `Taskfile.dist
 
 1. Run `task prepare` and check if the values in the .env file are correct for your environment
 2. Run `task start` to start the application at `http://localhost:8000`.
-3. Run `task app:migrate` to create the models
-4. Run `task app:create-superuser` to create an admin user (interactively)
-5. Run `task app:generate-data` to fill the database with test data (see below for more information)
+3. Run `task app:manage -- migrate` to create the models
+4. Run `task app:manage -- createsuperuser` to create an admin user (interactively)
+5. Run `task app:manage -- create_test_data` to fill the database with test data (see below for more information)
 
 For more tasks, check `task --list-all`. 
   
@@ -42,13 +42,11 @@ Now you can log in to YaYata with the root account, or you can create a new test
 
 ### Add example data
 
-You can run `task app:generate-data` to fill the database with test data.
-You can specify the amount of data to be created by one optional argument `AMOUNT`. Possible values are
+You can run `task app:manage -- create_test_data` to fill the database with test data.
+You can specify the amount of data to be created by one optional argument `amount`. Possible values are
 (`small`, `normal` or `extensive`) with `normal` being the default.
-It can run a few minutes depending on resources. For this reason there is a `-t` option, so you 
-can see what is happening at the moment.
 ```shell
-task app:generate-data AMOUNT=extensive -- -t 
+task app:manage -- create_test_data extensive
 ```
 
 ## Configuration
@@ -82,14 +80,19 @@ task test
 Generate dummy data for testing (only in DEBUG mode):
 
 ```bash
-task app:generate-data # fills almost all tables
+task task app:manage -- create_test_data # fills almost all tables
 ```
 
 Clean the complete database:
 
 ```bash
-task app:flush-database
+task app:manage -- flush
 # or delete db.sqlite3 file in root directory
+```         
+
+Other possible commands can be found by running:
+```bash
+task app:manage -- help
 ```
 
 ## License
