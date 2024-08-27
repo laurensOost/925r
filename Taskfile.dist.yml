@@ -72,9 +72,6 @@ tasks:
   app:generate-data:
     desc: Generate new data (only in DEBUG mode)
     deps: [prepare]
-    preconditions:
-      - sh: "test '{{.AMOUNT}}' = '' || test '{{.AMOUNT}}' = 'small' || test '{{.AMOUNT}}' = 'normal' || test '{{.AMOUNT}}' = 'extensive'"
-        msg: "AMOUNT should be one of the following: small, normal, extensive"
     cmds:
       - |
         {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py create_test_data {{.AMOUNT}} {{.CLI_ARGS}}
