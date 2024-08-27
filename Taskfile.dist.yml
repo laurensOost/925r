@@ -1,0 +1,109 @@
+version: '3'
+
+env:
+  COMPOSE: docker compose
+
+dotenv: ['.env'] # first file takes precedence
+
+tasks:
+  default:
+    cmds:
+      - "'{{.TASK_EXE}}' --list"
+
+  .env:
+    desc: Initiate the .env file
+    cmds:
+      - cp "{{.TASK}}.dist" "{{.TASK}}"
+    generates:
+      - "{{.TASK}}"
+    status:
+      - test -f "{{.TASK}}"
+    silent: true
+
+  prepare:
+    desc: Prepare your setup
+    deps: [.env]
+
+  build:
+    desc: Build your services
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} build --no-cache
+
+  start:
+    desc: Start all services
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} up --detach --remove-orphans {{.CLI_ARGS}}
+
+  stop:
+    desc: Stop all services
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} down {{.CLI_ARGS}}
+
+  compose:service:*:exec:*:
+    desc: Open a terminal inside a service
+    deps: [prepare]
+    vars:
+      SERVICE: '{{index .MATCH 0}}'
+      COMMAND: '{{index .MATCH 1 | default "sh"}}'
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty "{{.SERVICE}}" {{.COMMAND}} && exit 0
+
+  app:migrate:
+    desc: Execute the initial migration
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py migrate
+
+  app:create-superuser:
+    desc: Create a new superuser (interactively)
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py createsuperuser
+
+  app:generate-data:
+    desc: Generate new data (only in DEBUG mode)
+    deps: [prepare]
+    preconditions:
+      - sh: "test '{{.AMOUNT}}' = '' || test '{{.AMOUNT}}' = 'small' || test '{{.AMOUNT}}' = 'normal' || test '{{.AMOUNT}}' = 'extensive'"
+        msg: "AMOUNT should be one of the following: small, normal, extensive"
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py create_test_data {{.AMOUNT}} {{.CLI_ARGS}}
+
+  app:flush-database:
+    desc: Clean the complete database
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py flush
+
+  app:help:
+    desc: Check the help from manage.py
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} exec --interactive --tty ninetofiver python manage.py help
+
+  test:
+    desc: Run the test suite
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} run --rm web tox
+
+  clean:
+    desc: Clean up
+    deps: [prepare]
+    cmds:
+      - |
+        {{.COMPOSE}} down --remove-orphans --volumes {{.CLI_ARGS}}
+      - rm -f .env

@@ -1,0 +1,60 @@
+services:
+
+  ldap:
+    image: osixia/openldap:1.1.7
+    networks:
+      ninetofiver:
+
+  mysql:
+    image: mysql:5.7
+    environment:
+        - MYSQL_RANDOM_ROOT_PASSWORD=yes
+        - MYSQL_DATABASE=${MYSQL_DATABASE?}
+        - MYSQL_USER=${MYSQL_USER?}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD?}
+    command:
+      [
+        'mysqld',
+        '--character-set-server=utf8mb4',
+        '--collation-server=utf8mb4_unicode_ci',
+      ]
+    networks:
+      ninetofiver:
+    ports:
+      - "3306"
+    volumes:
+        - mysql-data:/var/lib/mysql
+
+  ninetofiver:
+    build: .
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE?}
+      - DJANGO_CONFIGURATION=${DJANGO_CONFIGURATION?}
+      - CFG_FILE_PATH=${CFG_FILE_PATH?}
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DB=${MYSQL_DATABASE?}
+      - MYSQL_USER=${MYSQL_USER?}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD?}
+      - PYTHONDONTWRITEBYTECODE=${PYTHONDONTWRITEBYTECODE?}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED?}
+    command: |
+      bash -c "
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8000
+      "
+    networks:
+      ninetofiver:
+    ports:
+      - "8000"
+    depends_on:
+      - ldap
+      - mysql
+
+volumes:
+
+  mysql-data:
+
+networks:
+
+  ninetofiver:
