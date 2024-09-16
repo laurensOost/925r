@@ -14,4 +14,4 @@ RUN set -ex && pip install -r requirements.txt
 
 FROM builder AS final
 WORKDIR /code
-COPY . /app/
+COPY . .
