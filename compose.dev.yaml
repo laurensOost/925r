@@ -20,6 +20,12 @@ services:
         '--wait_timeout=28800', # needed to be able to add test data
         '--max_allowed_packet=128M', # needed to be able to add test data
       ]
+    # Fix memory leak issue on some systems when LimitCORE=infinity (containerd)
+    # @see https://github.com/docker-library/mysql/issues/873#issuecomment-1909948195
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
     networks:
       ninetofiver:
     ports:
