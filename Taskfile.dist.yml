@@ -8,7 +8,7 @@ dotenv: ['.env'] # first file takes precedence
 tasks:
   default:
     cmds:
-      - "'{{.TASK_EXE}}' --list"
+      - "'{{.TASK_EXE}}' --list-all"
 
   .env:
     desc: Initiate the .env file
