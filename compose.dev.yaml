@@ -8,7 +8,7 @@ services:
   mysql:
     image: mysql:${MYSQL_VERSION?}
     environment:
-      - MYSQL_ROOT_PASSWORD=random-password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD?}
       - MYSQL_DATABASE=${MYSQL_DATABASE?}
       - MYSQL_USER=${MYSQL_USER?}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD?}
@@ -43,6 +43,9 @@ services:
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE?}
+      - DJANGO_CONFIGURATION=${DJANGO_CONFIGURATION?}
+      - CFG_FILE_PATH=${CFG_FILE_PATH?}
     command: |
       bash -c "
         python manage.py migrate
