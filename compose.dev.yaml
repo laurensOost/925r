@@ -72,7 +72,3 @@ volumes:
       o: bind
       type: none
       device: ${PWD?}
-
-networks:
-
-  ninetofiver:

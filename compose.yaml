@@ -11,9 +11,14 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD?}
       - PYTHONDONTWRITEBYTECODE=${PYTHONDONTWRITEBYTECODE?}
       - PYTHONUNBUFFERED=${PYTHONUNBUFFERED?}
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL?}
+      - SUPERUSER_USERNAME=${SUPERUSER_USERNAME?}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD?}
     command: |
       bash -c "
         python manage.py migrate
+        echo \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('${SUPERUSER_USERNAME?}', '${SUPERUSER_EMAIL?}', '${SUPERUSER_PASSWORD?}')\" | python manage.py shell || true
+        echo \"from oauth2_provider.models import Application; from django.contrib.auth import get_user_model; User = get_user_model(); client = Application.objects.create(user=User.objects.filter(is_staff=True)[0], name='${API_APPLICATION_NAME?}', client_id='${API_APPLICATION_CLIENT_ID?}', client_secret='${API_APPLICATION_CLIENT_SECRET?}', authorization_grant_type=Application.GRANT_PASSWORD)\" | python manage.py shell || true
         python manage.py runserver 0.0.0.0:8000
       "
     networks:
