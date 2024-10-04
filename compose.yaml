@@ -25,7 +25,38 @@ services:
       ninetofiver:
     ports:
       - "8000"
+  
+  minio:
+    image: minio/minio:latest
+    hostname: "minio"
+    command: 'minio server /miniodata --console-address ":9001"'
+    env_file: 
+      - .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    depends_on:
+      - ninetofiver
+      - minio
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=ninetofiver
+      - MYSQL_USER=ninetofiver
+      - MYSQL_PASSWORD=ninetofiver
+      - MINIO_ENDPOINT=127.0.0.1:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio-client
+      - MINIO_MEDIA_FILES_BUCKET=media
+    networks:
+      - ninetofiver
 
 networks:
-
   ninetofiver:

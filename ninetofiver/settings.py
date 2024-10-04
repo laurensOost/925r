@@ -170,6 +170,21 @@ class Base(Configuration):
         },
     }
 
+    # Minio settings
+    MINIO_ENDPOINT = "127.0.0.1:9000"
+    MINIO_ACCESS_KEY = "minio"
+    MINIO_SECRET_KEY = "minio-client"
+    MINIO_USE_HTTPS = False
+    MINIO_PUBLIC_BUCKETS = ["media"]
+    MINIO_MEDIA_FILES_BUCKET = "media"
+    MINIO_CONSISTENCY_CHECK_ON_START = False
+    MINIO_EXTERNAL_ENDPOINT = "127.0.0.1:9000"
+    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
+
+    # Storage settings
+    DEFAULT_FILE_STORAGE = 'ninetofiver.storage.S3MediaStorage'
+    STATICFILES_STORAGE = 'ninetofiver.storage.StaticS3Boto3Storage'
+
     DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
     # Password validation

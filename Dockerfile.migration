@@ -1,0 +1,24 @@
+FROM python:3.9-slim-bookworm as builder
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y libldap2-dev libsasl2-dev libssl-dev && \
+    apt-get install -y gcc default-libmysqlclient-dev pkg-config
+
+# Copy Pipfile dependency list
+COPY Pipfile Pipfile
+COPY Pipfile.lock Pipfile.lock
+
+# Install pipenv
+RUN set -ex && pip install --upgrade pip && pip install pipenv
+
+# Install dependencies
+COPY requirements.txt requirements.txt
+RUN set -ex && pip install -r requirements.txt && pipenv install --deploy --system
+
+# Copy the migration script
+COPY scripts/migrate_to_minio /scripts/migrate_to_minio
+WORKDIR /scripts/migrate_to_minio
+
+# ship the bastard
+CMD ["pipenv", "run", "python", "migration.py", "127.0.0.1", "3306", "ninetofiver", "ninetofiver", "./media", "ninetofiver", "127.0.0.1:9000", "minio", "minio-client", "media"]
