@@ -16,6 +16,9 @@ RUN set -ex && pip install --upgrade pip && pip install pipenv
 COPY requirements.txt requirements.txt
 RUN set -ex && pip install -r requirements.txt && pipenv install --deploy --system
 
+# update the pipenv lock 
+RUN set -ex && pipenv lock
+
 # Copy the migration script
 COPY scripts/migrate_to_minio /scripts/migrate_to_minio
 WORKDIR /scripts/migrate_to_minio
