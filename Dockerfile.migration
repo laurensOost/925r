@@ -12,9 +12,6 @@ COPY Pipfile.lock Pipfile.lock
 # Install pipenv
 RUN set -ex && pip install --upgrade pip && pip install pipenv
 
-# update the pipenv lock 
-RUN set -ex && pipenv lock
-
 # Install dependencies
 COPY requirements.txt requirements.txt
 RUN set -ex && pip install -r requirements.txt && pipenv install --deploy --system
