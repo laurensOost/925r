@@ -1,4 +1,4 @@
-from MySQLdb import _mysql
+import mysql.connector
 from sys import argv
 import os
 from minio import Minio
@@ -12,48 +12,54 @@ media_path = argv[5] if len(argv) > 5 else "./media"
 dbname = argv[6] if len(argv) > 6 else "ninetofiver"
 miniourl = argv[7] if len(argv) > 7 else "127.0.0.1:9000"
 minio_access = argv[8] if len(argv) > 8 else "minio"
-minio_secret = argv[9] if len(argv) > 9 else "minio-client" 
+minio_secret = argv[9] if len(argv) > 9 else "minio-client"
 bucket = argv[10] if len(argv) > 10 else "media"
 
-#* check that we have a media folder
-if(not os.path.exists(os.path.abspath(media_path))):
+if not os.path.exists(os.path.abspath(media_path)):
     print(f"File path '{os.path.abspath(media_path)}' does not exist.")
     exit(1)
 
-#* try connecting to db
 try:
-    db = _mysql.connect(hostname, user, password, dbname, port)
-except _mysql.Error as error:
+    db = mysql.connector.connect(
+        host=hostname,
+        user=user,
+        password=password,
+        database=dbname,
+        port=port
+    )
+except mysql.connector.Error as error:
     print("Could not connect to MySQL database")
     print(error)
     exit(1)
 
-#* try connecting to minio
 client = Minio(miniourl, access_key=minio_access, secret_key=minio_secret, secure=False)
 
 if not client.bucket_exists(bucket_name=bucket):
     print(f"Bucket '{bucket}' does not exist, creating")
     client.make_bucket(bucket)
 
-#* grab all attachments
-db.query("""SELECT * FROM ninetofiver_attachment""")
-r = db.store_result()
+cursor = db.cursor(dictionary=True)
+cursor.execute("SELECT * FROM ninetofiver_attachment")
 
 def update_mysql_record(db, file_id, new_url):
     try:
-        db.query(f"UPDATE ninetofiver_attachment SET file='{new_url}' WHERE id={file_id}")
+        cursor.execute(f"UPDATE ninetofiver_attachment SET file='{new_url}' WHERE id={file_id}")
+        db.commit()
         print(f"Successfully updated record for file ID {file_id}")
-    except _mysql.Error as error:
+    except mysql.connector.Error as error:
         print(f"Could not update record for file ID {file_id}")
         print(error)
 
-for row in r.fetch_row(how=1, maxrows=0):
-    file_id = row["id"].decode("utf-8")
-    path = row["file"].decode("utf-8")
-    #* test if attachments exist in the media folder
+for row in cursor.fetchall():
+    file_id = row["id"]
+    path = row["file"]
+
     if not os.path.exists(os.path.join(os.path.abspath(media_path), path)):
-        continue #* file is not from the media folder, skipping
+        continue  
     client.fput_object(bucket, path, os.path.join(os.path.abspath(media_path), path))
     print(f"Successfully added {os.path.join(os.path.abspath(media_path), path)} to bucket {bucket}")
     new_url = f"http://{miniourl}/{bucket}/{path}"
     update_mysql_record(db, file_id, new_url)
+
+cursor.close()
+db.close()
