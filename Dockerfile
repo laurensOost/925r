@@ -15,7 +15,7 @@ RUN set -ex && pip install --upgrade pip && pip install pipenv
 
 # Install dependencies
 COPY requirements.txt requirements.txt
-RUN set -ex && pip install -r requirements.txt
+RUN set -ex && pip install -r requirements.txt && pipenv install --deploy --system
 
 FROM builder AS final
 WORKDIR /code
