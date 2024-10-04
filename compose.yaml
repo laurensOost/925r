@@ -1,5 +1,4 @@
 services:
-
   ninetofiver:
     build: .
     environment:
@@ -22,14 +21,14 @@ services:
         python manage.py runserver 0.0.0.0:8000
       "
     networks:
-      ninetofiver:
+      - ninetofiver
     ports:
       - "8000"
-  
+
   minio:
     image: minio/minio:latest
     hostname: "minio"
-    command: 'minio server /miniodata --console-address ":9001"'
+    command: 'minio server /data --console-address ":9001"'
     env_file: 
       - .env
     ports:
@@ -57,6 +56,9 @@ services:
       - MINIO_MEDIA_FILES_BUCKET=media
     networks:
       - ninetofiver
+
+volumes:
+  minio-data:
 
 networks:
   ninetofiver:
