@@ -14,7 +14,8 @@ COPY Pipfile.lock Pipfile.lock
 RUN set -ex && pip install --upgrade pip && pip install pipenv
 
 # Install dependencies
-RUN set -ex && pipenv install --system --deploy
+COPY requirements.txt requirements.txt
+RUN set -ex && pip install -r requirements.txt
 
 FROM builder AS final
 WORKDIR /code
