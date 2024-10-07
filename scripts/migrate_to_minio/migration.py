@@ -5,7 +5,7 @@ from minio import Minio
 from minio.error import S3Error
 
 hostname = argv[1] if len(argv) > 1 else "127.0.0.1"
-port = argv[2] if len(argv) > 2 else 3307
+port = int(argv[2]) if len(argv) > 2 else 3307
 user = argv[3] if len(argv) > 3 else "ninetofiver"
 password = argv[4] if len(argv) > 4 else "ninetofiver"
 media_path = argv[5] if len(argv) > 5 else "./media"
@@ -39,7 +39,8 @@ if not client.bucket_exists(bucket_name=bucket):
     client.make_bucket(bucket)
 
 cursor = db.cursor(dictionary=True)
-cursor.execute("SELECT * FROM ninetofiver_attachment")
+cursor.execute("SELECT * from ninetofiver_attachment")
+rows = cursor.fetchall()
 
 def update_mysql_record(db, file_id, new_url):
     try:
@@ -50,16 +51,10 @@ def update_mysql_record(db, file_id, new_url):
         print(f"Could not update record for file ID {file_id}")
         print(error)
 
-for row in cursor.fetchall():
-    file_id = row["id"]
+for row in rows:
     path = row["file"]
-
+    # Check if the file exists in the media folder
     if not os.path.exists(os.path.join(os.path.abspath(media_path), path)):
-        continue  
+        continue  # File does not exist, skipping
     client.fput_object(bucket, path, os.path.join(os.path.abspath(media_path), path))
     print(f"Successfully added {os.path.join(os.path.abspath(media_path), path)} to bucket {bucket}")
-    new_url = f"http://{miniourl}/{bucket}/{path}"
-    update_mysql_record(db, file_id, new_url)
-
-cursor.close()
-db.close()

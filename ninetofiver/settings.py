@@ -170,21 +170,6 @@ class Base(Configuration):
         },
     }
 
-    # Minio settings
-    MINIO_ENDPOINT = "127.0.0.1:9000"
-    MINIO_ACCESS_KEY = "minio"
-    MINIO_SECRET_KEY = "minio-client"
-    MINIO_USE_HTTPS = False
-    MINIO_PUBLIC_BUCKETS = ["media"]
-    MINIO_MEDIA_FILES_BUCKET = "media"
-    MINIO_CONSISTENCY_CHECK_ON_START = False
-    MINIO_EXTERNAL_ENDPOINT = "127.0.0.1:9000"
-    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
-
-    # Storage settings
-    DEFAULT_FILE_STORAGE = 'ninetofiver.storage.S3MediaStorage'
-    STATICFILES_STORAGE = 'ninetofiver.storage.StaticS3Boto3Storage'
-
     DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
     # Password validation
@@ -222,10 +207,9 @@ class Base(Configuration):
     # https://docs.djangoproject.com/en/1.10/howto/static-files/
     STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
     STATIC_URL = '/static/'
-
     # User-uploaded files
     MEDIA_ROOT = values.Value(os.path.join(BASE_DIR, 'media/'))
-
+    MEDIA_URL = '/media/'
     # Auth
     LOGIN_URL = 'login'
     LOGOUT_URL = 'logout'
@@ -365,6 +349,28 @@ class Base(Configuration):
     ROCKETCHAT_PERFORMANCE_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
     ROCKETCHAT_TIMESHEET_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
 
+#    # MinIO settings
+
+    STORAGES = {
+    "default": {
+        "BACKEND": 'django_minio_backend.models.MinioBackend',
+        "OPTIONS": {
+            "bucket_name": "media",  # Bucket for media files
+            },
+        },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    MINIO_ENDPOINT = "minio:9000"
+    MINIO_ACCESS_KEY = "minio"  
+    MINIO_SECRET_KEY = "minio123321"  
+    MINIO_PUBLIC_BUCKETS = ["media"]
+    MINIO_MEDIA_FILES_BUCKET = "media"
+    MINIO_CONSISTENCY_CHECK_ON_START = False
+    MINIO_EXTERNAL_ENDPOINT = "minio:9000"  
+    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
 
 class Dev(Base):
     """Dev configuration."""

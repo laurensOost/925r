@@ -27,8 +27,7 @@ from import_export.resources import ModelResource
 from polymorphic.admin import PolymorphicChildModelAdmin
 from polymorphic.admin import PolymorphicChildModelFilter
 from polymorphic.admin import PolymorphicParentModelAdmin
-from rangefilter.filter import DateRangeFilter
-from rangefilter.filter import DateTimeRangeFilter
+from rangefilter.filters import DateRangeFilter, DateTimeRangeFilter
 from django.shortcuts import render
 from django_select2 import forms as select2_widgets
 from django.utils.safestring import mark_safe
