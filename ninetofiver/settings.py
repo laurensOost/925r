@@ -349,29 +349,32 @@ class Base(Configuration):
     ROCKETCHAT_PERFORMANCE_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
     ROCKETCHAT_TIMESHEET_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
 
-#    # MinIO settings
-
-    # default storage setting --> minio only for media files, not default
-    # STORAGES = {
-    #     "default": {
-    #         "BACKEND": 'django_minio_backend.models.MinioBackend',
-    #         "OPTIONS": {
-    #             "bucket_name": "media",  # Bucket for media files
-    #         },
-    #     },
-    #     "staticfiles": {
-    #         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    #     },
-    # }
-
+#   # MinIO settings
+        
+    # MinIO settings
     MINIO_ENDPOINT = os.environ.get('MINIO_ENDPOINT', 'minio:9000')
-    MINIO_ACCESS_KEY = os.environ.get('MINIO_ACCESS_KEY', 'minio')
-    MINIO_SECRET_KEY = os.environ.get('MINIO_SECRET_KEY', 'minio-client')
     MINIO_USE_HTTPS = False
-    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_MEDIA_FILES_BUCKET', 'media')
-    MINIO_AUTO_CREATE_MEDIA_BUCKET = os.environ.get('MINIO_AUTO_CREATE_MEDIA_BUCKET', 'True') == 'True'
-    MINIO_EXTERNAL_ENDPOINT = os.environ.get('MINIO_EXTERNAL_ENDPOINT', 'localhost:9000')
-    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
+
+    MINIO_PUBLIC_BUCKETS  = ["ninetofiver"]
+    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_BUCKET', 'ninetofiver')
+    MINIO_AUTO_CREATE_MEDIA_BUCKET = True
+
+    STORAGES = {
+        "default": {
+            "BACKEND": 'django_minio_backend.models.MinioBackend',
+            "OPTIONS": {
+                "access_key": "minio",
+                "secret_key": "minio123121",
+                "bucket_name": MINIO_MEDIA_FILES_BUCKET,
+                "endpoint": MINIO_ENDPOINT,
+                "secure": MINIO_USE_HTTPS,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 
 class Dev(Base):
     """Dev configuration."""

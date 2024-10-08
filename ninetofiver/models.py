@@ -164,7 +164,12 @@ class Company(BaseModel):
 
     def generate_file_path(instance, filename):
         """Generate a file path."""
-        return 'companies/company_%s/%s' % (instance.id, filename)
+        if not instance.id:
+            # temp path for new companies
+            temp_id = uuid.uuid4()
+            return f'companies/temp_{temp_id}/{filename}'
+        return f'companies/company_{instance.id}/{filename}'
+
 
     vat_identification_number = models.CharField(
         max_length=15,
@@ -193,8 +198,8 @@ class Company(BaseModel):
 
     def get_logo_url(self):
         """Get a URL to the logo."""
-        http = "https://" if settings.MINIO_EXTERNAL_ENDPOINT_USE_HTTPS else "http://"
-        return f"{http}{settings.MINIO_EXTERNAL_ENDPOINT}/media/{self.logo.name}" 
+        return self.logo.url
+
 
 
 class WorkSchedule(BaseModel):
