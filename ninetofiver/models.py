@@ -22,6 +22,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 from polymorphic.models import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from recurrence.fields import RecurrenceField
+from django_minio_backend import MinioBackend
+from django.conf import settings
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +66,12 @@ PERMISSION_RECEIVE_PENDING_LEAVE_REMINDER = 'receive_pending_leave_reminder'
 PERMISSION_RECEIVE_MODIFIED_ATTACHMENT_NOTIFICATION = 'receive_modified_attachment_notification'
 PERMISSION_RECEIVE_BDAY_ANNIVERSARY_REMINDER = 'receive_bday_anniversary_reminder'
 
+class MinioAttachmentStorage(MinioBackend):
+    """Minio attachment storage."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs['bucket_name'] = settings.MINIO_ATTACHMENT_BUCKET
+        super().__init__(*args, **kwargs)
 
 class BaseManager(PolymorphicManager):
     """Base manager."""
@@ -185,7 +193,8 @@ class Company(BaseModel):
 
     def get_logo_url(self):
         """Get a URL to the logo."""
-        return reverse('ninetofiver_api_v2:download_company_logo', kwargs={'pk': self.pk})
+        http = "https://" if settings.MINIO_EXTERNAL_ENDPOINT_USE_HTTPS else "http://"
+        return f"{http}{settings.MINIO_EXTERNAL_ENDPOINT}/media/{self.logo.name}" 
 
 
 class WorkSchedule(BaseModel):
@@ -495,7 +504,7 @@ class Attachment(BaseModel):
     user = models.ForeignKey(auth_models.User, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     description = models.TextField(max_length=255, blank=True, null=True)
-    file = models.FileField(upload_to=generate_file_path)
+    file = models.FileField(upload_to=generate_file_path, storage=MinioAttachmentStorage()) #only attachment files are stored in minio
     slug = models.SlugField(default=uuid.uuid4, editable=False)
 
     class Meta(BaseModel.Meta):
@@ -512,7 +521,10 @@ class Attachment(BaseModel):
 
     def get_file_url(self):
         """Get a URL to the file."""
-        return reverse('ninetofiver_api_v2:download_attachment', kwargs={'slug': self.slug})
+        http = "https://" if settings.MINIO_EXTERNAL_ENDPOINT_USE_HTTPS else "http://"
+        return f"{http}{settings.MINIO_EXTERNAL_ENDPOINT}/media/{self.file.name}" 
+    
+
 
 
 class Holiday(BaseModel):

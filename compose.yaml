@@ -35,6 +35,8 @@ services:
       - "9001:9001"
     volumes:
       - minio-data:/data
+    networks:
+      - ninetofiver
 
   migration:
     build:
@@ -43,13 +45,14 @@ services:
     depends_on:
       - ninetofiver
       - minio
+      - mysql
     environment:
-      - MYSQL_HOST=ninetofiver-mysql-1
-      - MYSQL_PORT=3307
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
       - MYSQL_DATABASE=ninetofiver
       - MYSQL_USER=ninetofiver
       - MYSQL_PASSWORD=ninetofiver
-      - MINIO_ENDPOINT=127.0.0.1:9000
+      - MINIO_ENDPOINT:9000
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio-client
       - MINIO_MEDIA_FILES_BUCKET=media

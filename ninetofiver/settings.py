@@ -363,13 +363,13 @@ class Base(Configuration):
         },
     }
 
-    MINIO_ENDPOINT = "minio:9000"
-    MINIO_ACCESS_KEY = "minio"  
-    MINIO_SECRET_KEY = "minio123321"  
-    MINIO_PUBLIC_BUCKETS = ["media"]
-    MINIO_MEDIA_FILES_BUCKET = "media"
-    MINIO_CONSISTENCY_CHECK_ON_START = False
-    MINIO_EXTERNAL_ENDPOINT = "minio:9000"  
+    MINIO_ENDPOINT = os.environ.get('MINIO_ENDPOINT', 'minio:9000')
+    MINIO_ACCESS_KEY = os.environ.get('MINIO_ACCESS_KEY', 'minio')
+    MINIO_SECRET_KEY = os.environ.get('MINIO_SECRET_KEY', 'minio-client')
+    MINIO_USE_HTTPS = False
+    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_MEDIA_FILES_BUCKET', 'media')
+    MINIO_AUTO_CREATE_MEDIA_BUCKET = os.environ.get('MINIO_AUTO_CREATE_MEDIA_BUCKET', 'True') == 'True'
+    MINIO_EXTERNAL_ENDPOINT = os.environ.get('MINIO_EXTERNAL_ENDPOINT', 'localhost:9000')
     MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
 
 class Dev(Base):
