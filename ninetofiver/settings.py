@@ -351,17 +351,18 @@ class Base(Configuration):
 
 #    # MinIO settings
 
-    STORAGES = {
-    "default": {
-        "BACKEND": 'django_minio_backend.models.MinioBackend',
-        "OPTIONS": {
-            "bucket_name": "media",  # Bucket for media files
-            },
-        },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        },
-    }
+    # default storage setting --> minio only for media files, not default
+    # STORAGES = {
+    #     "default": {
+    #         "BACKEND": 'django_minio_backend.models.MinioBackend',
+    #         "OPTIONS": {
+    #             "bucket_name": "media",  # Bucket for media files
+    #         },
+    #     },
+    #     "staticfiles": {
+    #         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    #     },
+    # }
 
     MINIO_ENDPOINT = os.environ.get('MINIO_ENDPOINT', 'minio:9000')
     MINIO_ACCESS_KEY = os.environ.get('MINIO_ACCESS_KEY', 'minio')

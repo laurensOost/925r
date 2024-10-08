@@ -70,7 +70,7 @@ class MinioAttachmentStorage(MinioBackend):
     """Minio attachment storage."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['bucket_name'] = settings.MINIO_ATTACHMENT_BUCKET
+        kwargs['bucket_name'] = settings.MINIO_MEDIA_FILES_BUCKET 
         super().__init__(*args, **kwargs)
 
 class BaseManager(PolymorphicManager):
@@ -521,8 +521,10 @@ class Attachment(BaseModel):
 
     def get_file_url(self):
         """Get a URL to the file."""
-        http = "https://" if settings.MINIO_EXTERNAL_ENDPOINT_USE_HTTPS else "http://"
-        return f"{http}{settings.MINIO_EXTERNAL_ENDPOINT}/media/{self.file.name}" 
+        if self.file:
+            return self.file.url
+        return None
+
     
 
 
