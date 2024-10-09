@@ -365,7 +365,10 @@ class Base(Configuration):
         },
     }
 
-    MEDIA_URL = os.getenv('MINIO_MEDIA_URL', 'http://localhost:9000/ninetofiver/')
+    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_MEDIA_FILES_BUCKET', 'ninetofiver')
+    MEDIA_URL = os.getenv('MINIO_MEDIA_URL', 'http://minio:9000/ninetofiver/')
+
+
 
 
 

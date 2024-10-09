@@ -39,6 +39,7 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_MEDIA_FILES_BUCKET=${MINIO_MEDIA_FILES_BUCKET}  # Update here to match Django config
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -59,9 +60,9 @@ services:
       done &&
       mc mb --ignore-existing myminio/$MINIO_BUCKET &&
       mc anonymous set public myminio/$MINIO_BUCKET &&
-      mc admin user add myminio $MINIO_USER $MINIO_PASSWORD &&
-      mc admin policy attach myminio readwrite --user=$MINIO_USER &&
-      mc admin user svcacct add myminio $MINIO_USER --access-key=$MINIO_SVC_ACCESS_KEY --secret-key=$MINIO_SVC_SECRET_KEY"
+      mc admin user add myminio $MINIO_SERVICE_USER $MINIO_SERVICE_PASSWORD &&
+      mc admin policy attach myminio readwrite --user=$MINIO_SERVICE_USER &&
+      mc admin user svcacct add myminio $MINIO_SERVICE_USER --access-key=$MINIO_SVC_ACCESS_KEY --secret-key=$MINIO_SVC_SECRET_KEY"
     env_file:
       - .env
     networks:
