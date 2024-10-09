@@ -350,21 +350,22 @@ class Base(Configuration):
     MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_BUCKET', 'ninetofiver')
     MINIO_AUTO_CREATE_MEDIA_BUCKET = True
     DEFAULT_FILE_STORAGE = 'django_minio_backend.models.MinioBackend'
-    MINIO_MEDIA_URL = f'http://{MINIO_ENDPOINT}/{MINIO_MEDIA_FILES_BUCKET}/'
 
     STORAGES = {
         "default": {
             "BACKEND": 'django_minio_backend.models.MinioBackend',
             "OPTIONS": {
-                'access_key': os.getenv('MINIO_USER', 'appuser'),
-                'secret_key': os.getenv('MINIO_PASSWORD', 'apppassword'),
+                'access_key': os.getenv('MINIO_ACCESS_KEY', 'svcaccesskey'),
+                'secret_key': os.getenv('MINIO_SECRET_KEY', 'svcsecretkey'),
                 'bucket_name': os.getenv('MINIO_BUCKET', 'ninetofiver'),
                 'endpoint': os.getenv('MINIO_ENDPOINT', 'minio:9000'),
-                'secure': False,  # Ensure this matches your deployment
-                'region_name': 'us-east-1',  # Add this to ensure region compatibility
+                'secure': False,
+                'region_name': 'us-east-1',
             },
         },
     }
+    MEDIA_URL = os.getenv('MINIO_MEDIA_URL', 'http://localhost:9000/ninetofiver/')
+
 
 
 class Dev(Base):

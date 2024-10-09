@@ -15,13 +15,13 @@ services:
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD?}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT?}
       - MINIO_ACCESS_KEY=${MINIO_SVC_ACCESS_KEY?}
-      - MINIO_SECRET_KEY=${MINIO_SVC_SECRET_KEY?}   # Update this to use service account keys
+      - MINIO_SECRET_KEY=${MINIO_SVC_SECRET_KEY?} 
       - MINIO_MEDIA_FILES_BUCKET=${MINIO_BUCKET?}
     command: > 
       bash -c "
           python manage.py migrate &&
-          echo \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('${SUPERUSER_USERNAME?}', '${SUPERUSER_EMAIL?}', '${SUPERUSER_PASSWORD?}')\" | python manage.py shell || true &&
-          echo \"from oauth2_provider.models import Application; from django.contrib.auth import get_user_model; User = get_user_model(); client = Application.objects.create(user=User.objects.filter(is_staff=True)[0], name='${API_APPLICATION_NAME?}', client_id='${API_APPLICATION_CLIENT_ID?}', client_secret='${API_APPLICATION_CLIENT_SECRET?}', authorization_grant_type=Application.GRANT_PASSWORD)\" | python manage.py shell || true &&
+          echo \"from django.contrib.auth import get_user_model; User = get_user_model(); username='${SUPERUSER_USERNAME?}'; email='${SUPERUSER_EMAIL?}'; password='${SUPERUSER_PASSWORD?}'; User.objects.filter(username=username).exists() or User.objects.create_superuser(username, email, password)\" | python manage.py shell ||
+          echo \"from oauth2_provider.models import Application; from django.contrib.auth import get_user_model; User = get_user_model(); client_id='${API_APPLICATION_CLIENT_ID?}'; if not Application.objects.filter(client_id=client_id).exists(): user = User.objects.filter(is_staff=True).first(); Application.objects.create(user=user, name='${API_APPLICATION_NAME?}', client_id=client_id, client_secret='${API_APPLICATION_CLIENT_SECRET?}', authorization_grant_type=Application.GRANT_PASSWORD)\" | python manage.py shell ||
           python manage.py runserver 0.0.0.0:8000"
     networks:
       - ninetofiver
@@ -59,8 +59,6 @@ services:
       - .env
     networks:
       - ninetofiver
-
-
 
   # migration:
     # build:
