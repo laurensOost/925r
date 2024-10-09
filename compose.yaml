@@ -14,8 +14,8 @@ services:
       - SUPERUSER_USERNAME=${SUPERUSER_USERNAME?}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD?}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT?}
-      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER?}
-      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD?}
+      - MINIO_ACCESS_KEY=${MINIO_SVC_ACCESS_KEY?}
+      - MINIO_SECRET_KEY=${MINIO_SVC_SECRET_KEY?}   # Update this to use service account keys
       - MINIO_MEDIA_FILES_BUCKET=${MINIO_BUCKET?}
     command: > 
       bash -c "
@@ -62,28 +62,28 @@ services:
 
 
 
-  migration:
-    build:
-      context: .
-      dockerfile: Dockerfile.migration
-    depends_on:
-      - ninetofiver
-      - minio
-      - mysql
-    environment:
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=ninetofiver
-      - MYSQL_USER=ninetofiver
-      - MYSQL_PASSWORD=ninetofiver
-      - MINIO_ENDPOINT:9000
-      - MINIO_ACCESS_KEY=minio
-      - MINIO_SECRET_KEY=minio-client
-      - MINIO_MEDIA_FILES_BUCKET=media
-    volumes:
-      - ./media:/scripts/migrate_to_minio/media
-    networks:
-      - ninetofiver
+  # migration:
+    # build:
+      # context: .
+      # dockerfile: Dockerfile.migration
+    # depends_on:
+      # - ninetofiver
+      # - minio
+      # - mysql
+    # environment:
+      # - MYSQL_HOST=mysql
+      # - MYSQL_PORT=3306
+      # - MYSQL_DATABASE=ninetofiver
+      # - MYSQL_USER=ninetofiver
+      # - MYSQL_PASSWORD=ninetofiver
+      # - MINIO_ENDPOINT=minio:9000
+      # - MINIO_ACCESS_KEY=minio
+      # - MINIO_SECRET_KEY=minio-client
+      # - MINIO_MEDIA_FILES_BUCKET=media
+    # volumes:
+      # - ./media:/scripts/migrate_to_minio/media
+    # networks:
+      # - ninetofiver
 
 volumes:
   minio-data:
