@@ -100,6 +100,7 @@ class Base(Configuration):
         'recurrence',
         'django_minio_backend',
         'django_minio_backend.apps.DjangoMinioBackendConfig',
+        'storages',
     ]
 
     MIDDLEWARE = [
@@ -340,14 +341,13 @@ class Base(Configuration):
     ROCKETCHAT_PERFORMANCE_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
     ROCKETCHAT_TIMESHEET_REMINDER_NOTIFICATION_ENABLED = values.Value(True)
 
-#   # MinIO settings
-
+    # MinIO settings
     MINIO_CONSISTENCY_CHECK_ON_START = True
     MINIO_ENDPOINT = os.environ.get('MINIO_ENDPOINT', 'minio:9000')
     MINIO_USE_HTTPS = False
 
     MINIO_PUBLIC_BUCKETS  = ["ninetofiver"]
-    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_BUCKET', 'ninetofiver')
+    MINIO_MEDIA_FILES_BUCKET = os.environ.get('MINIO_MEDIA_FILES_BUCKET', 'ninetofiver')
     MINIO_AUTO_CREATE_MEDIA_BUCKET = True
     DEFAULT_FILE_STORAGE = 'django_minio_backend.models.MinioBackend'
 
@@ -357,14 +357,16 @@ class Base(Configuration):
             "OPTIONS": {
                 'access_key': os.getenv('MINIO_ACCESS_KEY', 'svcaccesskey'),
                 'secret_key': os.getenv('MINIO_SECRET_KEY', 'svcsecretkey'),
-                'bucket_name': os.getenv('MINIO_BUCKET', 'ninetofiver'),
+                'bucket_name': os.getenv('MINIO_MEDIA_FILES_BUCKET', 'ninetofiver'),
                 'endpoint': os.getenv('MINIO_ENDPOINT', 'minio:9000'),
                 'secure': False,
                 'region_name': 'us-east-1',
             },
         },
     }
+
     MEDIA_URL = os.getenv('MINIO_MEDIA_URL', 'http://localhost:9000/ninetofiver/')
+
 
 
 

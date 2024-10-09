@@ -1,6 +1,8 @@
 services:
   ninetofiver:
     build: .
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE?}
       - DJANGO_CONFIGURATION=${DJANGO_CONFIGURATION?}
@@ -17,11 +19,13 @@ services:
       - MINIO_ACCESS_KEY=${MINIO_SVC_ACCESS_KEY?}
       - MINIO_SECRET_KEY=${MINIO_SVC_SECRET_KEY?} 
       - MINIO_MEDIA_FILES_BUCKET=${MINIO_BUCKET?}
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_SECRET_KEY}  # Corrected here
     command: > 
       bash -c "
           python manage.py migrate &&
-          echo \"from django.contrib.auth import get_user_model; User = get_user_model(); username='${SUPERUSER_USERNAME?}'; email='${SUPERUSER_EMAIL?}'; password='${SUPERUSER_PASSWORD?}'; User.objects.filter(username=username).exists() or User.objects.create_superuser(username, email, password)\" | python manage.py shell ||
-          echo \"from oauth2_provider.models import Application; from django.contrib.auth import get_user_model; User = get_user_model(); client_id='${API_APPLICATION_CLIENT_ID?}'; if not Application.objects.filter(client_id=client_id).exists(): user = User.objects.filter(is_staff=True).first(); Application.objects.create(user=user, name='${API_APPLICATION_NAME?}', client_id=client_id, client_secret='${API_APPLICATION_CLIENT_SECRET?}', authorization_grant_type=Application.GRANT_PASSWORD)\" | python manage.py shell ||
+          echo \"from django.contrib.auth import get_user_model; User = get_user_model(); username='${SUPERUSER_USERNAME?}'; email='${SUPERUSER_EMAIL?}'; password='${SUPERUSER_PASSWORD?}'; if not User.objects.filter(username=username).exists(): User.objects.create_superuser(username, email, password)\" | python manage.py shell &&
+          echo \"from oauth2_provider.models import Application; from django.contrib.auth import get_user_model; User = get_user_model(); client_id='${API_APPLICATION_CLIENT_ID?}'; if not Application.objects.filter(client_id=client_id).exists(): user = User.objects.filter(is_staff=True).first(); Application.objects.create(user=user, name='${API_APPLICATION_NAME?}', client_id=client_id, client_secret='${API_APPLICATION_CLIENT_SECRET?}', authorization_grant_type=Application.GRANT_PASSWORD)\" | python manage.py shell &&
           python manage.py runserver 0.0.0.0:8000"
     networks:
       - ninetofiver
@@ -49,7 +53,10 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-      until mc alias set myminio $MINIO_URL $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; do sleep 10; done &&
+      until mc alias set myminio $MINIO_URL $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; do 
+        echo 'Waiting for MinIO server...'; 
+        sleep 5; 
+      done &&
       mc mb --ignore-existing myminio/$MINIO_BUCKET &&
       mc anonymous set public myminio/$MINIO_BUCKET &&
       mc admin user add myminio $MINIO_USER $MINIO_PASSWORD &&
@@ -59,29 +66,6 @@ services:
       - .env
     networks:
       - ninetofiver
-
-  # migration:
-    # build:
-      # context: .
-      # dockerfile: Dockerfile.migration
-    # depends_on:
-      # - ninetofiver
-      # - minio
-      # - mysql
-    # environment:
-      # - MYSQL_HOST=mysql
-      # - MYSQL_PORT=3306
-      # - MYSQL_DATABASE=ninetofiver
-      # - MYSQL_USER=ninetofiver
-      # - MYSQL_PASSWORD=ninetofiver
-      # - MINIO_ENDPOINT=minio:9000
-      # - MINIO_ACCESS_KEY=minio
-      # - MINIO_SECRET_KEY=minio-client
-      # - MINIO_MEDIA_FILES_BUCKET=media
-    # volumes:
-      # - ./media:/scripts/migrate_to_minio/media
-    # networks:
-      # - ninetofiver
 
 volumes:
   minio-data:
